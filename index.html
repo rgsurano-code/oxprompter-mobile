@@ -220,7 +220,7 @@ body.prompter.mobile-camera .promptHud,body.prompter.mobile-camera .controls{z-i
 .controlsReveal:not(.hidden){display:flex;align-items:center;justify-content:center;}
 .promptText{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;}
 .promptText.dragging{cursor:grabbing;}
-.mobileCameraBg{object-fit:cover;transform:none!important;}
+.mobileCameraBg{object-fit:cover;object-position:center center;transform:none!important;}
 @media(max-width:700px){
   .mobile-camera .controls{left:auto;right:6px;bottom:max(72px,calc(env(safe-area-inset-bottom) + 62px));width:auto;max-width:58px;min-width:0;transform:none;display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:4px!important;border-radius:12px;background:transparent!important;}
   .mobile-camera .controls .finalAdjust{display:flex;flex-direction:column;align-items:center;gap:3px;width:48px;height:auto;padding:4px;background:transparent!important;}
@@ -233,10 +233,15 @@ body.prompter.mobile-camera .promptHud,body.prompter.mobile-camera .controls{z-i
   .mobile-camera .controls #hideControls{font-size:0;}
   .mobile-camera .controls #hideControls:after{content:'●';font-size:13px;color:#42ffd0;}
 }
+
+/* MOBILE TESTE 8 */
+#widthToggle{width:42px;min-width:42px!important}
+.promptText{touch-action:none;-webkit-user-drag:none}
+@media(max-width:700px){.mobile-camera .controls #widthToggle{width:48px;min-width:48px;background:transparent!important}.mobile-camera .controls #widthToggle{font-size:18px}}
 </style>
 
 <!-- OXPROMPTER MOBILE TESTE 4: câmera e microfone com autorização independente -->
-</head><body><div id="root"></div>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#050909"><link rel="apple-touch-icon" href="icons/icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="OXPROMPTER"></head><body><div id="root"></div>
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const KEY='tp_data_v1';
@@ -902,13 +907,19 @@ function adjustFinalFont(delta){
   if(started&&Math.abs(oldY-manualY)>1){const diff=manualY-oldY;manualY=oldY;el.style.transform=(current.settings.mirror?'scaleX(-1) ':'')+`translateY(${manualY}px)`}
 }
 
-function adjustTextWidth(delta){
+function toggleTextWidth(){
   const el=$('#promptText'); if(!el)return;
-  let w=Number(current.settings?.textWidth); if(!Number.isFinite(w))w=600;
-  w=Math.max(360,Math.min(1000,w+delta));
-  current.settings.textWidth=w;
-  el.style.maxWidth=w+'px';
-  const label=$('#widthValue'); if(label)label.textContent=w+'px';
+  const currentW=Number(current.settings?.textWidth)||600;
+  const presets=[0.72,0.84,0.94];
+  const vw=Math.max(320,window.innerWidth||360);
+  const currentPct=current.settings?.textWidthPct||0.84;
+  let idx=presets.findIndex(x=>Math.abs(x-currentPct)<.01);
+  if(idx<0)idx=1;
+  idx=(idx+1)%presets.length;
+  const pct=presets[idx];
+  current.settings.textWidthPct=pct;
+  current.settings.textWidth=Math.round(vw*pct);
+  el.style.maxWidth=Math.round(vw*pct)+'px';
   save();
   const oldY=manualY; positionPromptAtReadingLine();
   if(started&&Math.abs(oldY-manualY)>1){manualY=oldY;el.style.transform=(current.settings.mirror?'scaleX(-1) ':'')+`translateY(${manualY}px)`}
@@ -917,14 +928,31 @@ function adjustTextWidth(delta){
 function enablePromptTouchDrag(){
   const el=$('#promptText'); if(!el||el.dataset.touchDrag==='1')return;
   el.dataset.touchDrag='1';
-  let dragging=false,lastY=0;
-  el.addEventListener('pointerdown',e=>{if(preparingPrompter)return;dragging=true;lastY=e.clientY;el.classList.add('dragging');try{el.setPointerCapture(e.pointerId)}catch(err){}});
-  el.addEventListener('pointermove',e=>{if(!dragging)return;const dy=e.clientY-lastY;lastY=e.clientY;manualY+=dy;const stage=el.parentElement;const minY=Math.min(0,stage.clientHeight-el.scrollHeight-stage.clientHeight*.18);manualY=Math.max(minY,Math.min(stage.clientHeight*.15,manualY));el.style.transform=(current.settings?.mirror?'scaleX(-1) ':'')+`translateY(${manualY}px)`;});
-  const stop=()=>{dragging=false;el.classList.remove('dragging')};
-  el.addEventListener('pointerup',stop);el.addEventListener('pointercancel',stop);el.addEventListener('pointerleave',e=>{if(dragging&&e.buttons===0)stop()});
+  let dragging=false,lastY=0,wasRunning=false;
+  el.addEventListener('pointerdown',e=>{
+    if(preparingPrompter)return;
+    dragging=true; lastY=e.clientY; wasRunning=!paused;
+    if(wasRunning)togglePause();
+    el.classList.add('dragging');
+    try{el.setPointerCapture(e.pointerId)}catch(err){}
+  });
+  el.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    const dy=e.clientY-lastY; lastY=e.clientY; manualY+=dy;
+    const stage=el.parentElement;
+    const minY=Math.min(0,stage.clientHeight-el.scrollHeight-stage.clientHeight*.18);
+    manualY=Math.max(minY,Math.min(stage.clientHeight*.15,manualY));
+    el.style.transform=(current.settings?.mirror?'scaleX(-1) ':'')+`translateY(${manualY}px)`;
+  });
+  const stop=()=>{
+    if(!dragging)return; dragging=false; el.classList.remove('dragging');
+    if(wasRunning){setTimeout(()=>{if(!preparingPrompter&&!paused){}else if(!preparingPrompter)togglePause()},40);}
+    wasRunning=false;
+  };
+  el.addEventListener('pointerup',stop); el.addEventListener('pointercancel',stop);
 }
 
-function showPrompter(preparing=false){if(!preparing)stopAll();current.settings=current.settings||{};if(!Number.isFinite(Number(current.settings.startPercent)))current.settings.startPercent=50;if(!Number.isFinite(Number(current.settings.textWidth)))current.settings.textWidth=600;let s=current.settings||{};s.theme=(s.theme==='light'||s.theme==='white')?'white':'dark';current.settings.theme=s.theme;started=!preparing;sessionId++;currentWord=0;lastMatch=0;words=buildWords(current.text);startTime=preparing?0:Date.now();targetSeconds=parseTime(s.target);preparingPrompter=!!preparing;document.body.className='prompter '+((s.theme==='light'||s.theme==='white')?'light':'')+(s.mode==='noaudio'?' no-audio':'')+(s.mobileCameraBg?' mobile-camera':'')+(preparing?' adjusting':'');document.body.innerHTML=`<div class="promptHud"><div class="hudBox"><div id="timer" class="promptTimer">00:00</div><div class="hudAlert"><span id="runner" class="runner" aria-label="Aviso de tempo">🏃</span><span id="statusDot" class="dot ${s.mode==='noaudio'?'green':''}"></span></div><div id="statusText" class="hudStatusText">${s.mode==='noaudio'?'Rolagem automática':'Aguardando fala'}</div>${s.mode==='noaudio'?'':`<div class="hudMic">🎙️ <span class="hudMicTrack"><span id="liveMicLevel" class="hudMicLevel"></span></span></div><div id="liveMicDb" class="hudDb">-60 dB</div>`}</div></div>${preparing&&s.mode!=='noaudio'&&((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).length)?`<div class="start-command-banner"><span class="label">COMANDO PARA INICIAR</span><span class="phrase">“${esc((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).join('”  ou  “'))}”</span></div>`:''}<div class="promptStage">${s.mobileCameraBg?'<video id="mobileCameraBgVideo" class="mobileCameraBg" autoplay muted playsinline></video><div class="mobileCameraShade"></div><div class="mobile-camera-badge">CÂMERA + TELEPROMPTER</div>':''}<div id="startReference" class="startReference"><span class="startReferenceLabel">INÍCIO · 50%</span></div><div id="promptText" class="promptText"></div><div id="guide" class="guide"></div></div><div class="controls"><div class="finalAdjust"><button id="fontMinus" class="iconBtn" title="Diminuir letra">A−</button><span id="fontValue" class="fontValue">${s.font||54}</span><button id="fontPlus" class="iconBtn" title="Aumentar letra">A+</button></div><button id="pause" class="wideIcon" title="Pausar/continuar">⏸</button><button id="slower" class="wideIcon" title="Diminuir velocidade">🐢</button><span id="speedLevel" class="speed-level" title="Velocidade">▮▮▮▯▯  1.0x</span><button id="faster" class="wideIcon" title="Aumentar velocidade">🚀</button><button id="restartTele" class="iconBtn" title="Recomeçar">↻</button><button id="backTele" class="iconBtn" title="Voltar">←</button><button id="hideControls" class="iconBtn" title="Ocultar controles">●</button></div><button id="showControls" class="controlsReveal hidden" title="Mostrar controles">●</button>`;if(s.mirror)$('#promptText').style.transform='scaleX(-1)';$('#promptText').style.fontSize=s.font+'px';$('#promptText').style.maxWidth=(s.textWidth||600)+'px';$('#promptText').style.opacity=Math.max(.35,Math.min(1,Number(s.mobileTextOpacity||90)/100));renderPrompt();positionPromptAtReadingLine();markReferenceWord(preparing);syncStartReference();$('#fontMinus').onclick=()=>adjustFinalFont(-2);$('#fontPlus').onclick=()=>adjustFinalFont(2);if(preparing)enableStartPositionDrag();$('#pause').onclick=togglePause;document.onkeydown=e=>{if(e.code==='Space'&&document.body.classList.contains('prompter')){const tag=(e.target&&e.target.tagName)||'';if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){e.preventDefault();togglePause()}}};$('#slower').onclick=()=>{scrollSpeed=Math.max(.2,Math.round((scrollSpeed-.1)*10)/10);updateSpeedUI()};$('#faster').onclick=()=>{scrollSpeed=Math.min(3,Math.round((scrollSpeed+.1)*10)/10);updateSpeedUI()};$('#restartTele').onclick=async()=>{
+function showPrompter(preparing=false){if(!preparing)stopAll();current.settings=current.settings||{};if(!Number.isFinite(Number(current.settings.startPercent)))current.settings.startPercent=50;if(!Number.isFinite(Number(current.settings.textWidth)))current.settings.textWidth=600;if(!Number.isFinite(Number(current.settings.textWidthPct)))current.settings.textWidthPct=.84;let s=current.settings||{};s.theme=(s.theme==='light'||s.theme==='white')?'white':'dark';current.settings.theme=s.theme;started=!preparing;sessionId++;currentWord=0;lastMatch=0;words=buildWords(current.text);startTime=preparing?0:Date.now();targetSeconds=parseTime(s.target);preparingPrompter=!!preparing;document.body.className='prompter '+((s.theme==='light'||s.theme==='white')?'light':'')+(s.mode==='noaudio'?' no-audio':'')+(s.mobileCameraBg?' mobile-camera':'')+(preparing?' adjusting':'');document.body.innerHTML=`<div class="promptHud"><div class="hudBox"><div id="timer" class="promptTimer">00:00</div><div class="hudAlert"><span id="runner" class="runner" aria-label="Aviso de tempo">🏃</span><span id="statusDot" class="dot ${s.mode==='noaudio'?'green':''}"></span></div><div id="statusText" class="hudStatusText">${s.mode==='noaudio'?'Rolagem automática':'Aguardando fala'}</div>${s.mode==='noaudio'?'':`<div class="hudMic">🎙️ <span class="hudMicTrack"><span id="liveMicLevel" class="hudMicLevel"></span></span></div><div id="liveMicDb" class="hudDb">-60 dB</div>`}</div></div>${preparing&&s.mode!=='noaudio'&&((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).length)?`<div class="start-command-banner"><span class="label">COMANDO PARA INICIAR</span><span class="phrase">“${esc((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).join('”  ou  “'))}”</span></div>`:''}<div class="promptStage">${s.mobileCameraBg?'<video id="mobileCameraBgVideo" class="mobileCameraBg" autoplay muted playsinline></video><div class="mobileCameraShade"></div><div class="mobile-camera-badge">CÂMERA + TELEPROMPTER</div>':''}<div id="startReference" class="startReference"><span class="startReferenceLabel">INÍCIO · 50%</span></div><div id="promptText" class="promptText"></div><div id="guide" class="guide"></div></div><div class="controls"><div class="finalAdjust"><button id="fontMinus" class="iconBtn" title="Diminuir letra">A−</button><span id="fontValue" class="fontValue">${s.font||54}</span><button id="fontPlus" class="iconBtn" title="Aumentar letra">A+</button></div><button id="widthToggle" class="iconBtn" title="Ajustar largura do texto">↔</button><button id="pause" class="wideIcon" title="Pausar/continuar">⏸</button><button id="slower" class="wideIcon" title="Diminuir velocidade">🐢</button><button id="faster" class="wideIcon" title="Aumentar velocidade">🚀</button><button id="restartTele" class="iconBtn" title="Recomeçar">↻</button><button id="backTele" class="iconBtn" title="Voltar">←</button><button id="hideControls" class="iconBtn" title="Ocultar controles">●</button></div><button id="showControls" class="controlsReveal hidden" title="Mostrar controles">●</button>`;if(s.mirror)$('#promptText').style.transform='scaleX(-1)';$('#promptText').style.fontSize=s.font+'px';$('#promptText').style.maxWidth=Math.round((window.innerWidth||720)*(Number(s.textWidthPct)||.84))+'px';$('#promptText').style.opacity=Math.max(.35,Math.min(1,Number(s.mobileTextOpacity||90)/100));renderPrompt();positionPromptAtReadingLine();markReferenceWord(preparing);syncStartReference();$('#fontMinus').onclick=()=>adjustFinalFont(-2);$('#fontPlus').onclick=()=>adjustFinalFont(2);$('#widthToggle').onclick=toggleTextWidth;if(preparing)enableStartPositionDrag();$('#pause').onclick=togglePause;document.onkeydown=e=>{if(e.code==='Space'&&document.body.classList.contains('prompter')){const tag=(e.target&&e.target.tagName)||'';if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){e.preventDefault();togglePause()}}};$('#slower').onclick=()=>{scrollSpeed=Math.max(.2,Math.round((scrollSpeed-.1)*10)/10);updateSpeedUI()};$('#faster').onclick=()=>{scrollSpeed=Math.min(3,Math.round((scrollSpeed+.1)*10)/10);updateSpeedUI()};$('#restartTele').onclick=async()=>{
   // RECOMEÇAR: encerra somente a sessão/gravação atual.
   // Não destrói o microfone/câmera de preparação, para que a nova gravação
   // possa ser criada imediatamente.
