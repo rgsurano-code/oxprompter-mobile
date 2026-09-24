@@ -210,6 +210,7 @@ body.prompter.mobile-camera .promptHud,body.prompter.mobile-camera .controls{z-i
 }
 </style>
 
+<!-- OXPROMPTER MOBILE TESTE 4: câmera e microfone com autorização independente -->
 </head><body><div id="root"></div>
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -334,26 +335,27 @@ function prepare(){stopPrepMedia();stopAll();document.body.className='';document
 
 <div class="card prepCard"><div class="section-title">📹 Câmera</div><div class="cameraCardBody"><div class="camera-controls"><div class="grid">
 <div class="field check"><input id="recordOn" type="checkbox" checked><label for="recordOn">Gravar vídeo da câmera</label></div><div class="field check"><input id="recordAudioOn" type="checkbox" checked><label for="recordAudioOn">Gravar áudio no arquivo</label></div><div class="field check"><input id="mobileCameraBg" type="checkbox" checked><label for="mobileCameraBg">📱 Usar câmera como fundo durante a leitura</label></div><div class="field"><label>📷 Câmera para o teleprompter</label><select id="mobileCameraFacing"><option value="user">🤳 Frontal</option><option value="environment">📷 Traseira</option></select></div><div class="field"><label>Opacidade do texto sobre a câmera <span id="mobileTextOpacityValue">90%</span></label><input id="mobileTextOpacity" type="range" min="35" max="100" value="90" step="1"></div>
-<div class="field"><label>Câmera</label><select id="camera"><option value="">Câmera padrão</option></select><div class="row"><button type="button" id="refreshCamera">↻ Atualizar câmeras</button><button type="button" id="testCamera">📷 Testar câmera</button></div></div>
-</div><div class="permission-hint">Câmera e microfone são autorizados juntos e mantidos ativos nesta preparação para evitar novas solicitações.</div></div><div class="camera-preview-wrap"><video id="cameraPreview" class="camera-preview" autoplay muted playsinline></video><div class="camera-preview-note">A prévia mostra exatamente o enquadramento que será capturado na gravação.</div></div><div class="record-help">O vídeo e o áudio são opções separadas. O áudio pode ser gravado mesmo sem vídeo. Só será salvo depois de finalizar e clicar em SALVAR.</div></div></div>
+<div class="field"><label>Câmera</label><select id="camera"><option value="">Câmera padrão</option></select><div class="row"><button type="button" id="refreshCamera">↻ Atualizar câmeras</button><button type="button" id="testCamera">📷 Testar câmera</button></div><div id="cameraHint" class="muted">A câmera será solicitada separadamente do microfone.</div></div>
+</div><div class="permission-hint">Câmera e microfone são testados separadamente. Assim, se um deles for bloqueado, o outro continua funcionando normalmente.</div></div><div class="camera-preview-wrap"><video id="cameraPreview" class="camera-preview" autoplay muted playsinline></video><div class="camera-preview-note">A prévia mostra exatamente o enquadramento que será capturado na gravação.</div></div><div class="record-help">O vídeo e o áudio são opções separadas. O áudio pode ser gravado mesmo sem vídeo. Só será salvo depois de finalizar e clicar em SALVAR.</div></div></div>
 
 </div>
 <div class="card prepFooter"><div class="row between"><button id="back2">← Biblioteca</button><button class="primary" id="start">▶ Iniciar preparação</button></div></div>
-</main>`;$('#theme').value=(db.settings.theme==='light'?'white':(db.settings.theme||'dark'));$('#theme').onchange=()=>{current.settings=current.settings||{};current.settings.theme=$('#theme').value;save();const preview=$('#cameraPreview');if(preview)preview.classList.toggle('theme-preview-white',$('#theme').value==='white');};$('#mirror').value=db.settings.mirror?'yes':'no';$('#font').value=db.settings.font||54;$('#recordOn').checked=current.settings?.recordOn!==false;$('#recordAudioOn').checked=current.settings?.recordAudioOn!==false;$('#mobileCameraBg').checked=current.settings?.mobileCameraBg!==false;$('#mobileCameraBg').onchange=()=>{current.settings.mobileCameraBg=$('#mobileCameraBg').checked;save()};$('#mobileCameraFacing').value=current.settings?.mobileCameraFacing||'user';$('#mobileCameraFacing').onchange=()=>{current.settings.mobileCameraFacing=$('#mobileCameraFacing').value;current.settings.mobileFrontCamera=$('#mobileCameraFacing').value==='user';save();previewCamera()};const mobileOpacity=Math.max(35,Math.min(100,Number(current.settings?.mobileTextOpacity||90)));$('#mobileTextOpacity').value=mobileOpacity;$('#mobileTextOpacityValue').textContent=mobileOpacity+'%';$('#mobileTextOpacity').oninput=()=>{const v=Number($('#mobileTextOpacity').value);$('#mobileTextOpacityValue').textContent=v+'%';current.settings.mobileTextOpacity=v;save()};renderCmds();loadMicrophones();loadCameras();$('#addStart').onclick=()=>addCmd('start');$('#back').onclick=showBiblioteca;$('#back2').onclick=showBiblioteca;$('#refreshMic').onclick=loadMicrophones;$('#testMic').onclick=testMic;$('#mic').onchange=()=>{current.settings.micDeviceId=$('#mic').value;save()};$('#refreshCamera').onclick=loadCameras;$('#camera').onchange=()=>{current.settings.cameraDeviceId=$('#camera').value;save();previewCamera()};$('#testCamera').onclick=previewCamera;$('#start').onclick=startCountdown;previewCamera();}
+</main>`;$('#theme').value=(db.settings.theme==='light'?'white':(db.settings.theme||'dark'));$('#theme').onchange=()=>{current.settings=current.settings||{};current.settings.theme=$('#theme').value;save();const preview=$('#cameraPreview');if(preview)preview.classList.toggle('theme-preview-white',$('#theme').value==='white');};$('#mirror').value=db.settings.mirror?'yes':'no';$('#font').value=db.settings.font||54;$('#recordOn').checked=current.settings?.recordOn!==false;$('#recordAudioOn').checked=current.settings?.recordAudioOn!==false;$('#mobileCameraBg').checked=current.settings?.mobileCameraBg!==false;$('#mobileCameraBg').onchange=()=>{current.settings.mobileCameraBg=$('#mobileCameraBg').checked;save()};$('#mobileCameraFacing').value=current.settings?.mobileCameraFacing||'user';$('#mobileCameraFacing').onchange=()=>{current.settings.mobileCameraFacing=$('#mobileCameraFacing').value;current.settings.mobileFrontCamera=$('#mobileCameraFacing').value==='user';save();previewCamera()};const mobileOpacity=Math.max(35,Math.min(100,Number(current.settings?.mobileTextOpacity||90)));$('#mobileTextOpacity').value=mobileOpacity;$('#mobileTextOpacityValue').textContent=mobileOpacity+'%';$('#mobileTextOpacity').oninput=()=>{const v=Number($('#mobileTextOpacity').value);$('#mobileTextOpacityValue').textContent=v+'%';current.settings.mobileTextOpacity=v;save()};renderCmds();(async()=>{await loadMicrophones();await loadCameras()})();$('#addStart').onclick=()=>addCmd('start');$('#back').onclick=showBiblioteca;$('#back2').onclick=showBiblioteca;$('#refreshMic').onclick=loadMicrophones;$('#testMic').onclick=testMic;$('#mic').onchange=()=>{current.settings.micDeviceId=$('#mic').value;save()};$('#refreshCamera').onclick=loadCameras;$('#camera').onchange=()=>{current.settings.cameraDeviceId=$('#camera').value;save();previewCamera()};$('#testCamera').onclick=previewCamera;$('#start').onclick=startCountdown;}
 function addCmd(type){let arr=current.settings||(current.settings={});arr[type+'Cmds']||(arr[type+'Cmds']=[]);arr[type+'Cmds'].push({phrase:'',action:type==='start'?'start':'resume'});renderCmds()}
 function renderCmds(){let arr=(current.settings&&current.settings.startCmds)||[];$('#startCmds').innerHTML=arr.length?arr.map((c,i)=>`<div class="cmd"><input data-cmd="start" data-i="${i}" value="${esc(c.phrase)}" placeholder="Frase de comando"><select disabled><option>Iniciar</option></select><button data-rm="start" data-i="${i}" class="danger">🗑️</button></div>`).join(''):'<div class="muted">Nenhum comando adicionado.</div>';$$('[data-cmd="start"]').forEach(inp=>inp.oninput=()=>{arr[inp.dataset.i].phrase=inp.value;save()});$$('[data-rm="start"]').forEach(b=>b.onclick=()=>{arr.splice(+b.dataset.i,1);renderCmds()})}
 function savePrep(){current.settings={...(current.settings||{}),theme:($('#theme').value==='white'||$('#theme').value==='light')?'white':'dark',mirror:$('#mirror').value==='yes',font:+$('#font').value,textWidth:+(current.settings?.textWidth||600),mode:$('#mode').value,mic:$('#mic').value,micDeviceId:$('#mic').value,timerOn:$('#timerOn').checked,target:$('#target').value,runnerOn:$('#runnerOn').checked,count:+$('#count').value,recordOn:$('#recordOn').checked,recordAudioOn:$('#recordAudioOn').checked,mobileCameraBg:$('#mobileCameraBg')?.checked!==false,mobileFrontCamera:($('#mobileCameraFacing')?.value||current.settings?.mobileCameraFacing||'user')==='user',mobileCameraFacing:$('#mobileCameraFacing')?.value||current.settings?.mobileCameraFacing||'user',mobileTextOpacity:+($('#mobileTextOpacity')?.value||90),cameraDeviceId:$('#camera').value};save()}
-async function ensurePrepMediaAccess(){
-  if(prepAccessPromise)return prepAccessPromise;
-  prepAccessPromise=(async()=>{
-    if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});
-    prepCombinedStream=stream;
-    prepMicStream=stream;
-    prepCameraStream=stream;
-    return stream;
-  })().catch(e=>{prepAccessPromise=null;throw e});
-  return prepAccessPromise;
+async function ensurePrepMicAccess(){
+  if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
+  if(hasLiveTrack(prepMicStream,'audio'))return prepMicStream;
+  const id=$('#mic')?.value||current.settings?.micDeviceId||'';
+  prepMicStream=await navigator.mediaDevices.getUserMedia({audio:id?{deviceId:{exact:id}}:true});
+  return prepMicStream;
+}
+async function ensurePrepCameraAccess(){
+  if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
+  if(hasLiveTrack(prepCameraStream,'video'))return prepCameraStream;
+  prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
+  return prepCameraStream;
 }
 
 let micStream=null,micAudioContext=null,micAnalyser=null,micRaf=null;
@@ -365,9 +367,9 @@ function selectedMicConstraints(){const id=$('#mic')?.value||current.settings?.m
 function selectedCameraConstraints(){const facing=current.settings?.mobileCameraFacing||(current.settings?.mobileFrontCamera===false?'environment':'user');const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';if(facing==='user'||facing==='environment')return{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}};return id?{deviceId:{exact:id},width:{ideal:1920},height:{ideal:1080}}:{width:{ideal:1280},height:{ideal:720}}}
 async function loadMicrophones(){
   const sel=$('#mic'); if(!sel)return;
-  sel.innerHTML='<option value="">Solicitando câmera + microfone...</option>';
+  sel.innerHTML='<option value="">Solicitando microfone...</option>';
   try{
-    await ensurePrepMediaAccess();
+    await ensurePrepMicAccess();
     const devices=await navigator.mediaDevices.enumerateDevices();
     const mics=devices.filter(d=>d.kind==='audioinput');
     sel.innerHTML=mics.length?mics.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||('Microfone '+(i+1)))}</option>`).join(''):'<option value="">Nenhum microfone encontrado</option>';
@@ -381,26 +383,46 @@ async function loadMicrophones(){
   }
 }
 async function previewCamera(){
-  const v=$('#cameraPreview'); if(!v||!navigator.mediaDevices?.getUserMedia)return;
+  const v=$('#cameraPreview'); if(!v||!navigator.mediaDevices?.getUserMedia)return false;
+  const hint=$('#cameraHint');
   try{
-    await ensurePrepMediaAccess();
+    const stream=await ensurePrepCameraAccess();
     const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
-    const existing=prepCameraStream?.getVideoTracks?.()[0];
-    const existingId=existing?.getSettings?.().deviceId||'';
-    if(existing&&(!id||existingId===id)){v.srcObject=prepCameraStream;return}
-    if(prepCameraStream&&prepCameraStream!==prepCombinedStream)prepCameraStream.getVideoTracks().forEach(t=>t.stop());
-    if(prepCombinedStream?.getVideoTracks?.().length){
-      const combinedId=prepCombinedStream.getVideoTracks()[0].getSettings?.().deviceId||'';
-      if(!id||combinedId===id){prepCameraStream=prepCombinedStream;v.srcObject=prepCameraStream;return}
+    const desiredFacing=current.settings?.mobileCameraFacing||'user';
+    const existing=stream?.getVideoTracks?.()[0];
+    const settings=existing?.getSettings?.()||{};
+    const existingId=settings.deviceId||'';
+    const existingFacing=settings.facingMode||'';
+    const sameFacing=!existingFacing||existingFacing===desiredFacing;
+    if(existing&&sameFacing&&(!id||existingId===id)){
+      v.srcObject=stream;
+      try{await v.play()}catch(e){}
+      if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
+      return true;
     }
+    if(prepCameraStream){try{prepCameraStream.getTracks().forEach(t=>t.stop())}catch(e){}}
     prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
     v.srcObject=prepCameraStream;
-  }catch(e){v.srcObject=null}
+    try{await v.play()}catch(e){}
+    if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
+    return true;
+  }catch(e){
+    if(v)v.srcObject=null;
+    const name=e?.name||'';
+    if(hint){
+      if(name==='NotAllowedError')hint.textContent='⚠️ Câmera bloqueada. Permita a câmera nas permissões do navegador para este site.';
+      else if(name==='NotFoundError')hint.textContent='⚠️ Nenhuma câmera foi encontrada neste aparelho.';
+      else if(name==='NotReadableError')hint.textContent='⚠️ A câmera está sendo usada por outro aplicativo. Feche-o e tente novamente.';
+      else hint.textContent='⚠️ Não foi possível abrir a câmera. Toque em “Testar câmera” para tentar novamente.';
+    }
+    return false;
+  }
 }
+
 async function loadCameras(){
   const sel=$('#camera');if(!sel)return;
   try{
-    await ensurePrepMediaAccess();
+    await ensurePrepCameraAccess();
     const devices=await navigator.mediaDevices.enumerateDevices();
     const cams=devices.filter(d=>d.kind==='videoinput');
     sel.innerHTML=cams.length?cams.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||('Câmera '+(i+1)))}</option>`).join(''):'<option value="">Nenhuma câmera encontrada</option>';
@@ -408,7 +430,14 @@ async function loadCameras(){
     if(wanted&&cams.some(d=>d.deviceId===wanted))sel.value=wanted;
     else if(cams[0]){sel.value=cams[0].deviceId;current.settings={...(current.settings||{}),cameraDeviceId:cams[0].deviceId};save()}
     await previewCamera();
-  }catch(e){sel.innerHTML='<option value="">Não foi possível acessar a câmera</option>'}
+  }catch(e){
+    sel.innerHTML='<option value="">Não foi possível acessar a câmera</option>';
+    const hint=$('#cameraHint');
+    if(hint){
+      if(e?.name==='NotAllowedError')hint.textContent='⚠️ O navegador bloqueou a câmera. Permita a câmera nas permissões deste site e toque em “Testar câmera”.';
+      else hint.textContent='⚠️ Não foi possível acessar a câmera. Toque em “Testar câmera” para tentar novamente.';
+    }
+  }
 }
 let cameraStream=null,recordStream=null,mediaRecorder=null,recordChunks=[],recordingActive=false,recordingMime='',recordedBlob=null,recordedUrl=null,recordingHasVideo=false;
 let liveMicContext=null,liveMicAnalyser=null,liveMicRaf=null,readingMicStream=null,voiceHoldUntil=0,voiceNoiseFloor=0.004;
