@@ -106,6 +106,22 @@ body:not(.prompter){background:#050807;color:#d9fff5}body:not(.prompter) .top{ba
 .prepShell{max-width:1120px!important;padding:10px 14px 12px!important}.prepGrid{grid-template-columns:1fr 1fr!important;gap:8px!important}.prepCard{border-radius:12px!important;padding:10px!important;background:#07100e!important}.prepCard .section-title{font-size:13px!important;letter-spacing:.04em;margin:0 0 7px!important}.prepCard .field label{font-size:11px!important}.prepCard .field input,.prepCard .field select{padding:7px 8px!important;font-size:13px!important}.prepCard .row button,.prepCard button{padding:6px 9px!important;font-size:12px!important}.prepHint,.permission-hint,.record-help,.camera-preview-note{font-size:10px!important;line-height:1.25!important}.voiceTimeGrid{grid-template-columns:1.1fr .9fr!important;gap:10px!important}.timeFields{gap:6px!important}.cmd{gap:6px!important;margin:4px 0!important}.cmd input{padding:7px!important;font-size:12px!important}.cmd button{padding:5px 7px!important}.cameraCardBody{grid-template-columns:minmax(235px,.62fr) minmax(430px,1.38fr)!important;gap:10px!important}.cameraCardBody .grid{grid-template-columns:1fr 1fr!important}.camera-preview{min-height:205px!important;border-width:1px!important}.camera-preview-wrap{display:block!important}.camera-preview-note{margin-top:4px!important}.camera-controls .permission-hint{margin-top:5px}.prepFooter{padding:7px 9px!important;margin-top:8px!important;background:#07100e!important;border-radius:12px!important}.prepFooter .row{justify-content:space-between!important}.prepFooter button{padding:7px 11px!important}.prepFooter #start{min-width:170px}.start-command-banner{transition:opacity .15s ease}
 @media(max-width:850px){.prepGrid{grid-template-columns:1fr!important}.cameraCardBody{grid-template-columns:1fr!important}.cameraCardBody .grid{grid-template-columns:1fr 1fr!important}}
 @media(max-width:560px){.cameraCardBody .grid,.timeFields{grid-template-columns:1fr!important}}
+
+/* MOBILE TESTE 5 */
+@media(max-width:700px){
+  .mobile-camera .controls{left:auto;right:6px;bottom:max(72px,calc(env(safe-area-inset-bottom) + 62px));width:auto;max-width:58px;min-width:0;transform:none;display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:5px;border-radius:12px;background:rgba(0,0,0,.68);}
+  .mobile-camera .controls .finalAdjust,.mobile-camera .controls .textWidthAdjust{display:flex;flex-direction:column;align-items:center;gap:3px;width:48px;height:auto;padding:4px;}
+  .mobile-camera .controls .finalAdjust button,.mobile-camera .controls .textWidthAdjust button{width:38px;min-width:38px;height:34px;min-height:34px;}
+  .mobile-camera .controls .fontValue,.mobile-camera .controls .widthValue{font-size:9px;min-width:0;line-height:1.1;}
+  .mobile-camera .controls .speed-level{width:48px;min-width:48px;height:auto;min-height:82px;padding:6px 3px;writing-mode:vertical-rl;transform:rotate(180deg);display:flex;align-items:center;justify-content:center;letter-spacing:.03em;}
+  .mobile-camera .controls #slower,.mobile-camera .controls #faster{width:48px;min-width:48px;}
+  .mobile-camera .controls #pause,.mobile-camera .controls #restartTele,.mobile-camera .controls #backTele,.mobile-camera .controls #fullscreen{width:48px;min-width:48px;}
+  .mobile-camera .controls #slower,.mobile-camera .controls #faster{display:none;}
+  .mobile-camera .controls:after{content:'controles';position:absolute;right:0;top:-15px;font-size:8px;color:#42ffd0;opacity:.75;text-transform:uppercase;letter-spacing:.08em;}
+}
+@media(min-width:701px){
+  .mobile-camera .controls{flex-wrap:nowrap;}
+}
 </style><link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#42ffd0">
 <meta name="mobile-web-app-capable" content="yes">
@@ -334,16 +350,16 @@ function prepare(){stopPrepMedia();stopAll();document.body.className='';document
 <div class="card prepCard voiceTimeCard"><div class="section-title">🎙️ Comando + ⏱️ Tempo</div><div class="voiceTimeGrid"><div><div class="muted prepHint">Com áudio: aguarda o comando antes da contagem regressiva.</div><div id="startCmds"></div><button id="addStart" class="compactBtn">+ Comando</button></div><div class="timeFields"><div class="field check"><input id="timerOn" type="checkbox" checked><label for="timerOn">Mostrar tempo</label></div><div class="field"><label>Tempo desejado</label><input id="target" type="time" step="1" value="00:05:00"></div><div class="field check"><input id="runnerOn" type="checkbox" checked><label for="runnerOn">Aviso de atraso 🏃</label></div><div class="field"><label>Contagem</label><select id="count"><option>3</option><option selected>5</option><option>10</option></select></div></div></div></div>
 
 <div class="card prepCard"><div class="section-title">📹 Câmera</div><div class="cameraCardBody"><div class="camera-controls"><div class="grid">
-<div class="field check"><input id="recordOn" type="checkbox" checked><label for="recordOn">Gravar vídeo da câmera</label></div><div class="field check"><input id="recordAudioOn" type="checkbox" checked><label for="recordAudioOn">Gravar áudio no arquivo</label></div><div class="field check"><input id="mobileCameraBg" type="checkbox" checked><label for="mobileCameraBg">📱 Usar câmera como fundo durante a leitura</label></div><div class="field"><label>📷 Câmera para o teleprompter</label><select id="mobileCameraFacing"><option value="user">🤳 Frontal</option><option value="environment">📷 Traseira</option></select></div><div class="field"><label>Opacidade do texto sobre a câmera <span id="mobileTextOpacityValue">90%</span></label><input id="mobileTextOpacity" type="range" min="35" max="100" value="90" step="1"></div>
+<div class="field check"><input id="recordOn" type="checkbox" checked><label for="recordOn">Gravar vídeo da câmera</label></div><div class="field check"><input id="recordAudioOn" type="checkbox" checked><label for="recordAudioOn">Gravar áudio no arquivo</label></div><div class="field check"><input id="mobileCameraBg" type="checkbox" checked><label for="mobileCameraBg">📱 Usar câmera como fundo durante a leitura</label></div><div class="field"><label>📷 Câmera para o teleprompter</label><select id="mobileCameraFacing"><option value="user">🤳 Frontal</option><option value="environment">📷 Traseira</option></select></div><div class="field"><label>🎬 Gravação</label><select id="mobileRecordOrientation"><option value="portrait">📱 Vertical (9:16)</option><option value="landscape">🖥️ Horizontal (16:9)</option></select></div><div class="field"><label>Opacidade do texto sobre a câmera <span id="mobileTextOpacityValue">90%</span></label><input id="mobileTextOpacity" type="range" min="35" max="100" value="90" step="1"></div>
 <div class="field"><label>Câmera</label><select id="camera"><option value="">Câmera padrão</option></select><div class="row"><button type="button" id="refreshCamera">↻ Atualizar câmeras</button><button type="button" id="testCamera">📷 Testar câmera</button></div><div id="cameraHint" class="muted">A câmera será solicitada separadamente do microfone.</div></div>
 </div><div class="permission-hint">Câmera e microfone são testados separadamente. Assim, se um deles for bloqueado, o outro continua funcionando normalmente.</div></div><div class="camera-preview-wrap"><video id="cameraPreview" class="camera-preview" autoplay muted playsinline></video><div class="camera-preview-note">A prévia mostra exatamente o enquadramento que será capturado na gravação.</div></div><div class="record-help">O vídeo e o áudio são opções separadas. O áudio pode ser gravado mesmo sem vídeo. Só será salvo depois de finalizar e clicar em SALVAR.</div></div></div>
 
 </div>
 <div class="card prepFooter"><div class="row between"><button id="back2">← Biblioteca</button><button class="primary" id="start">▶ Iniciar preparação</button></div></div>
-</main>`;$('#theme').value=(db.settings.theme==='light'?'white':(db.settings.theme||'dark'));$('#theme').onchange=()=>{current.settings=current.settings||{};current.settings.theme=$('#theme').value;save();const preview=$('#cameraPreview');if(preview)preview.classList.toggle('theme-preview-white',$('#theme').value==='white');};$('#mirror').value=db.settings.mirror?'yes':'no';$('#font').value=db.settings.font||54;$('#recordOn').checked=current.settings?.recordOn!==false;$('#recordAudioOn').checked=current.settings?.recordAudioOn!==false;$('#mobileCameraBg').checked=current.settings?.mobileCameraBg!==false;$('#mobileCameraBg').onchange=()=>{current.settings.mobileCameraBg=$('#mobileCameraBg').checked;save()};$('#mobileCameraFacing').value=current.settings?.mobileCameraFacing||'user';$('#mobileCameraFacing').onchange=()=>{current.settings.mobileCameraFacing=$('#mobileCameraFacing').value;current.settings.mobileFrontCamera=$('#mobileCameraFacing').value==='user';save();previewCamera()};const mobileOpacity=Math.max(35,Math.min(100,Number(current.settings?.mobileTextOpacity||90)));$('#mobileTextOpacity').value=mobileOpacity;$('#mobileTextOpacityValue').textContent=mobileOpacity+'%';$('#mobileTextOpacity').oninput=()=>{const v=Number($('#mobileTextOpacity').value);$('#mobileTextOpacityValue').textContent=v+'%';current.settings.mobileTextOpacity=v;save()};renderCmds();(async()=>{await loadMicrophones();await loadCameras()})();$('#addStart').onclick=()=>addCmd('start');$('#back').onclick=showBiblioteca;$('#back2').onclick=showBiblioteca;$('#refreshMic').onclick=loadMicrophones;$('#testMic').onclick=testMic;$('#mic').onchange=()=>{current.settings.micDeviceId=$('#mic').value;save()};$('#refreshCamera').onclick=loadCameras;$('#camera').onchange=()=>{current.settings.cameraDeviceId=$('#camera').value;save();previewCamera()};$('#testCamera').onclick=previewCamera;$('#start').onclick=startCountdown;}
+</main>`;$('#theme').value=(db.settings.theme==='light'?'white':(db.settings.theme||'dark'));$('#theme').onchange=()=>{current.settings=current.settings||{};current.settings.theme=$('#theme').value;save();const preview=$('#cameraPreview');if(preview)preview.classList.toggle('theme-preview-white',$('#theme').value==='white');};$('#mirror').value=db.settings.mirror?'yes':'no';$('#font').value=db.settings.font||54;$('#recordOn').checked=current.settings?.recordOn!==false;$('#recordAudioOn').checked=current.settings?.recordAudioOn!==false;$('#mobileCameraBg').checked=current.settings?.mobileCameraBg!==false;$('#mobileCameraBg').onchange=()=>{current.settings.mobileCameraBg=$('#mobileCameraBg').checked;save()};$('#mobileCameraFacing').value=current.settings?.mobileCameraFacing||'user';$('#mobileCameraFacing').onchange=()=>{current.settings.mobileCameraFacing=$('#mobileCameraFacing').value;current.settings.mobileFrontCamera=$('#mobileCameraFacing').value==='user';save();previewCamera()};$('#mobileRecordOrientation').value=current.settings?.mobileRecordOrientation||'portrait';$('#mobileRecordOrientation').onchange=()=>{current.settings.mobileRecordOrientation=$('#mobileRecordOrientation').value;save()};const mobileOpacity=Math.max(35,Math.min(100,Number(current.settings?.mobileTextOpacity||90)));$('#mobileTextOpacity').value=mobileOpacity;$('#mobileTextOpacityValue').textContent=mobileOpacity+'%';$('#mobileTextOpacity').oninput=()=>{const v=Number($('#mobileTextOpacity').value);$('#mobileTextOpacityValue').textContent=v+'%';current.settings.mobileTextOpacity=v;save()};renderCmds();(async()=>{await loadMicrophones();await loadCameras()})();$('#addStart').onclick=()=>addCmd('start');$('#back').onclick=showBiblioteca;$('#back2').onclick=showBiblioteca;$('#refreshMic').onclick=loadMicrophones;$('#testMic').onclick=testMic;$('#mic').onchange=()=>{current.settings.micDeviceId=$('#mic').value;save()};$('#refreshCamera').onclick=loadCameras;$('#camera').onchange=()=>{current.settings.cameraDeviceId=$('#camera').value;save();previewCamera()};$('#testCamera').onclick=previewCamera;$('#start').onclick=startCountdown;}
 function addCmd(type){let arr=current.settings||(current.settings={});arr[type+'Cmds']||(arr[type+'Cmds']=[]);arr[type+'Cmds'].push({phrase:'',action:type==='start'?'start':'resume'});renderCmds()}
 function renderCmds(){let arr=(current.settings&&current.settings.startCmds)||[];$('#startCmds').innerHTML=arr.length?arr.map((c,i)=>`<div class="cmd"><input data-cmd="start" data-i="${i}" value="${esc(c.phrase)}" placeholder="Frase de comando"><select disabled><option>Iniciar</option></select><button data-rm="start" data-i="${i}" class="danger">🗑️</button></div>`).join(''):'<div class="muted">Nenhum comando adicionado.</div>';$$('[data-cmd="start"]').forEach(inp=>inp.oninput=()=>{arr[inp.dataset.i].phrase=inp.value;save()});$$('[data-rm="start"]').forEach(b=>b.onclick=()=>{arr.splice(+b.dataset.i,1);renderCmds()})}
-function savePrep(){current.settings={...(current.settings||{}),theme:($('#theme').value==='white'||$('#theme').value==='light')?'white':'dark',mirror:$('#mirror').value==='yes',font:+$('#font').value,textWidth:+(current.settings?.textWidth||600),mode:$('#mode').value,mic:$('#mic').value,micDeviceId:$('#mic').value,timerOn:$('#timerOn').checked,target:$('#target').value,runnerOn:$('#runnerOn').checked,count:+$('#count').value,recordOn:$('#recordOn').checked,recordAudioOn:$('#recordAudioOn').checked,mobileCameraBg:$('#mobileCameraBg')?.checked!==false,mobileFrontCamera:($('#mobileCameraFacing')?.value||current.settings?.mobileCameraFacing||'user')==='user',mobileCameraFacing:$('#mobileCameraFacing')?.value||current.settings?.mobileCameraFacing||'user',mobileTextOpacity:+($('#mobileTextOpacity')?.value||90),cameraDeviceId:$('#camera').value};save()}
+function savePrep(){current.settings={...(current.settings||{}),theme:($('#theme').value==='white'||$('#theme').value==='light')?'white':'dark',mirror:$('#mirror').value==='yes',font:+$('#font').value,textWidth:+(current.settings?.textWidth||600),mode:$('#mode').value,mic:$('#mic').value,micDeviceId:$('#mic').value,timerOn:$('#timerOn').checked,target:$('#target').value,runnerOn:$('#runnerOn').checked,count:+$('#count').value,recordOn:$('#recordOn').checked,recordAudioOn:$('#recordAudioOn').checked,mobileCameraBg:$('#mobileCameraBg')?.checked!==false,mobileFrontCamera:($('#mobileCameraFacing')?.value||current.settings?.mobileCameraFacing||'user')==='user',mobileCameraFacing:$('#mobileCameraFacing')?.value||current.settings?.mobileCameraFacing||'user',mobileRecordOrientation:$('#mobileRecordOrientation')?.value||current.settings?.mobileRecordOrientation||'portrait',mobileTextOpacity:+($('#mobileTextOpacity')?.value||90),cameraDeviceId:$('#camera').value};save()}
 async function ensurePrepMicAccess(){
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
   if(hasLiveTrack(prepMicStream,'audio'))return prepMicStream;
@@ -364,7 +380,20 @@ let prepMicStream=null;
 let prepCombinedStream=null;
 let prepAccessPromise=null;
 function selectedMicConstraints(){const id=$('#mic')?.value||current.settings?.micDeviceId||'';return id?{deviceId:{exact:id}}:true}
-function selectedCameraConstraints(){const facing=current.settings?.mobileCameraFacing||(current.settings?.mobileFrontCamera===false?'environment':'user');const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';if(facing==='user'||facing==='environment')return{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}};return id?{deviceId:{exact:id},width:{ideal:1920},height:{ideal:1080}}:{width:{ideal:1280},height:{ideal:720}}}
+function recordingOrientationConstraints(base){
+  const o=current.settings?.mobileRecordOrientation||'portrait';
+  if(o==='landscape') return {...base,width:{ideal:1280},height:{ideal:720},aspectRatio:{ideal:16/9}};
+  return {...base,width:{ideal:720},height:{ideal:1280},aspectRatio:{ideal:9/16}};
+}
+async function applyRecordingOrientation(stream){
+  try{
+    const track=stream?.getVideoTracks?.()[0];
+    if(!track?.applyConstraints)return;
+    const o=current.settings?.mobileRecordOrientation||'portrait';
+    await track.applyConstraints(o==='landscape'?{width:{ideal:1280},height:{ideal:720},aspectRatio:{ideal:16/9}}:{width:{ideal:720},height:{ideal:1280},aspectRatio:{ideal:9/16}});
+  }catch(e){}
+}
+function selectedCameraConstraints(){const facing=current.settings?.mobileCameraFacing||(current.settings?.mobileFrontCamera===false?'environment':'user');const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';if(facing==='user'||facing==='environment')return recordingOrientationConstraints({facingMode:{ideal:facing}});return id?recordingOrientationConstraints({deviceId:{exact:id}}):recordingOrientationConstraints({})}
 async function loadMicrophones(){
   const sel=$('#mic'); if(!sel)return;
   sel.innerHTML='<option value="">Solicitando microfone...</option>';
@@ -496,25 +525,8 @@ async function ensureReadingMic(){
 }
 
 function ensureRecordingPreview(stream){
-  try{
-    if(!current.settings?.recordOn)return false;
-    let wrap=$('#recordPreview');
-    let pv=$('#recordVideo');
-    if(!wrap){
-      wrap=document.createElement('div');
-      wrap.className='record-preview';
-      wrap.id='recordPreview';
-      wrap.innerHTML='<video id="recordVideo" autoplay muted playsinline></video><div class="record-badge"><span class="record-dot"></span><span id="recLabel">GRAVANDO</span></div>';
-      document.body.appendChild(wrap);
-      pv=$('#recordVideo');
-    }
-    if(!pv)return false;
-    const active=stream||recordStream||videoStream||prepCameraStream;
-    if(active && pv.srcObject!==active)pv.srcObject=active;
-    pv.autoplay=true;pv.muted=true;pv.playsInline=true;
-    try{pv.play().catch(()=>{})}catch(e){}
-    return !!active;
-  }catch(e){return false}
+  // No MOBILE: a câmera deve ocupar o fundo do teleprompter, sem uma janela de prévia sobre o texto.
+  return !!stream;
 }
 
 function chooseMime(withVideo=true){const types=withVideo?['video/mp4;codecs=h264,aac','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']:['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg','audio/mp4'];return types.find(t=>window.MediaRecorder?.isTypeSupported?.(t))||''}
@@ -578,6 +590,8 @@ async function startCameraAndRecording(){
         prepCameraStream=videoStream;
       }
     }
+
+    if(videoStream) await applyRecordingOrientation(videoStream);
 
     // Clone tracks so stopping a recording NEVER stops the preparation streams.
     const tracks=[];
@@ -841,26 +855,24 @@ async function authorizeSpeechRecognition(){
 async function startCountdown(){
   savePrep();
   const isAudio=(current.settings.mode||'audio')!=='noaudio';
-  if(isAudio){
-    const authorized=await authorizeSpeechRecognition();
-    if(!authorized){alert('Autorize o reconhecimento de voz antes de iniciar. O programa não avançou para não interromper o comando depois.');return}
-  }
   stopAll();
   scrollSpeed=1;
   showPrompter(true);addRecordingControls();
   const startCmds=(current.settings?.startCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);
 
-  // O reconhecimento começa imediatamente no clique, antes da espera de câmera/microfone.
-  const cameraPromise=startCameraAndRecording();
-
+  // No celular, o reconhecimento precisa ser iniciado diretamente no clique do usuário.
+  // Assim evitamos perder o gesto que autoriza o serviço de voz enquanto câmera/microfone abrem.
   if(isAudio&&startCmds.length){
     setStatus('yellow','Aguardando comando inicial: '+(current.settings.startCmds||[]).map(c=>c.phrase).filter(Boolean).join(' / '));
-    startStartCommandListener(async()=>{
-      const ok=await cameraPromise;
-      if(!ok){setStatus('red','Câmera/microfone não ficaram disponíveis');return}
-      beginCountdownNow();
-    });
+    let commandPromiseResolve;
+    const commandPromise=new Promise(resolve=>commandPromiseResolve=resolve);
+    startStartCommandListener(()=>commandPromiseResolve(true),()=>commandPromiseResolve(false));
+    const cameraPromise=startCameraAndRecording();
+    const result=await Promise.all([commandPromise,cameraPromise]);
+    if(!result[1]){setStatus('red','Câmera/microfone não ficaram disponíveis');return}
+    beginCountdownNow();
   }else{
+    const cameraPromise=startCameraAndRecording();
     const ok=await cameraPromise;
     if((current.settings?.recordOn||current.settings?.recordAudioOn)&&!ok)return;
     beginCountdownNow();
@@ -1112,7 +1124,7 @@ function startSpeech(){
   const rec=new R();
   recognition=rec;
   rec.lang='pt-BR';
-  rec.continuous=true;
+  rec.continuous=false;
   rec.interimResults=true;
   rec.onstart=()=>{if(mySession===sessionId&&recognition===rec&&!paused)setStatus('yellow','Aguardando sua fala')};
   rec.onspeechstart=()=>{};
@@ -1130,10 +1142,11 @@ function startSpeech(){
   try{rec.start()}catch(e){setStatus('red','Não foi possível iniciar o áudio')}
 }
 function findMatch(spoken){let sw=normalize(spoken).split(' ').filter(Boolean);if(!sw.length)return -1;let target=words.map(normalize);let n=Math.min(8,sw.length);let tail=sw.slice(-n);let best=-1,bestScore=0;let start=Math.max(0,lastMatch-4),end=Math.min(target.length,start+350);for(let i=start;i<end;i++){let score=0;for(let j=0;j<tail.length&&i+j<target.length;j++){if(target[i+j]===tail[j])score++}let ratio=score/tail.length;if(ratio>bestScore&&ratio>=.6){bestScore=ratio;best=i}}if(best>=0)lastMatch=best;return best}
-function startStartCommandListener(onCommand){
+function startStartCommandListener(onCommand,onFailure){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){
     setStatus('red','Comando de voz indisponível neste navegador');
+    onFailure?.();
     return;
   }
   const cmds=(current.settings?.startCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);
@@ -1168,9 +1181,10 @@ function startStartCommandListener(onCommand){
   rec.onerror=e=>{
     if(mySession!==sessionId||commandRecognition!==rec)return;
     const msg={'not-allowed':'Permissão do microfone/reconhecimento negada','service-not-allowed':'Serviço de reconhecimento não permitido','audio-capture':'Microfone não disponível para reconhecimento','no-speech':'Nenhuma fala detectada'}[e.error]||('Erro '+e.error);
-    setStatus('red','Comando de voz: '+msg);
+    setStatus(e.error==='no-speech'?'yellow':'red','Comando de voz: '+msg);
+    if(e.error!=='no-speech'&&e.error!=='aborted') onFailure?.();
   };
-  rec.onend=()=>{if(mySession===sessionId&&commandRecognition===rec&&!started)setTimeout(()=>{try{rec.start()}catch(e){}},150)};
+  rec.onend=()=>{if(mySession===sessionId&&commandRecognition===rec&&!started)setTimeout(()=>{try{rec.start()}catch(e){setStatus('red','Não foi possível reabrir o reconhecimento de voz')}} ,250)};
   try{rec.start()}catch(e){setStatus('red','Não foi possível iniciar o reconhecimento de voz')}
 }
 
