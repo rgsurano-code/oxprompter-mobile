@@ -1,0 +1,1164 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Teleprompter Pessoal</title>
+<style>
+:root{--bg:#fff;--fg:#111;--muted:#666;--card:#f4f4f4;--border:#ddd;--accent:#b00020;--mark:#d00;--green:#19a35b;--yellow:#d59b00;--red:#d22}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--fg)}button,input,textarea,select{font:inherit}button{cursor:pointer;border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 14px}button.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}button.danger{color:#a00}button:focus,input:focus,textarea:focus,select:focus{outline:3px solid #7aa7ff;outline-offset:1px}.hidden{display:none!important}.app{min-height:100vh}.top{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5}.brand{font-weight:800}.status{display:flex;align-items:center;gap:8px;font-size:13px}.dot{width:22px;height:22px;box-shadow:0 0 12px currentColor;border-radius:50%;background:#aaa;display:inline-block}.dot.green{background:var(--green)}.dot.yellow{background:var(--yellow)}.dot.red{background:var(--red)}.shell{max-width:1100px;margin:0 auto;padding:24px}.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field label{font-weight:700;font-size:13px}.field input,.field textarea,.field select{padding:11px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--fg)}textarea{min-height:260px;resize:vertical;width:100%}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}.section-title{font-size:18px;font-weight:800;margin:4px 0 12px}.muted{color:var(--muted);font-size:13px}.list{display:grid;gap:10px}.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}.item strong{display:block}.cmd{display:grid;grid-template-columns:1fr 180px auto;gap:8px;margin:8px 0}.cmd input,.cmd select{padding:9px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg)}.pill{padding:4px 8px;border-radius:999px;background:#ddd;font-size:12px}.prompter{background:#000;color:#fff;min-height:100vh;overflow:hidden}.prompter.light{background:#fff;color:#111}.promptTop{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:12px 18px;z-index:10;font-weight:700}.promptStatus{display:flex;gap:12px;align-items:center;font-size:16px}.promptStatus .dot{flex:0 0 22px}.promptTimer{font-variant-numeric:tabular-nums}.promptStage{height:100vh;overflow:hidden;padding:0 18vw;position:relative}.promptText{max-width:680px;position:absolute;left:0;right:0;top:0;margin:0 auto;text-align:center;font-size:54px;line-height:1.35;font-weight:700;white-space:pre-wrap;transition:font-size .2s}.promptText .read{opacity:.42}.promptText .current{background:rgba(255,255,0,.2);text-decoration:underline;text-decoration-thickness:6px;text-underline-offset:9px}.guide{height:12px;background:#e60000;border-radius:8px;max-width:75%;margin:18px auto 0}.prompter:not(.light) .guide{background:#ffe500}.controls{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.72);padding:5px 7px;border-radius:12px;z-index:20;width:min(94vw,980px);justify-content:center}.controls button{background:#171717;color:#fff;border-color:#444;height:32px;min-width:34px;padding:4px 8px;border-radius:8px;font-size:15px}.controls button:hover{background:#2b2b2b}.controls .iconBtn{width:36px}.controls .wideIcon{min-width:52px}.controls select{height:32px;background:#171717;color:#fff;border:1px solid #444;border-radius:8px;padding:3px 6px;font-size:14px}.runner{font-size:58px;display:none;line-height:1;z-index:20}.promptStatus .runner{position:static;margin-left:4px}.runner.show{display:inline-block;animation:bounce .55s infinite alternate}@keyframes bounce{to{transform:translateY(-6px)}}.note{background:#fff4b8;border:1px solid #e6d06a;color:#5b4d00;padding:8px;border-radius:8px;font-size:13px;margin:8px 0}.password{max-width:460px;margin:10vh auto;background:#07110f!important;border:1px solid rgba(66,255,208,.45)!important;box-shadow:0 0 35px rgba(66,255,208,.12),inset 0 0 28px rgba(66,255,208,.03)}.password-version{color:#42ffd0;font-size:13px;letter-spacing:2px;margin:-4px 0 12px;text-align:center;text-shadow:0 0 10px rgba(66,255,208,.35)}
+.password h1{color:#42ffd0;text-shadow:0 0 12px rgba(66,255,208,.35)}.password input{background:#020504!important;color:#dffef7!important;border:1px solid rgba(66,255,208,.45)!important}.check{display:flex;align-items:center;gap:8px}.check input{width:18px;height:18px}@media(max-width:700px){.grid{grid-template-columns:1fr}.cmd{grid-template-columns:1fr}.promptText{font-size:36px}.promptStage{padding:10vh 5vw}}
+
+/* Global cyberpunk theme */
+body:not(.prompter){background:#050807;color:#d9fff5}body:not(.prompter) .top{background:#050807;border-bottom-color:rgba(66,255,208,.22)}body:not(.prompter) .card{background:#081210;border-color:rgba(66,255,208,.28);box-shadow:inset 0 0 20px rgba(66,255,208,.025)}body:not(.prompter) .field input,body:not(.prompter) .field textarea,body:not(.prompter) .field select,body:not(.prompter) .cmd input,body:not(.prompter) .cmd select{background:#020504;color:#dffef7;border-color:rgba(66,255,208,.35)}body:not(.prompter) button{background:#071512;color:#42ffd0;border-color:#42ffd0}body:not(.prompter) button.primary{background:#42ffd0;color:#03100d;border-color:#42ffd0}body:not(.prompter) .item{background:#06100e;border-color:rgba(66,255,208,.2);color:#d9fff5}body:not(.prompter) .muted{color:#78a99f}body:not(.prompter) h1,body:not(.prompter) h2,body:not(.prompter) h3,body:not(.prompter) h4{color:#42ffd0}
+/* Editor: aproveita toda a largura, sem moldura externa sobrando */
+.editor-wrap{width:100%;max-width:none;margin:0;padding:0}.editor-wrap .card{width:100%;margin:0;border-left:0;border-right:0;border-radius:0;padding:18px 24px}.editor-wrap .card:first-child{border-top:0}.editor-wrap .card:nth-child(2){padding:0;border-bottom:0}.editor-wrap .card:nth-child(2) .section-title{padding:18px 24px 8px;margin:0}.editor-wrap textarea{display:block;width:100%;min-height:calc(100vh - 180px);height:calc(100vh - 180px);resize:none;border-left:0;border-right:0;border-radius:0;padding:20px 24px;line-height:1.55;font-size:18px}.editor-wrap .card:nth-child(2) .muted{padding:10px 24px 16px;margin:0!important}
+/* Campo de texto da abertura maior e sem limitação lateral */
+.cyber-card textarea#quickText{width:100%;min-height:280px;height:42vh;max-height:430px;resize:vertical;display:block;padding:18px;line-height:1.5}
+/* Rolagem sem áudio: contínua, suave e começa com a primeira linha no centro */
+.prompter.no-audio .promptText{will-change:transform;transition:none}
+
+/* Cyberpunk opening panel */
+.cyber-home{min-height:100vh;width:100%;background:#050807;color:#d9fff5;display:flex;align-items:center;justify-content:center;padding:28px;position:relative;overflow:hidden}
+.cyber-home:before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(41,255,204,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(41,255,204,.045) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,black,transparent 90%)}
+.cyber-home:after{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:rgba(35,255,197,.08);filter:blur(70px);right:-120px;top:-160px}
+.cyber-panel{position:relative;z-index:1;width:min(1280px,100%);border:1px solid rgba(40,255,204,.55);background:rgba(5,12,11,.92);box-shadow:0 0 0 1px rgba(40,255,204,.08),0 0 40px rgba(40,255,204,.12),inset 0 0 35px rgba(40,255,204,.035);border-radius:18px;padding:30px}
+.cyber-title{font-size:clamp(38px,7vw,78px);letter-spacing:.18em;font-weight:900;text-align:center;color:#42ffd0;text-shadow:0 0 8px rgba(66,255,208,.7),0 0 28px rgba(66,255,208,.28);margin:0}
+.cyber-version{text-align:center;margin-top:8px;color:#78a99f;font-size:13px;letter-spacing:.22em;font-weight:700}
+.cyber-sub{text-align:center;color:#87bdb0;letter-spacing:.22em;font-size:12px;margin:8px 0 28px;text-transform:uppercase}
+.cyber-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+.cyber-card{border:1px solid rgba(66,255,208,.28);background:rgba(8,18,16,.86);border-radius:14px;padding:18px}
+.cyber-card h2{margin:0 0 10px;color:#42ffd0;font-size:16px;letter-spacing:.08em}
+.cyber-card textarea{min-height:280px;background:#020504;color:#dffef7;border:1px solid rgba(66,255,208,.35);box-shadow:inset 0 0 18px rgba(0,0,0,.35)}
+.cyber-card input{background:#020504;color:#dffef7;border:1px solid rgba(66,255,208,.35)}
+.cyber-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.cyber-btn{background:#071512!important;color:#42ffd0!important;border:1px solid #42ffd0!important;border-radius:10px;padding:12px 16px;box-shadow:0 0 12px rgba(66,255,208,.12)}
+.cyber-btn:hover{background:#0b241f!important;box-shadow:0 0 18px rgba(66,255,208,.25)}
+.cyber-primary{background:#42ffd0!important;color:#03100d!important;border-color:#42ffd0!important;font-weight:800}
+.cyber-list{display:grid;gap:9px;max-height:300px;overflow:auto}
+.cyber-list .item{background:#06100e;border-color:rgba(66,255,208,.2);color:#d9fff5}.cyber-list .saved-script{cursor:pointer}.cyber-list .saved-script:hover{border-color:#42ffd0;box-shadow:0 0 12px rgba(66,255,208,.12)}
+.cyber-hint{font-size:12px;color:#78a99f;line-height:1.5;margin-top:8px}
+.cyber-badge{display:inline-block;border:1px solid rgba(66,255,208,.35);padding:4px 8px;border-radius:999px;color:#42ffd0;font-size:11px;letter-spacing:.06em}
+
+/* V1.19 - preparação compacta */
+.prepShell{padding-top:12px;padding-bottom:12px}.prepGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.prepCard{padding:12px;margin-bottom:0}.prepCard .section-title{font-size:15px;margin:0 0 8px}.prepCard .grid{gap:8px}.prepCard .field{gap:4px}.prepCard .field input,.prepCard .field select{padding:8px}.prepHint{margin-bottom:6px}.voiceTimeCard{grid-column:1/-1}.cameraCardBody{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);gap:12px;align-items:start}.camera-preview-wrap{margin-top:0;min-width:0}.camera-preview{width:100%;aspect-ratio:16/9;object-fit:cover;background:#020504;border:1px solid rgba(66,255,208,.35);border-radius:10px;display:block}.camera-preview-note{font-size:11px;color:#78a99f;line-height:1.35;margin-top:5px}.cameraCardBody .record-help{grid-column:1/-1;margin-top:0}.voiceTimeGrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}.timeFields{display:grid;grid-template-columns:1fr 1fr;gap:8px}.compactBtn{padding:7px 10px;font-size:12px}.cmd{grid-template-columns:minmax(0,1fr) auto;margin:5px 0}.cmd select{display:none}.cmd button{padding:6px 8px}.prepFooter{padding:10px;margin-top:10px}.prepFooter .row{justify-content:flex-end}
+/* V1.28 - autorização antecipada e largura do texto */
+/* V1.19 - HUD lateral */
+.promptHud{position:fixed;top:0;left:0;right:0;z-index:30;pointer-events:none}.hudBox{width:100%;padding:8px 22px;background:rgba(0,0,0,.34);backdrop-filter:blur(5px);color:#fff;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;gap:12px;border-bottom:1px solid rgba(66,255,208,.18)}.hudAlert{height:34px;display:flex;align-items:center;justify-content:center;gap:10px;grid-column:2;grid-row:1 / span 1;align-self:start}.hudAlert .dot{width:18px;height:18px}.hudAlert .runner{font-size:34px;order:0}.hudAlert .runner.show{display:inline-block}.promptTimer{font-size:46px;line-height:1;font-weight:900;letter-spacing:.02em;grid-column:1;grid-row:1 / span 2;text-align:left}.hudStatusText{font-size:12px;line-height:1.2;min-height:13px;color:#c7fff5;margin-top:2px;grid-column:2;grid-row:2;text-align:center}.hudMic{font-size:13px;color:#b8fff0;margin-top:0;grid-column:3;grid-row:1;text-align:right}.hudMicTrack{width:100px;height:7px}.hudDb{font-size:18px;color:#9ed9cc;margin-top:0;font-weight:800;grid-column:3;grid-row:2;text-align:right}.runner{display:none}.hudAlert .runner.show{display:inline-block;animation:bounce .55s infinite alternate}
+@media(max-width:800px){.cyber-grid{grid-template-columns:1fr}.cyber-panel{padding:20px}.cyber-home{padding:14px}}
+
+
+.splash-screen{position:fixed;inset:0;background:#020706;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#63ffe0;z-index:100000;font-family:Arial,sans-serif}
+.splash-matrix{position:absolute;inset:-20px;opacity:.72;overflow:hidden;pointer-events:none}
+.splash-col{position:absolute;top:-30%;color:#27ff9f;font-size:17px;line-height:1.15;white-space:pre;opacity:.8;filter:drop-shadow(0 0 6px rgba(39,255,159,.35));animation:splashFall linear infinite}
+@keyframes splashFall{from{transform:translateY(-15vh)}to{transform:translateY(130vh)}}
+.splash-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(900px,92vw);text-align:center;z-index:2;padding:30px}
+.splash-title{font-size:clamp(42px,7vw,82px);letter-spacing:.16em;font-weight:900;text-shadow:0 0 8px #38ffd0,0 0 28px rgba(56,255,208,.55);margin:0 0 12px;opacity:0;transform:scale(.92);animation:splashTitle 2.5s ease forwards}
+@keyframes splashTitle{0%{opacity:0;letter-spacing:.45em;filter:blur(8px);transform:scale(.9)}55%{opacity:1;filter:blur(0);transform:scale(1)}100%{opacity:1;letter-spacing:.16em}}
+.splash-version{font-size:15px;letter-spacing:.22em;color:#7ccfc0;margin-bottom:30px;opacity:0;animation:splashFade 1s ease 1.8s forwards}
+@keyframes splashFade{to{opacity:1}}
+.splash-start{appearance:none;border:1px solid #45ffd5;background:rgba(0,25,22,.78);color:#63ffe0;border-radius:10px;padding:14px 48px;font-size:20px;font-weight:800;letter-spacing:.14em;cursor:pointer;box-shadow:0 0 12px rgba(56,255,208,.25),inset 0 0 18px rgba(56,255,208,.06);transition:.2s;opacity:0;animation:splashFade .8s ease 2.1s forwards}
+.splash-start:hover{transform:translateY(-2px);box-shadow:0 0 24px rgba(56,255,208,.5),inset 0 0 20px rgba(56,255,208,.12)}
+.splash-dev{position:absolute;right:22px;bottom:16px;color:#5caaa0;font-size:13px;letter-spacing:.1em;z-index:3}
+.splash-screen.leaving{animation:splashLeave .55s ease forwards}
+@keyframes splashLeave{to{opacity:0;transform:scale(1.02)}}
+.password-screen{position:fixed;inset:0;background:#020706;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#d9fff5}
+.password-matrix{position:absolute;inset:0;overflow:hidden;pointer-events:none;opacity:.62}
+.password-col{position:absolute;top:-35%;color:#27ff9f;font-size:16px;line-height:1.15;white-space:pre;filter:drop-shadow(0 0 6px rgba(39,255,159,.35));animation:passwordFlow linear infinite}
+.password-col.reverse{animation-name:passwordFlowReverse}
+@keyframes passwordFlow{from{transform:translateY(-10vh)}to{transform:translateY(125vh)}}
+@keyframes passwordFlowReverse{from{transform:translateY(125vh)}to{transform:translateY(-10vh)}}
+.password-screen .password{position:relative;z-index:2;margin:0}
+.fullscreen-active .controls{bottom:18px}
+
+
+.mic-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:50000;padding:20px}.mic-box{width:min(520px,95vw);background:#071512;border:1px solid #42ffd0;border-radius:16px;padding:22px;box-shadow:0 0 35px rgba(66,255,208,.22);color:#dffef7}.mic-box h3{margin:0 0 8px;color:#42ffd0}.mic-meter{height:18px;border:1px solid rgba(66,255,208,.45);border-radius:999px;overflow:hidden;background:#020504;margin:18px 0}.mic-level{height:100%;width:0;background:#42ffd0;box-shadow:0 0 14px rgba(66,255,208,.7);transition:width .08s}.mic-status{font-size:13px;color:#8dcfc0;min-height:20px}.mic-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
+
+.record-card{border:1px solid rgba(66,255,208,.28);background:#06100e;border-radius:14px;padding:16px;margin-bottom:18px}
+.record-preview{position:fixed;right:18px;top:96px;width:min(300px,32vw);aspect-ratio:16/9;background:#020202;border:2px solid #42ffd0;border-radius:12px;overflow:hidden;z-index:25;box-shadow:0 0 20px rgba(66,255,208,.22)}
+.record-preview video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
+.record-badge{position:absolute;left:10px;top:10px;background:rgba(0,0,0,.72);color:#fff;padding:5px 8px;border-radius:999px;font-size:12px}
+.record-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#d22;margin-right:5px;box-shadow:0 0 8px currentColor}
+.recording .record-dot{background:#f33;animation:recblink 1s infinite}
+@keyframes recblink{50%{opacity:.35}}
+.record-controls{position:fixed;right:18px;bottom:18px;z-index:30;display:flex;gap:8px;background:rgba(0,0,0,.78);padding:8px;border-radius:12px}
+.record-controls button{background:#071512;color:#42ffd0;border-color:#42ffd0}
+.record-controls .stop-rec{color:#fff;background:#8d1111;border-color:#f66}
+.record-help{font-size:12px;color:#78a99f;line-height:1.5;margin-top:8px}
+@media(max-width:700px){.cameraCardBody{grid-template-columns:1fr}.record-preview{width:180px;right:8px;top:86px}.record-controls{left:8px;right:8px;justify-content:center;bottom:8px}.record-controls button{padding:9px 10px}.promptText{padding-right:10px;max-width:86vw}.hudBox{padding:6px 10px}.promptTimer{font-size:34px}.hudDb{font-size:15px}}
+
+.record-review{position:fixed;inset:0;background:rgba(0,0,0,.86);display:flex;align-items:center;justify-content:center;z-index:60000;padding:20px}.record-review-box{width:min(900px,96vw);max-height:94vh;overflow:auto;background:#071512;border:1px solid #42ffd0;border-radius:16px;padding:20px;box-shadow:0 0 40px rgba(66,255,208,.22);color:#dffef7}.record-review-title{font-size:22px;font-weight:800;color:#42ffd0;margin-bottom:6px}.record-review-help{font-size:13px;color:#8dcfc0;margin-bottom:14px}.record-review video{width:100%;max-height:68vh;background:#000;border-radius:10px;display:block}.trim-panel{margin-top:12px;padding:10px 12px;border:1px solid rgba(66,255,208,.28);border-radius:10px;background:#050d0b}.trim-title{font-size:12px;color:#42ffd0;font-weight:800;margin-bottom:7px}.trim-track{position:relative;height:12px;margin:8px 4px 10px;background:#1a2824;border-radius:99px}.trim-fill{position:absolute;top:0;height:100%;background:#42ffd0;border-radius:99px;opacity:.55}.trim-range{width:100%;position:absolute;left:0;top:-6px;margin:0;pointer-events:none;appearance:none;background:transparent}.trim-range::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:#42ffd0;border:2px solid #06110e;box-shadow:0 0 8px rgba(66,255,208,.5);pointer-events:auto;cursor:pointer}.trim-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#42ffd0;border:2px solid #06110e;box-shadow:0 0 8px rgba(66,255,208,.5);pointer-events:auto;cursor:pointer}.trim-times{display:flex;justify-content:space-between;color:#9ed8cc;font-size:11px}.trim-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}.trim-status{font-size:11px;color:#78a99f}.record-review-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
+.review-previews{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.review-preview-card{background:#050d0b;border:1px solid rgba(66,255,208,.22);border-radius:12px;padding:10px}.review-preview-title{font-size:12px;font-weight:800;color:#42ffd0;margin-bottom:7px;display:flex;justify-content:space-between;gap:8px}.review-preview-card video,.review-preview-card audio{width:100%;max-height:42vh;background:#000;border-radius:8px;display:block}.review-preview-placeholder{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:#020605;border-radius:8px;color:#6f9f95;font-size:13px;text-align:center;padding:20px}.trim-time-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.trim-time-editor label{font-size:11px;color:#9ed8cc;display:flex;flex-direction:column;gap:4px}.trim-time-editor input{width:100%;padding:7px 8px;border-radius:7px;border:1px solid rgba(66,255,208,.25);background:#020504;color:#dffef7}.trim-before-after-note{font-size:11px;color:#78a99f;margin-top:7px}.theme-preview-white{background:#fff!important;color:#111!important;border-color:#42ffd0!important}.prompter.light,.prompter.light .promptStage{background:#fff!important;color:#111!important}.prompter.light .promptHud{color:#111!important}.prompter.light .hudBox{background:rgba(255,255,255,.92)!important;color:#111!important;border-bottom-color:rgba(0,0,0,.12)!important}.prompter.light .hudStatusText,.prompter.light .hudMic,.prompter.light .hudDb{color:#111!important}.prompter.light .controls{background:rgba(255,255,255,.92)!important;border:1px solid #ccc}.prompter.light .controls button,.prompter.light .controls select{background:#fff!important;color:#111!important;border-color:#bbb!important}.prompter.light .promptText{color:#111!important}.prompter.light .guide{background:#e60000!important}
+@media(max-width:700px){.review-previews{grid-template-columns:1fr}.review-preview-card video{max-height:34vh}.trim-time-editor{grid-template-columns:1fr 1fr}}
+.speed-level{min-width:110px;text-align:center;color:#42ffd0;font-weight:800;padding:10px 6px;border:1px solid rgba(66,255,208,.35);border-radius:10px;background:#071512}.finalAdjust{display:flex;align-items:center;gap:4px;padding:3px 4px;border:1px solid rgba(66,255,208,.28);border-radius:9px;background:#071512;color:#dffef7}.finalAdjust .fontValue{font-size:10px;min-width:34px;text-align:center;color:#42ffd0}.textWidthAdjust{display:flex;align-items:center;gap:4px;padding:3px 4px;border:1px solid rgba(66,255,208,.28);border-radius:9px;background:#071512;color:#dffef7}.textWidthAdjust .widthValue{font-size:10px;min-width:42px;text-align:center;color:#42ffd0}.controls .speed-level{min-width:72px;height:32px;padding:7px 4px;font-size:11px;border-radius:8px}.startReference{position:fixed;left:3vw;right:3vw;height:0;border-top:2px solid rgba(66,255,208,.75);z-index:40;display:none;cursor:ns-resize;touch-action:none;box-shadow:0 0 12px rgba(66,255,208,.18)}.startReference:before{content:"";position:absolute;left:-1px;top:-8px;width:16px;height:16px;border:2px solid #42ffd0;border-radius:50%;background:#071512;box-shadow:0 0 12px rgba(66,255,208,.45)}.startReferenceLabel{position:absolute;left:20px;top:-25px;font-size:10px;letter-spacing:.12em;color:#42ffd0;background:rgba(3,16,13,.9);padding:3px 7px;border-radius:5px;pointer-events:none}.referenceWord{outline:3px solid rgba(66,255,208,.8);outline-offset:7px;border-radius:5px;box-shadow:0 0 18px rgba(66,255,208,.22)}.adjusting .startReference{display:block}.adjusting .promptText .referenceWord{outline:3px solid rgba(66,255,208,.8);outline-offset:7px}@media(max-width:700px){.controls{width:96vw;gap:3px;padding:4px}.controls button{min-width:30px;padding:3px 5px}.controls .speed-level{min-width:60px}.promptStage{padding-left:8vw;padding-right:8vw}}
+.countdown-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:120px;font-weight:800;z-index:9999;text-shadow:0 0 25px #38ffd0}.countdown-label{font-size:22px;letter-spacing:3px;margin-bottom:12px}
+@media(max-width:700px){.record-review-box{padding:14px}.speed-level{min-width:95px;font-size:12px}.controls{gap:5px}.controls button{padding:8px 9px}}
+
+.liveMicMeter{display:flex;align-items:center;gap:8px;min-width:230px;margin-top:6px;font-size:12px}
+.liveMicTrack{height:10px;flex:1;min-width:120px;background:#17231f;border:1px solid #245248;border-radius:99px;overflow:hidden}
+.liveMicLevel{height:100%;width:2%;background:#20e0c0;transition:width .05s linear}
+.prompter .w.current{background:#20e0c0;color:#06110e;border-radius:4px;padding:0 3px}
+
+/* V1.25 - camera layout + initial voice command banner + shared media permission */
+.cameraCardBody{display:grid;grid-template-columns:minmax(280px,.78fr) minmax(420px,1.22fr);gap:18px;align-items:start}
+.camera-controls{min-width:0}.camera-preview-wrap{margin:0;display:block;min-width:0}.camera-preview{width:100%;aspect-ratio:16/9;min-height:240px;object-fit:cover;background:#000;border:2px solid rgba(66,255,208,.55);border-radius:10px;display:block}.camera-preview-note{font-size:11px;color:#78a99f;line-height:1.35;margin-top:6px}.cameraCardBody .record-help{grid-column:1/-1}
+.start-command-banner{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:45;width:min(900px,88vw);padding:10px 18px;border:1px solid rgba(66,255,208,.55);border-radius:10px;background:rgba(3,16,13,.92);box-shadow:0 0 20px rgba(66,255,208,.12);text-align:center;color:#dffef7;font-size:16px;font-weight:800;letter-spacing:.03em}.start-command-banner .label{display:block;color:#42ffd0;font-size:11px;letter-spacing:.16em;margin-bottom:4px}.start-command-banner .phrase{font-size:20px;color:#fff}
+.permission-hint{margin-top:6px;font-size:11px;color:#78a99f;line-height:1.35}.permission-ok{color:#42ffd0}
+@media(max-width:900px){.cameraCardBody{grid-template-columns:1fr 1fr}.camera-preview{min-height:180px}}
+@media(max-width:700px){.cameraCardBody{grid-template-columns:1fr}.camera-preview{min-height:0}.start-command-banner{top:58px;width:92vw;padding:8px 12px}.start-command-banner .phrase{font-size:16px}}
+
+/* V1.25 - preparação minimalista */
+.prepShell{max-width:1120px!important;padding:10px 14px 12px!important}.prepGrid{grid-template-columns:1fr 1fr!important;gap:8px!important}.prepCard{border-radius:12px!important;padding:10px!important;background:#07100e!important}.prepCard .section-title{font-size:13px!important;letter-spacing:.04em;margin:0 0 7px!important}.prepCard .field label{font-size:11px!important}.prepCard .field input,.prepCard .field select{padding:7px 8px!important;font-size:13px!important}.prepCard .row button,.prepCard button{padding:6px 9px!important;font-size:12px!important}.prepHint,.permission-hint,.record-help,.camera-preview-note{font-size:10px!important;line-height:1.25!important}.voiceTimeGrid{grid-template-columns:1.1fr .9fr!important;gap:10px!important}.timeFields{gap:6px!important}.cmd{gap:6px!important;margin:4px 0!important}.cmd input{padding:7px!important;font-size:12px!important}.cmd button{padding:5px 7px!important}.cameraCardBody{grid-template-columns:minmax(235px,.62fr) minmax(430px,1.38fr)!important;gap:10px!important}.cameraCardBody .grid{grid-template-columns:1fr 1fr!important}.camera-preview{min-height:205px!important;border-width:1px!important}.camera-preview-wrap{display:block!important}.camera-preview-note{margin-top:4px!important}.camera-controls .permission-hint{margin-top:5px}.prepFooter{padding:7px 9px!important;margin-top:8px!important;background:#07100e!important;border-radius:12px!important}.prepFooter .row{justify-content:space-between!important}.prepFooter button{padding:7px 11px!important}.prepFooter #start{min-width:170px}.start-command-banner{transition:opacity .15s ease}
+@media(max-width:850px){.prepGrid{grid-template-columns:1fr!important}.cameraCardBody{grid-template-columns:1fr!important}.cameraCardBody .grid{grid-template-columns:1fr 1fr!important}}
+@media(max-width:560px){.cameraCardBody .grid,.timeFields{grid-template-columns:1fr!important}}
+</style><link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#42ffd0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+.prepShell{max-width:1180px!important}.prepGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.prepCard{padding:10px!important;margin:0!important}.prepCard .section-title{margin-bottom:6px}.prepCard .grid{gap:7px}.prepFooter{margin-top:8px!important}
+#pauseMarker{display:none;position:absolute;left:4%;right:4%;height:2px;background:#20e0c0;z-index:20}
+@media(max-width:850px){.prepGrid{grid-template-columns:1fr}}
+</style>
+<style id="v18-layout">
+.promptTop{display:none!important}.promptStage{padding:0 5vw}.promptText{text-align:center;left:5vw;right:5vw;max-width:none}.controls{bottom:7px;width:auto;min-width:420px;max-width:90vw;padding:4px 6px;gap:4px;opacity:.92}.controls button{height:30px;min-width:31px;font-size:14px}.controls .speed-level{height:30px;min-width:88px;padding:7px 4px}.finalAdjust,.textWidthAdjust{height:30px}.startReference{left:5vw;right:5vw}.adjusting .startReference{display:block}.adjusting .promptHud{display:none}.adjusting .controls{opacity:1}.adjusting .promptText{cursor:default}
+.prepCard{margin-bottom:8px;padding:12px}.prepCard .section-title{font-size:15px;margin:2px 0 8px}.prepCard .grid{gap:8px}.prepCard .field{gap:4px}.prepCard .field input,.prepCard .field select{padding:8px}.prepCard .row{gap:6px}.prepFooter{padding:10px;margin-bottom:0}.prepFooter button{padding:8px 12px}.camera-preview-wrap{margin-top:8px;display:grid;grid-template-columns:minmax(180px,320px) 1fr;gap:10px;align-items:start}.camera-preview{width:100%;aspect-ratio:16/9;background:#000;border:1px solid rgba(66,255,208,.3);border-radius:10px;object-fit:cover}.camera-preview-note{font-size:12px;color:#8dcfc0}
+@media(max-width:700px){.controls{min-width:0;width:auto}.promptHud{right:8px}.hudBox{min-width:108px}.promptTimer{font-size:30px}.promptText{left:3vw;right:3vw}.startReference{left:3vw;right:3vw}.camera-preview-wrap{grid-template-columns:1fr}.prepGrid{grid-template-columns:1fr}.voiceTimeGrid{grid-template-columns:1fr}.timeFields{grid-template-columns:1fr 1fr}}
+</style>
+<style id="nkola-theme-original-v146">
+/* Tema da tela de leitura — não altera preparação, biblioteca ou login. */
+body.prompter{
+  background:#000 !important;
+  color:#fff !important;
+  min-height:100vh;
+}
+body.prompter .promptStage{
+  background:#000 !important;
+  color:#fff !important;
+}
+body.prompter .promptText{
+  color:#fff !important;
+}
+body.prompter:not(.light) .guide{
+  background:#ffe500 !important;
+}
+
+/* BRANCO — aplicado quando Preparação > Aparência > Tema = Branco */
+body.prompter.light{
+  background:#fff !important;
+  color:#111 !important;
+}
+body.prompter.light .promptStage{
+  background:#fff !important;
+  color:#111 !important;
+}
+body.prompter.light .promptText{
+  color:#111 !important;
+}
+body.prompter.light .guide{
+  background:#e60000 !important;
+}
+body.prompter.light .promptHud{
+  color:#111 !important;
+}
+body.prompter.light .hudBox{
+  background:rgba(255,255,255,.94) !important;
+  color:#111 !important;
+  border-bottom-color:rgba(0,0,0,.12) !important;
+}
+body.prompter.light .hudStatusText,
+body.prompter.light .hudMic,
+body.prompter.light .hudDb{
+  color:#111 !important;
+}
+body.prompter.light .controls{
+  background:rgba(255,255,255,.94) !important;
+  border:1px solid #ccc !important;
+}
+body.prompter.light .controls button,
+body.prompter.light .controls select{
+  background:#fff !important;
+  color:#111 !important;
+  border-color:#bbb !important;
+}
+
+/* OXPROMPTER MOBILE TESTE 1 — câmera como fundo durante gravação */
+.mobileCameraBg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#000;transform:none;opacity:.78;filter:saturate(.95) contrast(1.02);pointer-events:none}
+.mobileCameraShade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,.16) 35%,rgba(0,0,0,.30) 100%);pointer-events:none}
+.prompter.light .mobileCameraShade{background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08) 40%,rgba(255,255,255,.22))}
+body.prompter.mobile-camera .promptStage{z-index:2;background:transparent}
+body.prompter.mobile-camera .promptText{z-index:3;text-shadow:0 2px 5px rgba(0,0,0,.95),0 0 12px rgba(0,0,0,.85);background:rgba(0,0,0,.18);border-radius:12px;padding:10px 16px}
+body.prompter.mobile-camera.light .promptText{color:#111;text-shadow:0 1px 3px rgba(255,255,255,.95),0 0 10px rgba(255,255,255,.9);background:rgba(255,255,255,.18)}
+body.prompter.mobile-camera .guide{position:relative;z-index:4;box-shadow:0 0 12px rgba(255,229,0,.85)}
+body.prompter.mobile-camera .promptHud,body.prompter.mobile-camera .controls{z-index:20}
+.mobile-camera-badge{position:fixed;left:10px;top:10px;z-index:25;padding:6px 9px;border-radius:999px;background:rgba(0,0,0,.58);color:#fff;border:1px solid rgba(66,255,208,.55);font-size:11px;font-weight:800;letter-spacing:.04em;pointer-events:none}
+@media(max-width:700px){
+  .promptStage{padding:0 4vw!important}
+  .promptText{left:4vw!important;right:4vw!important;font-size:34px;max-width:none!important;line-height:1.28;padding:8px 12px!important}
+  body.prompter.mobile-camera .promptText{font-size:clamp(26px,8vw,44px)}
+  .promptTop{padding:8px 10px}
+  .promptHud{left:8px;right:8px}
+  .hudBox{max-width:calc(100vw - 16px);font-size:12px}
+  .controls{left:6px;right:6px;transform:none;width:auto;min-width:0;max-width:none;bottom:max(6px,env(safe-area-inset-bottom));flex-wrap:wrap;gap:4px;padding:5px;background:rgba(0,0,0,.78)}
+  .controls button,.controls select,.controls .speed-level,.finalAdjust,.textWidthAdjust{min-height:40px;height:40px}
+  .controls button{min-width:40px;font-size:14px;padding:5px 7px}
+  .controls .speed-level{min-width:72px;padding:10px 5px;font-size:10px}
+  .finalAdjust,.textWidthAdjust{height:40px}
+  .startReference{left:4vw!important;right:4vw!important}
+  .mobile-camera-badge{top:max(8px,env(safe-area-inset-top));left:8px}
+}
+@media(orientation:landscape) and (max-height:560px){
+  .promptText{font-size:clamp(24px,6vh,42px)!important;line-height:1.18}
+  .controls{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start}
+  .controls>*{flex:0 0 auto}
+}
+</style>
+
+</head><body><div id="root"></div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const KEY='tp_data_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{passwordHash:'',scripts:[],settings:{theme:'dark',mirror:false,font:54,visible:'muito'}};
+let current=null, recognition=null, commandRecognition=null, listening=false, started=false, preparingPrompter=false, currentWord=0, words=[], lastMatch=0, startTime=0, elapsedTimer=null, targetSeconds=0, prepMode='audio', countdownTimer=null, sessionId=0, reviewAfterStop=false;
+function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+async function hash(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function esc(s){return s.replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\\':'&bsol;','"':'&quot;'}[m]))}
+function render(){document.body.className=''; if(!db.passwordHash){showSetup();return} showLogin()}
+function matrixColumns(count=32){const cols=[];for(let i=0;i<count;i++){const chars=Array.from({length:18+Math.floor(Math.random()*18)},()=>Math.random()>.5?'0':'1').join('\n');const reverse=Math.random()>.5;cols.push(`<div class="password-col ${reverse?'reverse':''}" style="left:${i*(100/count)}%;animation-duration:${3+Math.random()*5}s;animation-delay:${-Math.random()*6}s">${chars}</div>`)}return cols.join('')}
+function showSetup(){stopAll();document.body.className='';document.body.innerHTML=`<div class="password-screen"><div class="password-matrix">${matrixColumns()}</div><div class="password card"><div class="cyber-badge">ACESSO SEGURO</div><h1>OXPROMPTER</h1><div class="password-version"></div><p class="muted">A senha protege o acesso ao teleprompter neste navegador.</p><input id="p1" type="password" placeholder="Nova senha" style="width:100%;padding:12px;margin:8px 0"><input id="p2" type="password" placeholder="Confirmar senha" style="width:100%;padding:12px;margin:8px 0"><button class="primary" id="create">Criar senha</button><div id="msg" class="muted" style="margin-top:10px"></div></div></div>`;$('#create').onclick=async()=>{let a=$('#p1').value,b=$('#p2').value;if(!a||a!==b){$('#msg').textContent='As senhas não coincidem.';return}db.passwordHash=await hash(a);save();showLogin()}}
+function showLogin(){stopAll();document.body.className='';document.body.innerHTML=`<div class="password-screen"><div class="password-matrix">${matrixColumns()}</div><div class="password card"><div class="cyber-badge">ACESSO SEGURO</div><h1>OXPROMPTER</h1><div class="password-version"></div><p class="muted">Acesso protegido.</p><input id="login" type="password" placeholder="Senha" style="width:100%;padding:12px;margin:8px 0"><button class="primary" id="enter">Entrar</button><div id="msg" class="muted" style="margin-top:10px"></div></div></div>`;$('#enter').onclick=async()=>{if(await hash($('#login').value)===db.passwordHash)showBiblioteca();else $('#msg').textContent='Senha incorreta.'};$('#login').onkeydown=e=>{if(e.key==='Enter')$('#enter').click()}}
+async function readDocumentFile(file){
+ const ext=(file.name.split('.').pop()||'').toLowerCase();
+ if(['txt','text','md','srt','rtf','html','htm','xml'].includes(ext)){
+   const raw=await file.text();
+   if(ext==='rtf') return rtfToText(raw);
+   if(ext==='html'||ext==='htm') return htmlToText(raw);
+   return raw;
+ }
+ if(ext==='docx'||ext==='odt'){
+   const buf=await file.arrayBuffer();
+   const wanted=ext==='docx'?'word/document.xml':'content.xml';
+   const xml=await unzipText(buf,wanted);
+   return xmlToPlainText(xml);
+ }
+ if(ext==='doc') throw new Error('DOC legado não é um formato ZIP/XML e não pode ser extraído com segurança no navegador.');
+ throw new Error('Formato não suportado');
+}
+function htmlToText(raw){const d=document.createElement('div');d.innerHTML=raw;d.querySelectorAll('script,style,noscript').forEach(x=>x.remove());return (d.innerText||d.textContent||'').replace(/\n{3,}/g,'\n\n').trim()}
+function rtfToText(raw){let s=raw.replace(/\\par[d]?/gi,'\n').replace(/\\tab/g,'\t').replace(/\\'[0-9a-f]{2}/gi,m=>String.fromCharCode(parseInt(m.slice(2),16))).replace(/\\[a-z]+-?\\d* ?/gi,'').replace(/[{}]/g,'');return s.replace(/\n{3,}/g,'\n\n').trim()}
+function xmlEntities(s){return s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(+n)).replace(/&#x([0-9a-f]+);/gi,(_,n)=>String.fromCodePoint(parseInt(n,16)))}
+function xmlToPlainText(xml){let s=xml.replace(/<w:tab[^>]*\/>/g,'\t').replace(/<w:br[^>]*\/>/g,'\n').replace(/<w:cr[^>]*\/>/g,'\n').replace(/<w:tr[^>]*>/g,'\n').replace(/<\/w:p>/g,'\n').replace(/<\/text:p>/g,'\n');s=s.replace(/<[^>]+>/g,'');return xmlEntities(s).replace(/[ \t]+\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim()}
+async function unzipText(buffer,wanted){
+ const bytes=new Uint8Array(buffer), view=new DataView(buffer);
+ let eocd=-1; for(let i=bytes.length-22;i>=Math.max(0,bytes.length-65558);i--){if(view.getUint32(i,true)===0x06054b50){eocd=i;break}}
+ if(eocd<0)throw new Error('ZIP inválido');
+ const count=view.getUint16(eocd+10,true), cdOffset=view.getUint32(eocd+16,true); let p=cdOffset;
+ for(let i=0;i<count;i++){
+   if(view.getUint32(p,true)!==0x02014b50){p++;i--;continue}
+   const method=view.getUint16(p+10,true), compSize=view.getUint32(p+20,true), nameLen=view.getUint16(p+28,true), extraLen=view.getUint16(p+30,true), commentLen=view.getUint16(p+32,true), localOffset=view.getUint32(p+42,true);
+   const name=new TextDecoder().decode(bytes.slice(p+46,p+46+nameLen));
+   if(name===wanted){
+     const lp=localOffset, localNameLen=view.getUint16(lp+26,true), localExtraLen=view.getUint16(lp+28,true), start=lp+30+localNameLen+localExtraLen, data=bytes.slice(start,start+compSize);
+     let out;
+     if(method===0) out=data;
+     else if(method===8){
+       if(typeof DecompressionStream!=='function')throw new Error('Este navegador não possui descompressão ZIP nativa.');
+       const ds=new DecompressionStream('deflate-raw'); out=new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(ds)).arrayBuffer());
+     } else throw new Error('Compressão ZIP não suportada');
+     return new TextDecoder('utf-8').decode(out);
+   }
+   p+=46+nameLen+extraLen+commentLen;
+ }
+ throw new Error('Conteúdo principal não encontrado');
+}
+function showBiblioteca(){
+ stopAll();
+ document.body.className="";
+ document.body.innerHTML=`<div class="cyber-home"><section class="cyber-panel">
+ <h1 class="cyber-title">OXPROMPTER</h1>
+ <div class="cyber-sub">PESSOAL • SINCRONIZAÇÃO DE FALA • GRAVAÇÃO</div>
+ <div class="cyber-grid">
+  <div class="cyber-card">
+   <h2>▣ NOVO ROTEIRO</h2>
+   <div class="field"><label>Nome do roteiro</label><input id="quickName" placeholder="Ex.: Apresentação de hoje"></div>
+   <div class="field" style="margin-top:10px"><label>Texto que será usado no teleprompter</label><textarea id="quickText" placeholder="Cole ou escreva seu texto aqui..."></textarea></div>
+   <div class="cyber-actions">
+    <button type="button" class="cyber-btn cyber-primary" id="quickCreate">+ Adicionar texto</button>
+    <button type="button" class="cyber-btn" id="importFile">▣ Adicionar arquivo do PC</button>
+    <input id="fileInput" type="file" accept=".txt,.md,.srt,.text,.doc,.docx,.rtf,.odt,.html,.htm,.xml" class="hidden">
+   </div>
+   <div id="fileHint" class="cyber-hint">Aceita TXT, MD, SRT, DOCX, ODT, RTF, HTML e outros formatos de texto. DOC legado pode exigir conversão para DOCX.</div>
+  </div>
+  <div class="cyber-card">
+   <div class="row between"><h2 style="margin-bottom:0">▤ MEUS ROTEIROS</h2><span class="cyber-badge">SALVO NO PC</span></div>
+   <div class="cyber-hint">Seus roteiros ficam salvos no computador/navegador.</div>
+   <div id="list" class="cyber-list" style="margin-top:14px"></div>
+  </div>
+ </div>
+ <div class="row between" style="margin-top:18px"><span class="cyber-hint">Antes de gravar, você poderá revisar todos os ajustes, comandos, áudio e tempo.</span><button type="button" class="cyber-btn" id="security">🔐 Segurança</button></div>
+ </section></div>`;
+ $('#quickCreate').onclick=()=>{let name=$('#quickName').value.trim()||'Novo roteiro';let text=$('#quickText').value;if(!text.trim()){alert('Adicione algum texto antes de continuar.');return}let loadedId=$('#quickCreate').dataset.loadedId;if(loadedId){let found=db.scripts.find(x=>x.id===loadedId);if(found){found.name=name;found.text=text;found.updated=Date.now();current=found;save();prepare();return}}current={id:crypto.randomUUID(),name,text,notes:'',updated:Date.now(),settings:{startPercent:50}};db.scripts.push(current);save();prepare()};
+ $('#importFile').onclick=()=>$('#fileInput').click();
+ $('#fileInput').onchange=async e=>{let f=e.target.files?.[0];if(!f)return;$('#quickName').value=f.name.replace(/\.[^.]+$/,'');$('#fileHint').textContent='Lendo '+f.name+'…';try{const text=await readDocumentFile(f);$('#quickText').value=text;$('#fileHint').textContent='Arquivo carregado: '+f.name+' — confira o texto e clique em “Adicionar texto”.'}catch(err){console.error(err);$('#fileHint').textContent='Não foi possível extrair o texto deste arquivo. Para DOC legado, salve como DOCX e tente novamente.'}};
+ $('#security').onclick=security; listScripts();
+}
+function loadScriptIntoHome(id){
+ const found=db.scripts.find(x=>x.id===id); if(!found)return;
+ current=found;
+ const name=$('#quickName'), text=$('#quickText');
+ if(name)name.value=found.name||'';
+ if(text)text.value=found.text||'';
+ const btn=$('#quickCreate'); if(btn){btn.textContent='✓ Preparar este roteiro';btn.dataset.loadedId=found.id;}
+ const hint=$('#fileHint'); if(hint)hint.textContent='Roteiro carregado. Revise o texto acima e clique em “Preparar este roteiro”.';
+ document.querySelector('.cyber-card textarea#quickText')?.focus();
+}
+function listScripts(){let q=($('#search')?.value||'').toLowerCase();let arr=db.scripts.filter(x=>x.name.toLowerCase().includes(q));$('#list').innerHTML=arr.length?arr.map(x=>`<div class="item saved-script" data-load-script="${x.id}" tabindex="0"><div><strong>${esc(x.name)}</strong><span class="muted">${new Date(x.updated).toLocaleString('pt-BR')}</span></div><div class="row"><button type="button" data-open="${x.id}">Abrir aqui</button><button type="button" class="danger" data-del="${x.id}">Excluir</button></div></div>`).join(''):'<div class="muted">Nenhum roteiro ainda.</div>';
+ $$('[data-open]').forEach(b=>b.onclick=e=>{e.stopPropagation();loadScriptIntoHome(b.dataset.open)});
+ $$('[data-load-script]').forEach(b=>{b.onclick=()=>loadScriptIntoHome(b.dataset.loadScript);b.onkeydown=e=>{if(e.key==='Enter')loadScriptIntoHome(b.dataset.loadScript)}});
+ $$('[data-del]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(confirm('Excluir este roteiro?')){db.scripts=db.scripts.filter(x=>x.id!==b.dataset.del);save();listScripts()}})
+}
+function editScript(id, initial){stopAll();document.body.className="";current=id?db.scripts.find(x=>x.id===id):{id:crypto.randomUUID(),name:(initial&&initial.name)||'Novo roteiro',text:(initial&&initial.text)||'',notes:'',updated:Date.now(),settings:{}};document.body.innerHTML='<div class="top"><div class="brand">📝 Editar roteiro</div><div class="row"><button id="back">← Biblioteca</button><button class="primary" id="next">Salvar e preparar →</button></div></div><main class="shell editor-wrap"><div class="card"><div class="grid"><div class="field"><label>Nome do roteiro</label><input id="name"></div><div class="field"><label>Observações (não são faladas)</label><input id="notes" placeholder="Ex.: vídeo institucional"></div></div></div><div class="card"><div class="section-title">Texto</div><textarea id="text" placeholder="Cole ou escreva o roteiro aqui..."></textarea><div class="muted" style="margin-top:8px">Você pode usar anotações entre colchetes, como [OLHAR PARA CÂMERA]. Elas não interferem na sincronização da fala.</div></div></main>';$('#name').value=current.name;$('#notes').value=current.notes||'';$('#text').value=current.text;$('#back').onclick=showBiblioteca;$('#next').onclick=()=>{current.name=$('#name').value.trim()||'Sem título';current.notes=$('#notes').value;current.text=$('#text').value;current.updated=Date.now();if(!db.scripts.some(x=>x.id===current.id))db.scripts.push(current);save();prepare()}}
+function security(){stopAll();document.body.className="";document.body.innerHTML='<div class="top"><div class="brand">🔐 Segurança</div><button id="back">← Voltar</button></div><main class="shell"><div class="card"><div class="section-title">Alterar senha</div><div class="field"><label>Senha atual</label><input id="old" type="password"></div><div class="field" style="margin-top:10px"><label>Nova senha</label><input id="newp" type="password"></div><button id="change" class="primary" style="margin-top:12px">Alterar</button><div id="msg" class="muted" style="margin-top:8px"></div></div></main>';$('#back').onclick=showBiblioteca;$('#change').onclick=async()=>{if(await hash($('#old').value)!==db.passwordHash){$('#msg').textContent='Senha atual incorreta.';return}if(!$('#newp').value){$('#msg').textContent='Digite a nova senha.';return}db.passwordHash=await hash($('#newp').value);save();$('#msg').textContent='Senha alterada.'}}
+function stopPrepMedia(){const streams=new Set([prepCameraStream,prepMicStream,prepCombinedStream].filter(Boolean));for(const st of streams){try{st.getTracks().forEach(t=>t.stop())}catch(e){}}prepCameraStream=null;prepMicStream=null;prepCombinedStream=null;prepAccessPromise=null}
+function prepare(){stopPrepMedia();stopAll();document.body.className='';document.body.innerHTML=`<div class="top"><div class="brand">⚙️ Preparar gravação</div><button id="back">← Roteiro</button></div>
+<main class="shell prepShell">
+<div class="prepGrid">
+<div class="card prepCard"><div class="section-title">Aparência</div><div class="grid">
+<div class="field"><label>Tema</label><select id="theme"><option value="white">Branco</option><option value="dark">Noturno</option></select></div>
+<div class="field"><label>Modo espelho</label><select id="mirror"><option value="no">Desativado</option><option value="yes">Ativado</option></select></div>
+<div class="field"><label>Tamanho da fonte</label><input id="font" type="range" min="28" max="90" value="54"></div>
+</div></div>
+
+<div class="card prepCard"><div class="section-title">Leitura</div><div class="grid">
+<div class="field"><label>Modo</label><select id="mode"><option value="noaudio">Sem áudio - Automático</option><option value="audio">Com áudio - Comando Inicial</option></select></div>
+<div class="field"><label>Microfone</label><select id="mic"><option value="">Carregando microfones...</option></select><div class="row"><button type="button" id="refreshMic">↻ Atualizar</button><button type="button" id="testMic">🎙️ Testar</button></div><div id="micHint" class="muted">Selecione e teste o microfone. Depois de autorizar, mantenha a permissão do Chrome ativa para evitar novas solicitações.</div></div>
+</div></div>
+
+<div class="card prepCard voiceTimeCard"><div class="section-title">🎙️ Comando + ⏱️ Tempo</div><div class="voiceTimeGrid"><div><div class="muted prepHint">Com áudio: aguarda o comando antes da contagem regressiva.</div><div id="startCmds"></div><button id="addStart" class="compactBtn">+ Comando</button></div><div class="timeFields"><div class="field check"><input id="timerOn" type="checkbox" checked><label for="timerOn">Mostrar tempo</label></div><div class="field"><label>Tempo desejado</label><input id="target" type="time" step="1" value="00:05:00"></div><div class="field check"><input id="runnerOn" type="checkbox" checked><label for="runnerOn">Aviso de atraso 🏃</label></div><div class="field"><label>Contagem</label><select id="count"><option>3</option><option selected>5</option><option>10</option></select></div></div></div></div>
+
+<div class="card prepCard"><div class="section-title">📹 Câmera</div><div class="cameraCardBody"><div class="camera-controls"><div class="grid">
+<div class="field check"><input id="recordOn" type="checkbox" checked><label for="recordOn">Gravar vídeo da câmera</label></div><div class="field check"><input id="recordAudioOn" type="checkbox" checked><label for="recordAudioOn">Gravar áudio no arquivo</label></div><div class="field check"><input id="mobileCameraBg" type="checkbox" checked><label for="mobileCameraBg">📱 Usar câmera como fundo durante a leitura</label></div><div class="field"><label>📷 Câmera para o teleprompter</label><select id="mobileCameraFacing"><option value="user">🤳 Frontal</option><option value="environment">📷 Traseira</option></select></div><div class="field"><label>Opacidade do texto sobre a câmera <span id="mobileTextOpacityValue">90%</span></label><input id="mobileTextOpacity" type="range" min="35" max="100" value="90" step="1"></div>
+<div class="field"><label>Câmera</label><select id="camera"><option value="">Câmera padrão</option></select><div class="row"><button type="button" id="refreshCamera">↻ Atualizar câmeras</button><button type="button" id="testCamera">📷 Testar câmera</button></div></div>
+</div><div class="permission-hint">Câmera e microfone são autorizados juntos e mantidos ativos nesta preparação para evitar novas solicitações.</div></div><div class="camera-preview-wrap"><video id="cameraPreview" class="camera-preview" autoplay muted playsinline></video><div class="camera-preview-note">A prévia mostra exatamente o enquadramento que será capturado na gravação.</div></div><div class="record-help">O vídeo e o áudio são opções separadas. O áudio pode ser gravado mesmo sem vídeo. Só será salvo depois de finalizar e clicar em SALVAR.</div></div></div>
+
+</div>
+<div class="card prepFooter"><div class="row between"><button id="back2">← Biblioteca</button><button class="primary" id="start">▶ Iniciar preparação</button></div></div>
+</main>`;$('#theme').value=(db.settings.theme==='light'?'white':(db.settings.theme||'dark'));$('#theme').onchange=()=>{current.settings=current.settings||{};current.settings.theme=$('#theme').value;save();const preview=$('#cameraPreview');if(preview)preview.classList.toggle('theme-preview-white',$('#theme').value==='white');};$('#mirror').value=db.settings.mirror?'yes':'no';$('#font').value=db.settings.font||54;$('#recordOn').checked=current.settings?.recordOn!==false;$('#recordAudioOn').checked=current.settings?.recordAudioOn!==false;$('#mobileCameraBg').checked=current.settings?.mobileCameraBg!==false;$('#mobileCameraBg').onchange=()=>{current.settings.mobileCameraBg=$('#mobileCameraBg').checked;save()};$('#mobileCameraFacing').value=current.settings?.mobileCameraFacing||'user';$('#mobileCameraFacing').onchange=()=>{current.settings.mobileCameraFacing=$('#mobileCameraFacing').value;current.settings.mobileFrontCamera=$('#mobileCameraFacing').value==='user';save();previewCamera()};const mobileOpacity=Math.max(35,Math.min(100,Number(current.settings?.mobileTextOpacity||90)));$('#mobileTextOpacity').value=mobileOpacity;$('#mobileTextOpacityValue').textContent=mobileOpacity+'%';$('#mobileTextOpacity').oninput=()=>{const v=Number($('#mobileTextOpacity').value);$('#mobileTextOpacityValue').textContent=v+'%';current.settings.mobileTextOpacity=v;save()};renderCmds();loadMicrophones();loadCameras();$('#addStart').onclick=()=>addCmd('start');$('#back').onclick=showBiblioteca;$('#back2').onclick=showBiblioteca;$('#refreshMic').onclick=loadMicrophones;$('#testMic').onclick=testMic;$('#mic').onchange=()=>{current.settings.micDeviceId=$('#mic').value;save()};$('#refreshCamera').onclick=loadCameras;$('#camera').onchange=()=>{current.settings.cameraDeviceId=$('#camera').value;save();previewCamera()};$('#testCamera').onclick=previewCamera;$('#start').onclick=startCountdown;previewCamera();}
+function addCmd(type){let arr=current.settings||(current.settings={});arr[type+'Cmds']||(arr[type+'Cmds']=[]);arr[type+'Cmds'].push({phrase:'',action:type==='start'?'start':'resume'});renderCmds()}
+function renderCmds(){let arr=(current.settings&&current.settings.startCmds)||[];$('#startCmds').innerHTML=arr.length?arr.map((c,i)=>`<div class="cmd"><input data-cmd="start" data-i="${i}" value="${esc(c.phrase)}" placeholder="Frase de comando"><select disabled><option>Iniciar</option></select><button data-rm="start" data-i="${i}" class="danger">🗑️</button></div>`).join(''):'<div class="muted">Nenhum comando adicionado.</div>';$$('[data-cmd="start"]').forEach(inp=>inp.oninput=()=>{arr[inp.dataset.i].phrase=inp.value;save()});$$('[data-rm="start"]').forEach(b=>b.onclick=()=>{arr.splice(+b.dataset.i,1);renderCmds()})}
+function savePrep(){current.settings={...(current.settings||{}),theme:($('#theme').value==='white'||$('#theme').value==='light')?'white':'dark',mirror:$('#mirror').value==='yes',font:+$('#font').value,textWidth:+(current.settings?.textWidth||600),mode:$('#mode').value,mic:$('#mic').value,micDeviceId:$('#mic').value,timerOn:$('#timerOn').checked,target:$('#target').value,runnerOn:$('#runnerOn').checked,count:+$('#count').value,recordOn:$('#recordOn').checked,recordAudioOn:$('#recordAudioOn').checked,mobileCameraBg:$('#mobileCameraBg')?.checked!==false,mobileFrontCamera:($('#mobileCameraFacing')?.value||current.settings?.mobileCameraFacing||'user')==='user',mobileCameraFacing:$('#mobileCameraFacing')?.value||current.settings?.mobileCameraFacing||'user',mobileTextOpacity:+($('#mobileTextOpacity')?.value||90),cameraDeviceId:$('#camera').value};save()}
+async function ensurePrepMediaAccess(){
+  if(prepAccessPromise)return prepAccessPromise;
+  prepAccessPromise=(async()=>{
+    if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});
+    prepCombinedStream=stream;
+    prepMicStream=stream;
+    prepCameraStream=stream;
+    return stream;
+  })().catch(e=>{prepAccessPromise=null;throw e});
+  return prepAccessPromise;
+}
+
+let micStream=null,micAudioContext=null,micAnalyser=null,micRaf=null;
+let prepCameraStream=null;
+let prepMicStream=null;
+let prepCombinedStream=null;
+let prepAccessPromise=null;
+function selectedMicConstraints(){const id=$('#mic')?.value||current.settings?.micDeviceId||'';return id?{deviceId:{exact:id}}:true}
+function selectedCameraConstraints(){const facing=current.settings?.mobileCameraFacing||(current.settings?.mobileFrontCamera===false?'environment':'user');const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';if(facing==='user'||facing==='environment')return{facingMode:{ideal:facing},width:{ideal:1280},height:{ideal:720}};return id?{deviceId:{exact:id},width:{ideal:1920},height:{ideal:1080}}:{width:{ideal:1280},height:{ideal:720}}}
+async function loadMicrophones(){
+  const sel=$('#mic'); if(!sel)return;
+  sel.innerHTML='<option value="">Solicitando câmera + microfone...</option>';
+  try{
+    await ensurePrepMediaAccess();
+    const devices=await navigator.mediaDevices.enumerateDevices();
+    const mics=devices.filter(d=>d.kind==='audioinput');
+    sel.innerHTML=mics.length?mics.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||('Microfone '+(i+1)))}</option>`).join(''):'<option value="">Nenhum microfone encontrado</option>';
+    const wanted=current.settings?.micDeviceId||'';
+    if(wanted&&mics.some(d=>d.deviceId===wanted))sel.value=wanted;
+    else if(mics[0]){sel.value=mics[0].deviceId;current.settings={...(current.settings||{}),micDeviceId:mics[0].deviceId};save()}
+    $('#micHint').innerHTML=mics.length?'<span class="permission-ok">✓ Microfone autorizado e mantido ativo.</span>':'Nenhum microfone foi encontrado.';
+  }catch(e){
+    sel.innerHTML='<option value="">Não foi possível acessar o microfone</option>';
+    if($('#micHint'))$('#micHint').textContent='Autorize câmera e microfone quando o Chrome solicitar.';
+  }
+}
+async function previewCamera(){
+  const v=$('#cameraPreview'); if(!v||!navigator.mediaDevices?.getUserMedia)return;
+  try{
+    await ensurePrepMediaAccess();
+    const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
+    const existing=prepCameraStream?.getVideoTracks?.()[0];
+    const existingId=existing?.getSettings?.().deviceId||'';
+    if(existing&&(!id||existingId===id)){v.srcObject=prepCameraStream;return}
+    if(prepCameraStream&&prepCameraStream!==prepCombinedStream)prepCameraStream.getVideoTracks().forEach(t=>t.stop());
+    if(prepCombinedStream?.getVideoTracks?.().length){
+      const combinedId=prepCombinedStream.getVideoTracks()[0].getSettings?.().deviceId||'';
+      if(!id||combinedId===id){prepCameraStream=prepCombinedStream;v.srcObject=prepCameraStream;return}
+    }
+    prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
+    v.srcObject=prepCameraStream;
+  }catch(e){v.srcObject=null}
+}
+async function loadCameras(){
+  const sel=$('#camera');if(!sel)return;
+  try{
+    await ensurePrepMediaAccess();
+    const devices=await navigator.mediaDevices.enumerateDevices();
+    const cams=devices.filter(d=>d.kind==='videoinput');
+    sel.innerHTML=cams.length?cams.map((d,i)=>`<option value="${esc(d.deviceId)}">${esc(d.label||('Câmera '+(i+1)))}</option>`).join(''):'<option value="">Nenhuma câmera encontrada</option>';
+    const wanted=current.settings?.cameraDeviceId||'';
+    if(wanted&&cams.some(d=>d.deviceId===wanted))sel.value=wanted;
+    else if(cams[0]){sel.value=cams[0].deviceId;current.settings={...(current.settings||{}),cameraDeviceId:cams[0].deviceId};save()}
+    await previewCamera();
+  }catch(e){sel.innerHTML='<option value="">Não foi possível acessar a câmera</option>'}
+}
+let cameraStream=null,recordStream=null,mediaRecorder=null,recordChunks=[],recordingActive=false,recordingMime='',recordedBlob=null,recordedUrl=null,recordingHasVideo=false;
+let liveMicContext=null,liveMicAnalyser=null,liveMicRaf=null,readingMicStream=null,voiceHoldUntil=0,voiceNoiseFloor=0.004;
+function stopLiveMicMeter(){if(liveMicRaf){cancelAnimationFrame(liveMicRaf);liveMicRaf=null}if(liveMicContext){liveMicContext.close().catch(()=>{});liveMicContext=null}liveMicAnalyser=null;voiceHoldUntil=0}
+function startLiveMicMeter(stream){
+  stopLiveMicMeter(); if(!stream?.getAudioTracks?.().length)return;
+  try{
+    liveMicContext=new (window.AudioContext||window.webkitAudioContext)();
+    if(liveMicContext.state==='suspended') liveMicContext.resume().catch(()=>{});
+    const source=liveMicContext.createMediaStreamSource(stream);
+    liveMicAnalyser=liveMicContext.createAnalyser(); liveMicAnalyser.fftSize=512; source.connect(liveMicAnalyser);
+    const data=new Uint8Array(liveMicAnalyser.fftSize);
+    const tick=()=>{
+      if(!liveMicAnalyser)return;
+      liveMicAnalyser.getByteTimeDomainData(data);
+      let sum=0;for(const v of data){const n=(v-128)/128;sum+=n*n}
+      const rms=Math.sqrt(sum/data.length); currentMicRms=rms; const pct=Math.min(100,Math.max(2,rms*300));
+      const bar=$('#liveMicLevel');if(bar)bar.style.width=pct+'%';
+      const db=20*Math.log10(Math.max(rms,.0001));const txt=$('#liveMicDb');if(txt)txt.textContent=Math.max(-60,Math.round(db))+' dB';
+      // O microfone controla a rolagem: fala = rola, silêncio = pausa.
+      // Usa um limiar baixo e uma pequena sustentação para não cortar a rolagem
+      // entre palavras e para funcionar também com microfones mais baixos.
+      if(started && !paused && (current.settings?.mode||'audio')!=='noaudio'){
+        voiceNoiseFloor=voiceNoiseFloor*0.92+Math.min(rms,0.01)*0.08;
+        const threshold=Math.max(0.0055,voiceNoiseFloor*2.2);
+        const speaking=rms>threshold;
+        if(speaking)voiceHoldUntil=performance.now()+850;
+        voiceActive=performance.now()<voiceHoldUntil;
+        if($('#statusText'))setStatus(voiceActive?'green':'yellow',voiceActive?'🎙️ Lendo — texto rolando':'Pausa — aguardando sua fala');
+      }
+      liveMicRaf=requestAnimationFrame(tick);
+    }; tick();
+  }catch(e){}
+}
+function hasLiveTrack(stream,type){
+  return !!stream?.getTracks?.().some(t=>t.kind===type && t.readyState==='live');
+}
+
+async function ensureReadingMic(){
+  if((current.settings?.mode||'audio')==='noaudio')return null;
+  if(!hasLiveTrack(recordStream,'audio'))recordStream=null;
+  if(!hasLiveTrack(readingMicStream,'audio'))readingMicStream=null;
+  if(!hasLiveTrack(prepMicStream,'audio'))prepMicStream=null;
+  if(recordStream&&hasLiveTrack(recordStream,'audio')){startLiveMicMeter(recordStream);return recordStream}
+  if(readingMicStream&&hasLiveTrack(readingMicStream,'audio')){startLiveMicMeter(readingMicStream);return readingMicStream}
+  if(prepMicStream&&hasLiveTrack(prepMicStream,'audio')){startLiveMicMeter(prepMicStream);return prepMicStream}
+  try{
+    const deviceId=current.settings?.micDeviceId||current.settings?.mic||'';
+    readingMicStream=await navigator.mediaDevices.getUserMedia({audio:deviceId?{deviceId:{exact:deviceId}}:true});
+    startLiveMicMeter(readingMicStream);
+    return readingMicStream;
+  }catch(e){
+    setStatus('red','Não foi possível acessar o microfone para controlar a rolagem');
+    return null;
+  }
+}
+
+function ensureRecordingPreview(stream){
+  try{
+    if(!current.settings?.recordOn)return false;
+    let wrap=$('#recordPreview');
+    let pv=$('#recordVideo');
+    if(!wrap){
+      wrap=document.createElement('div');
+      wrap.className='record-preview';
+      wrap.id='recordPreview';
+      wrap.innerHTML='<video id="recordVideo" autoplay muted playsinline></video><div class="record-badge"><span class="record-dot"></span><span id="recLabel">GRAVANDO</span></div>';
+      document.body.appendChild(wrap);
+      pv=$('#recordVideo');
+    }
+    if(!pv)return false;
+    const active=stream||recordStream||videoStream||prepCameraStream;
+    if(active && pv.srcObject!==active)pv.srcObject=active;
+    pv.autoplay=true;pv.muted=true;pv.playsInline=true;
+    try{pv.play().catch(()=>{})}catch(e){}
+    return !!active;
+  }catch(e){return false}
+}
+
+function chooseMime(withVideo=true){const types=withVideo?['video/mp4;codecs=h264,aac','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']:['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg','audio/mp4'];return types.find(t=>window.MediaRecorder?.isTypeSupported?.(t))||''}
+function recordingExt(mime){if(mime.includes('mp4'))return 'mp4';if(mime.includes('ogg'))return 'ogg';return 'webm'}
+
+async function restoreLiveCameraPreview(){
+  try{
+    if(!videoStream && prepCameraStream)videoStream=prepCameraStream;
+    const stream=videoStream||prepCameraStream;
+    const track=stream?.getVideoTracks?.().find(t=>t.readyState==='live');
+    if(!track)return false;
+    let pv=$('#cameraPreview');
+    if(!pv){
+      // Recreate the preview only when the current screen has a camera slot.
+      const host=$('.cameraPreviewHost')||$('.cameraPreview')||$('#cameraPreviewWrap');
+      if(host){
+        pv=document.createElement('video');
+        pv.id='cameraPreview';
+        pv.autoplay=true;pv.muted=true;pv.playsInline=true;
+        host.appendChild(pv);
+      }
+    }
+    if(!pv)return false;
+    if(pv.srcObject!==stream)pv.srcObject=stream;
+    pv.autoplay=true;pv.muted=true;pv.playsInline=true;
+    try{await pv.play()}catch(e){}
+    return true;
+  }catch(e){return false}
+}
+
+async function startCameraAndRecording(){
+  const wantVideo=current.settings?.recordOn===true;
+  const wantAudioRecord=current.settings?.recordAudioOn===true;
+  const needMic=current.settings?.mode!=='noaudio';
+  if(!wantVideo&&!wantAudioRecord)return true;
+  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){alert('Este navegador não oferece gravação de mídia necessária.');return false}
+  try{
+    const needAudio=wantAudioRecord||needMic;
+    let audioStream=null,videoStream=null;
+
+    if(!hasLiveTrack(prepMicStream,'audio'))prepMicStream=null;
+    if(!hasLiveTrack(prepCameraStream,'video'))prepCameraStream=null;
+
+    if(needAudio){
+      const id=current.settings?.micDeviceId||$('#mic')?.value||'';
+      const existing=prepMicStream?.getAudioTracks?.().find(t=>t.readyState==='live');
+      const existingId=existing?.getSettings?.().deviceId||'';
+      if(existing&&(!id||existingId===id))audioStream=prepMicStream;
+      else{
+        audioStream=await navigator.mediaDevices.getUserMedia({audio:id?{deviceId:{exact:id}}:true});
+        prepMicStream=audioStream;
+      }
+    }
+    if(wantVideo){
+      const id=current.settings?.cameraDeviceId||$('#camera')?.value||'';
+      const existing=prepCameraStream?.getVideoTracks?.().find(t=>t.readyState==='live');
+      const existingId=existing?.getSettings?.().deviceId||'';
+      if(existing&&(!id||existingId===id))videoStream=prepCameraStream;
+      else{
+        videoStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
+        prepCameraStream=videoStream;
+      }
+    }
+
+    // Clone tracks so stopping a recording NEVER stops the preparation streams.
+    const tracks=[];
+    if(wantVideo&&videoStream)videoStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
+    if(wantAudioRecord&&audioStream)audioStream.getAudioTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
+    if(!tracks.length){setStatus('red','Nenhuma faixa de gravação disponível');return false}
+
+    recordStream=new MediaStream(tracks);
+    cameraStream=recordStream;
+    await restoreLiveCameraPreview();
+    if(needMic&&audioStream)startLiveMicMeter(audioStream);
+
+    if(wantVideo){
+      // Usa o mesmo stream que será gravado. Não abre a câmera novamente.
+      ensureRecordingPreview(recordStream||videoStream);if(current.settings?.mobileCameraBg){const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=recordStream||videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;try{await bg.play()}catch(e){}}}
+    }
+
+    const mime=chooseMime();
+    mediaRecorder=mime?new MediaRecorder(recordStream,{mimeType:mime}):new MediaRecorder(recordStream);
+    recordingHasVideo=wantVideo;
+    recordingMime=mime||mediaRecorder.mimeType||(wantVideo?'video/webm':'audio/webm');
+    recordChunks=[];recordingActive=false;reviewAfterStop=false;
+    if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordedBlob=null;
+
+    const rec=mediaRecorder, chunks=recordChunks, mimeType=recordingMime;
+    rec.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
+    rec.onstart=()=>{if(mediaRecorder!==rec)return;recordingActive=true;document.body.classList.add('recording');if($('#recLabel'))$('#recLabel').textContent='GRAVANDO'};
+    rec.onstop=()=>{
+      // Usa sempre o recorder desta sessão, mesmo que outra ação já tenha
+      // alterado a variável global mediaRecorder.
+      if(chunks.length){
+        const blob=new Blob(chunks,{type:mimeType});
+        if(blob.size){
+          if(recordedUrl)URL.revokeObjectURL(recordedUrl);
+          recordedBlob=blob;
+          recordedUrl=URL.createObjectURL(blob);
+          recordingMime=mimeType;
+        }
+      }
+
+      if(mediaRecorder===rec)mediaRecorder=null;
+      recordingActive=false;
+      document.body.classList.remove('recording');
+
+      try{rec.stream?.getTracks?.().forEach(t=>t.stop())}catch(e){}
+      try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}
+      recordStream=null;
+      cameraStream=null;
+      $('#recordPreview')?.remove();
+      stopLiveMicMeter();
+
+      if(reviewAfterStop){
+        reviewAfterStop=false;
+        if(recordedBlob?.size){
+          setStatus('green','Gravação finalizada — confira a prévia');
+          setTimeout(()=>showRecordingPreview(),120);
+        }else{
+          setStatus('red','A gravação não gerou um arquivo. Tente novamente.');
+          alert('A gravação terminou, mas não gerou arquivo.');
+        }
+      }
+    };
+    rec.onerror=()=>{recordingActive=false;document.body.classList.remove('recording')};
+    return true;
+  }catch(e){
+    alert(e.name==='NotAllowedError'?'O Chrome bloqueou o acesso à câmera/microfone. Autorize o site e tente novamente.':'Não foi possível iniciar a gravação: '+e.message);
+    return false;
+  }
+}
+
+function stopRecordingUiOnly(){stopLiveMicMeter();try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}recordStream=null;cameraStream=null;$('#recordPreview')?.remove()}
+function stopCameraStreams(clearRecording=false){stopLiveMicMeter();if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}cameraStream=null;$('#recordPreview')?.remove();if(clearRecording){recordedBlob=null;if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordChunks=[]}}
+function saveRecordingFile(){if(!recordedBlob)return false;const ext=recordingExt(recordedBlob.type||recordingMime);const a=document.createElement('a');a.href=recordedUrl;a.download=(current?.name||'teleprompter')+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.'+ext;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove()},500);return true}
+function showRecordingPreview(){
+  if(!recordedBlob||!recordedUrl)return;
+
+  const mediaTag=recordingHasVideo
+    ? `<div class="review-preview-card"><div class="review-preview-title"><span>GRAVAÇÃO</span></div><video id="recordedReviewVideo" controls playsinline preload="metadata"></video></div>`
+    : '<audio id="recordedReviewAudio" controls preload="metadata"></audio>';
+
+  const modal=document.createElement('div');
+  modal.id='recordReview';
+  modal.className='record-review';
+  modal.innerHTML=`
+    <div class="record-review-card">
+      <div class="record-review-head">
+        <div class="record-review-title">🎬 GRAVAÇÃO FINALIZADA</div>
+        <div class="record-review-sub">Confira o áudio e o vídeo antes de salvar.</div>
+      </div>
+      <div class="record-review-media">${mediaTag}</div>
+      <div class="record-review-actions">
+        <button id="deleteRecording" class="dangerBtn">EXCLUIR</button>
+        <button id="saveRecording" class="primaryBtn">SALVAR PRODUÇÃO</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+
+  const v=$('#recordedReviewVideo')||$('#recordedReviewAudio');
+  if(v){
+    v.src=recordedUrl;
+    v.load();
+  }
+
+  $('#deleteRecording').onclick=()=>{
+    if(recordedUrl){try{URL.revokeObjectURL(recordedUrl)}catch(e){}}
+    recordedUrl=null;
+    recordedBlob=null;
+    recordChunks=[];
+    modal.remove();
+    setStatus('yellow','Gravação excluída');
+  };
+
+  $('#saveRecording').onclick=()=>{
+    if(!saveRecordingFile()){
+      alert('Não foi possível salvar a gravação.');
+      return;
+    }
+    modal.remove();
+    setStatus('green','Produção salva');
+  };
+}
+
+function fmtTime(sec){sec=Math.max(0,Number(sec)||0);const m=Math.floor(sec/60),s=Math.floor(sec%60);return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function setupTrimControls(video){
+  const a=$('#trimStart'),b=$('#trimEnd');if(!a||!b||!Number.isFinite(video.duration)||video.duration<=0)return;
+  const d=video.duration;a.max=d;b.max=d;a.value=0;b.value=d;
+  const sn=$('#trimStartNum'),en=$('#trimEndNum');if(sn){sn.max=d;sn.value=0}if(en){en.max=d;en.value=d}
+  const update=()=>{let st=Number(a.value),end=Number(b.value);if(st>end-0.2){if(document.activeElement===a)st=Math.max(0,end-0.2),a.value=st;else end=Math.min(d,st+0.2),b.value=end}if(sn)sn.value=st.toFixed(1);if(en)en.value=end.toFixed(1);$('#trimStartLabel').textContent=fmtTime(st);$('#trimEndLabel').textContent=fmtTime(end);$('#trimDurationLabel').textContent=fmtTime(end-st);const fill=$('#trimFill');if(fill){fill.style.left=(st/d*100)+'%';fill.style.width=((end-st)/d*100)+'%'}if($('#trimStatus'))$('#trimStatus').textContent=(st<=0.05&&end>=d-0.05)?'Sem corte selecionado.':'Trecho selecionado: '+fmtTime(end-st)+' — confira a prévia original.';};
+  a.oninput=update;b.oninput=update;
+  if(sn)sn.onchange=()=>{let v=Math.max(0,Math.min(d,Number(sn.value)||0));if(v>=Number(b.value)-0.2)v=Math.max(0,Number(b.value)-0.2);a.value=v;update();video.currentTime=v};
+  if(en)en.onchange=()=>{let v=Math.max(0,Math.min(d,Number(en.value)||d));if(v<=Number(a.value)+0.2)v=Math.min(d,Number(a.value)+0.2);b.value=v;update();video.currentTime=v};
+  a.onchange=()=>{video.currentTime=Number(a.value)};b.onchange=()=>{video.currentTime=Number(b.value)};update();
+  $('#trimApply').onclick=()=>trimRecordedVideo(video,Number(a.value),Number(b.value));
+}
+async function trimRecordedVideo(video,start,end){
+  if(!recordedBlob||!video?.captureStream||end<=start+0.2)return;
+  const btn=$('#trimApply'),status=$('#trimStatus');if(btn)btn.disabled=true;if(status)status.textContent='Processando corte...';
+  try{
+    video.pause();video.currentTime=start;await new Promise(r=>{const f=()=>{if(Math.abs(video.currentTime-start)<0.08||video.readyState>=3){video.removeEventListener('timeupdate',f);r()} };video.addEventListener('timeupdate',f);setTimeout(r,500)});
+    const stream=video.captureStream();
+    const mime=chooseMime(true);const rec=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream);const chunks=[];
+    rec.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
+    const done=new Promise((resolve,reject)=>{rec.onstop=resolve;rec.onerror=e=>reject(e)});
+    const stopAt=()=>{if(rec.state!=='inactive')rec.stop();try{video.pause()}catch(e){}};
+    const onTime=()=>{if(video.currentTime>=end-0.03){video.removeEventListener('timeupdate',onTime);stopAt()}};
+    video.addEventListener('timeupdate',onTime);rec.start(200);await video.play();await done;
+    stream.getTracks().forEach(t=>t.stop());
+    const outType=mime||rec.mimeType||recordedBlob.type||'video/webm';const blob=new Blob(chunks,{type:outType});if(!blob.size)throw new Error('empty');
+    if(recordedUrl)URL.revokeObjectURL(recordedUrl);recordedBlob=blob;recordedUrl=URL.createObjectURL(blob);recordingMime=outType;
+    const box=$('#afterPreviewBox');
+    if(box){box.innerHTML='<video id=\"afterTrimVideo\" controls playsinline preload=\"metadata\"></video>';const av=$('#afterTrimVideo');av.src=recordedUrl;av.load();av.addEventListener('timeupdate',()=>{if($('#afterTime'))$('#afterTime').textContent=fmtTime(av.currentTime)});av.addEventListener('loadedmetadata',()=>{if($('#afterTime'))$('#afterTime').textContent='00:00';},{once:true});}
+    if(status)status.textContent='Corte aplicado. Compare as duas prévias e clique em SALVAR PRODUÇÃO quando estiver satisfeito.';
+  }catch(e){if(status)status.textContent='Não foi possível aplicar o corte neste navegador. O original continua disponível.'}
+  if(btn)btn.disabled=false;
+}
+function closeRecordingReview(clear=true){$('#recordReview')?.remove();if(clear){if(reviewOriginalUrl)URL.revokeObjectURL(reviewOriginalUrl);reviewOriginalUrl=null;reviewOriginalBlob=null;if(recordedUrl)URL.revokeObjectURL(recordedUrl);recordedUrl=null;recordedBlob=null;recordChunks=[]}}
+function stopRecordingForReview(){if(mediaRecorder&&mediaRecorder.state!=='inactive'){mediaRecorder.stop();return true}return false}
+function discardCurrentRecording(){
+  reviewAfterStop=false;
+  if(mediaRecorder&&mediaRecorder.state!=='inactive'){
+    try{mediaRecorder.onstop=null;mediaRecorder.ondataavailable=null;mediaRecorder.onerror=null;mediaRecorder.stop()}catch(e){}
+  }
+  mediaRecorder=null;
+  recordingActive=false;
+  stopCameraStreams(true);
+  if(recordedUrl)URL.revokeObjectURL(recordedUrl);
+  recordedUrl=null;
+  recordedBlob=null;
+  recordChunks=[];
+  $('#recordReview')?.remove();
+}
+function addRecordingControls(){if(!current.settings?.recordOn&&!current.settings?.recordAudioOn)return;const wrap=document.createElement('div');wrap.className='record-controls';const pauseLabel=recordingHasVideo?'⏸ Pausar vídeo':'⏸ Pausar áudio';wrap.innerHTML=`<button id="recPause">${pauseLabel}</button><button id="recBack">← Voltar</button><button id="recStop" class="stop-rec">⏹ Finalizar</button>`;document.body.appendChild(wrap);$('#recPause').onclick=()=>{if(!mediaRecorder)return;if(mediaRecorder.state==='recording'){mediaRecorder.pause();$('#recPause').textContent=recordingHasVideo?'▶ Continuar vídeo':'▶ Continuar áudio'}else if(mediaRecorder.state==='paused'){mediaRecorder.resume();$('#recPause').textContent=pauseLabel}};$('#recStop').onclick=()=>{reviewAfterStop=true;setStatus('yellow','Preparando prévia da gravação...');stopRecordingForReview()};$('#recBack').onclick=()=>{discardCurrentRecording();if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});prepare()}}
+
+async function testMic(){
+  try{
+    if(!navigator.mediaDevices?.getUserMedia) throw new Error('media-unavailable');
+    const deviceId=$('#mic')?.value||current.settings?.micDeviceId||'';
+    const existing=prepMicStream?.getAudioTracks?.()[0];
+    const existingId=existing?.getSettings?.().deviceId||'';
+    if(!existing || (deviceId&&existingId!==deviceId)){
+      if(prepMicStream)prepMicStream.getTracks().forEach(t=>t.stop());
+      prepMicStream=await navigator.mediaDevices.getUserMedia({audio:deviceId?{deviceId:{exact:deviceId}}:true});
+    }
+    micStream=prepMicStream;
+    const modal=document.createElement('div');modal.className='mic-modal';modal.innerHTML='<div class="mic-box"><h3>Teste do microfone</h3><div class="mic-meter"><div id="micLevel" class="mic-level"></div></div><div id="micTestStatus" class="mic-status">Fale normalmente. A barra deve se movimentar.</div><div class="mic-actions"><button id="micClose">Fechar teste</button></div></div>';document.body.appendChild(modal);
+    $('#micClose').onclick=closeMicTest;
+    micAudioContext=new (window.AudioContext||window.webkitAudioContext)();
+    const source=micAudioContext.createMediaStreamSource(micStream);micAnalyser=micAudioContext.createAnalyser();micAnalyser.fftSize=512;source.connect(micAnalyser);
+    const data=new Uint8Array(micAnalyser.fftSize);
+    const meter=()=>{if(!micAnalyser)return;micAnalyser.getByteTimeDomainData(data);let sum=0;for(const v of data){const n=(v-128)/128;sum+=n*n}const rms=Math.sqrt(sum/data.length);const pct=Math.min(100,Math.max(2,rms*260));const bar=$('#micLevel');if(bar)bar.style.width=pct+'%';micRaf=requestAnimationFrame(meter)};meter();
+  }catch(e){alert(e.name==='NotAllowedError'?'O Chrome bloqueou o acesso ao microfone. Verifique a permissão do site.':'Não foi possível abrir o microfone para teste.');}
+}
+
+function closeMicTest(){if(micRaf){cancelAnimationFrame(micRaf);micRaf=null}micStream=null;if(micAudioContext){micAudioContext.close().catch(()=>{});micAudioContext=null}micAnalyser=null;$('.mic-modal')?.remove()}
+
+async function beginCountdownNow(){document.body.classList.remove('adjusting');document.querySelector('.start-command-banner')?.remove();markReferenceWord(false);syncStartReference();
+  const n=current.settings.count||5;const mySession=sessionId;
+  const overlay=document.createElement('div');overlay.className='countdown-overlay';overlay.innerHTML='<div class="countdown-label">PREPARE-SE</div><div id="countValue">'+n+'</div>';document.body.appendChild(overlay);
+  let i=n;countdownTimer=setInterval(async()=>{if(mySession!==sessionId){clearInterval(countdownTimer);countdownTimer=null;return}i--;if(i<=0){
+  clearInterval(countdownTimer);countdownTimer=null;
+  if(overlay.isConnected)overlay.remove();
+
+  // Garante que a nova sessão de gravação foi realmente preparada.
+  if((current.settings?.recordOn||current.settings?.recordAudioOn) &&
+     (!mediaRecorder || mediaRecorder.state!=='inactive')){
+    // Já existe um MediaRecorder pronto ou gravando; não recria.
+  }else if(current.settings?.recordOn||current.settings?.recordAudioOn){
+    const ready=await startCameraAndRecording();
+    if(!ready){
+      setStatus('red','Não foi possível preparar a gravação');
+      return;
+    }
+  }
+
+  started=true;
+  preparingPrompter=false;
+  startTime=Date.now();
+  elapsedTimer=setInterval(updateTimer,250);
+
+  if(mediaRecorder && mediaRecorder.state==='inactive'){
+    try{
+      const liveTracks=recordStream?.getTracks?.().filter(t=>t.readyState==='live')||[];
+      if(!liveTracks.length)throw new Error('As faixas de gravação não estão ativas');
+      mediaRecorder.start(1000);
+      if(current.settings?.recordOn)ensureRecordingPreview(recordStream);
+      setStatus('green','🔴 Gravando — produção em andamento');
+    }catch(e){
+      started=false;
+      setStatus('red','Não foi possível iniciar a gravação');
+      alert('O navegador não conseguiu iniciar a gravação: '+(e?.message||'erro desconhecido'));
+      return;
+    }
+  }
+
+  if(current.settings.mode==='noaudio')voiceActive=true;
+  await startManual();
+}else{const cv=$('#countValue');if(cv)cv.textContent=i}},1000)
+}
+async function authorizeSpeechRecognition(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    alert('O comando de voz precisa do reconhecimento de voz do Chrome.');
+    return false;
+  }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  return new Promise(resolve=>{
+    let done=false;
+    const rec=new SR();
+    rec.lang='pt-BR';
+    rec.continuous=false;
+    rec.interimResults=false;
+    const finish=(ok)=>{if(done)return;done=true;try{rec.onstart=null;rec.onend=null;rec.onerror=null;rec.stop()}catch(e){}resolve(ok)};
+    rec.onstart=()=>finish(true);
+    rec.onerror=e=>finish(e.error!=='not-allowed'&&e.error!=='service-not-allowed');
+    rec.onend=()=>finish(true);
+    try{rec.start()}catch(e){finish(false)}
+    setTimeout(()=>{if(!done)finish(true)},2500);
+  });
+}
+
+async function startCountdown(){
+  savePrep();
+  const isAudio=(current.settings.mode||'audio')!=='noaudio';
+  if(isAudio){
+    const authorized=await authorizeSpeechRecognition();
+    if(!authorized){alert('Autorize o reconhecimento de voz antes de iniciar. O programa não avançou para não interromper o comando depois.');return}
+  }
+  stopAll();
+  scrollSpeed=1;
+  showPrompter(true);addRecordingControls();
+  const startCmds=(current.settings?.startCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);
+
+  // O reconhecimento começa imediatamente no clique, antes da espera de câmera/microfone.
+  const cameraPromise=startCameraAndRecording();
+
+  if(isAudio&&startCmds.length){
+    setStatus('yellow','Aguardando comando inicial: '+(current.settings.startCmds||[]).map(c=>c.phrase).filter(Boolean).join(' / '));
+    startStartCommandListener(async()=>{
+      const ok=await cameraPromise;
+      if(!ok){setStatus('red','Câmera/microfone não ficaram disponíveis');return}
+      beginCountdownNow();
+    });
+  }else{
+    const ok=await cameraPromise;
+    if((current.settings?.recordOn||current.settings?.recordAudioOn)&&!ok)return;
+    beginCountdownNow();
+  }
+}
+
+function normalize(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9áàâãéêíóôõúçñ\s]/gi,' ').replace(/\s+/g,' ').trim()}
+function buildWords(text){return text.replace(/\[[^\]]*\]/g,' ').split(/\s+/).filter(Boolean)}
+function updateSpeedUI(){const el=$('#speedLevel');if(!el)return;const lvl=Math.max(1,Math.min(10,Math.round(scrollSpeed*3.33)));const bars='▮'.repeat(Math.ceil(lvl/2))+'▯'.repeat(5-Math.ceil(lvl/2));el.textContent=bars+'  '+scrollSpeed.toFixed(1)+'x';el.title='Velocidade '+scrollSpeed.toFixed(1)+'x';}
+function adjustFinalFont(delta){
+  const el=$('#promptText');if(!el)return;
+  const currentSize=parseFloat(getComputedStyle(el).fontSize)||54;
+  const next=Math.max(28,Math.min(90,currentSize+delta));
+  el.style.fontSize=next+'px';
+  if(current.settings){current.settings.font=next;save()}
+  if($('#fontValue'))$('#fontValue').textContent=Math.round(next);
+  const oldY=manualY;positionPromptAtReadingLine();syncStartReference();
+  if(started&&Math.abs(oldY-manualY)>1){const diff=manualY-oldY;manualY=oldY;el.style.transform=(current.settings.mirror?'scaleX(-1) ':'')+`translateY(${manualY}px)`}
+}
+
+function adjustTextWidth(delta){
+  const el=$('#promptText'); if(!el)return;
+  let w=Number(current.settings?.textWidth); if(!Number.isFinite(w))w=600;
+  w=Math.max(360,Math.min(1000,w+delta));
+  current.settings.textWidth=w;
+  el.style.maxWidth=w+'px';
+  const label=$('#widthValue'); if(label)label.textContent=w+'px';
+  save();
+  const oldY=manualY; positionPromptAtReadingLine();
+  if(started&&Math.abs(oldY-manualY)>1){manualY=oldY;el.style.transform=(current.settings.mirror?'scaleX(-1) ':'')+`translateY(${manualY}px)`}
+}
+
+function showPrompter(preparing=false){if(!preparing)stopAll();current.settings=current.settings||{};if(!Number.isFinite(Number(current.settings.startPercent)))current.settings.startPercent=50;if(!Number.isFinite(Number(current.settings.textWidth)))current.settings.textWidth=600;let s=current.settings||{};s.theme=(s.theme==='light'||s.theme==='white')?'white':'dark';current.settings.theme=s.theme;started=!preparing;sessionId++;currentWord=0;lastMatch=0;words=buildWords(current.text);startTime=preparing?0:Date.now();targetSeconds=parseTime(s.target);preparingPrompter=!!preparing;document.body.className='prompter '+((s.theme==='light'||s.theme==='white')?'light':'')+(s.mode==='noaudio'?' no-audio':'')+(s.mobileCameraBg?' mobile-camera':'')+(preparing?' adjusting':'');document.body.innerHTML=`<div class="promptHud"><div class="hudBox"><div id="timer" class="promptTimer">00:00</div><div class="hudAlert"><span id="runner" class="runner" aria-label="Aviso de tempo">🏃</span><span id="statusDot" class="dot ${s.mode==='noaudio'?'green':''}"></span></div><div id="statusText" class="hudStatusText">${s.mode==='noaudio'?'Rolagem automática':'Aguardando fala'}</div>${s.mode==='noaudio'?'':`<div class="hudMic">🎙️ <span class="hudMicTrack"><span id="liveMicLevel" class="hudMicLevel"></span></span></div><div id="liveMicDb" class="hudDb">-60 dB</div>`}</div></div>${preparing&&s.mode!=='noaudio'&&((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).length)?`<div class="start-command-banner"><span class="label">COMANDO PARA INICIAR</span><span class="phrase">“${esc((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).join('”  ou  “'))}”</span></div>`:''}<div class="promptStage">${s.mobileCameraBg?'<video id="mobileCameraBgVideo" class="mobileCameraBg" autoplay muted playsinline></video><div class="mobileCameraShade"></div><div class="mobile-camera-badge">CÂMERA + TELEPROMPTER</div>':''}<div id="startReference" class="startReference"><span class="startReferenceLabel">INÍCIO · 50%</span></div><div id="promptText" class="promptText"></div><div id="guide" class="guide"></div></div><div class="controls"><div class="finalAdjust"><button id="fontMinus" class="iconBtn" title="Diminuir letra">A−</button><span id="fontValue" class="fontValue">${s.font||54}</span><button id="fontPlus" class="iconBtn" title="Aumentar letra">A+</button></div><div class="textWidthAdjust"><button id="widthMinus" class="iconBtn" title="Estreitar texto">↔−</button><span id="widthValue" class="widthValue">${s.textWidth||600}px</span><button id="widthPlus" class="iconBtn" title="Alargar texto">↔+</button></div><button id="pause" class="wideIcon" title="Pausar/continuar">⏸</button><button id="slower" class="wideIcon" title="Diminuir velocidade">🐢</button><span id="speedLevel" class="speed-level" title="Velocidade">▮▮▮▯▯  1.0x</span><button id="faster" class="wideIcon" title="Aumentar velocidade">🚀</button><button id="restartTele" class="iconBtn" title="Recomeçar">↻</button><button id="backTele" class="iconBtn" title="Voltar">←</button><button id="fullscreen" class="iconBtn" title="Tela cheia">⛶</button></div>`;if(s.mirror)$('#promptText').style.transform='scaleX(-1)';$('#promptText').style.fontSize=s.font+'px';$('#promptText').style.maxWidth=(s.textWidth||600)+'px';$('#promptText').style.opacity=Math.max(.35,Math.min(1,Number(s.mobileTextOpacity||90)/100));renderPrompt();positionPromptAtReadingLine();markReferenceWord(preparing);syncStartReference();$('#fontMinus').onclick=()=>adjustFinalFont(-2);$('#fontPlus').onclick=()=>adjustFinalFont(2);$('#widthMinus').onclick=()=>adjustTextWidth(-40);$('#widthPlus').onclick=()=>adjustTextWidth(40);if(preparing)enableStartPositionDrag();$('#pause').onclick=togglePause;document.onkeydown=e=>{if(e.code==='Space'&&document.body.classList.contains('prompter')){const tag=(e.target&&e.target.tagName)||'';if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){e.preventDefault();togglePause()}}};$('#slower').onclick=()=>{scrollSpeed=Math.max(.2,Math.round((scrollSpeed-.1)*10)/10);updateSpeedUI()};$('#faster').onclick=()=>{scrollSpeed=Math.min(3,Math.round((scrollSpeed+.1)*10)/10);updateSpeedUI()};$('#restartTele').onclick=async()=>{
+  // RECOMEÇAR: encerra somente a sessão/gravação atual.
+  // Não destrói o microfone/câmera de preparação, para que a nova gravação
+  // possa ser criada imediatamente.
+  try{
+    if(commandRecognition){try{commandRecognition.onend=null;commandRecognition.stop()}catch(e){}commandRecognition=null}
+    if(recognition){try{recognition.onend=null;recognition.stop()}catch(e){}recognition=null}
+    if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null}
+    if(manualRaf){cancelAnimationFrame(manualRaf);manualRaf=null}
+    if(manualTimer){clearInterval(manualTimer);manualTimer=null}
+    if(elapsedTimer){clearInterval(elapsedTimer);elapsedTimer=null}
+    if(mediaRecorder&&mediaRecorder.state!=='inactive'){
+      try{mediaRecorder.onstop=null;mediaRecorder.ondataavailable=null;mediaRecorder.onerror=null;mediaRecorder.stop()}catch(e){}
+    }
+    mediaRecorder=null;
+    recordingActive=false;
+    if(recordStream){
+      recordStream.getTracks().forEach(t=>{try{t.stop()}catch(e){}});
+      recordStream=null;
+    }
+    cameraStream=null;
+    $('#recordPreview')?.remove();
+    if(recordedUrl){try{URL.revokeObjectURL(recordedUrl)}catch(e){}}
+    recordedUrl=null;recordedBlob=null;recordChunks=[];
+    $('#recordReview')?.remove();
+  }catch(e){}
+
+  sessionId++;
+  started=false;
+  preparingPrompter=true;
+  paused=false;
+  voiceActive=false;
+  currentMicRms=0;
+  currentWord=0;
+  lastMatch=0;
+  manualY=0;
+  startTime=0;
+  scrollSpeed=1;
+  if(window.teleprompterPauseMarker)window.teleprompterPauseMarker.hide();
+
+  showPrompter(true);
+  addRecordingControls();
+
+  const isAudio=(current.settings?.mode||'audio')!=='noaudio';
+  const startCmds=(current.settings?.startCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);
+
+  // Prepara uma NOVA instância de gravação usando os streams de preparação
+  // que continuam vivos.
+  const cameraPromise=startCameraAndRecording();
+
+  if(isAudio&&startCmds.length){
+    setStatus('yellow','Aguardando comando inicial: '+(current.settings.startCmds||[]).map(c=>c.phrase).filter(Boolean).join(' / '));
+    startStartCommandListener(async()=>{
+      const ok=await cameraPromise;
+      if(!ok){
+        setStatus('red','Câmera/microfone não ficaram disponíveis');
+        return;
+      }
+      beginCountdownNow();
+    });
+  }else{
+    const ok=await cameraPromise;
+    if((current.settings?.recordOn||current.settings?.recordAudioOn)&&!ok)return;
+    beginCountdownNow();
+  }
+};
+$('#backTele').onclick=()=>{discardCurrentRecording();if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});document.body.classList.remove('fullscreen-active');prepare()};$('#fullscreen').onclick=async()=>{try{if(!document.fullscreenElement){await document.documentElement.requestFullscreen();document.body.classList.add('fullscreen-active')}else{await document.exitFullscreen();document.body.classList.remove('fullscreen-active')}}catch(e){}};document.onfullscreenchange=()=>{document.body.classList.toggle('fullscreen-active',!!document.fullscreenElement);setTimeout(()=>{positionPromptAtReadingLine();syncStartReference()},50)};window.onresize=()=>{if($('#promptText')){positionPromptAtReadingLine();syncStartReference()}};updateSpeedUI();if(!preparing){elapsedTimer=setInterval(updateTimer,250);startManual();}}
+
+let scrollSpeed=1,paused=false,manualTimer=null,manualRaf=null,manualY=0,lastManualTs=0,scrollStartY=0,scrollEndY=0,voiceActive=false,currentMicRms=0;
+function markReferenceWord(show){
+  const el=$('#promptText'); if(!el)return;
+  el.querySelectorAll('.referenceWord').forEach(x=>x.classList.remove('referenceWord'));
+  if(!show)return;
+  const first=el.querySelector('[data-i=\"0\"]');
+  if(first)first.classList.add('referenceWord');
+}
+function syncStartReference(){
+  const ref=$('#startReference'); if(!ref)return;
+  let pct=Number(current.settings?.startPercent); if(!Number.isFinite(pct))pct=50;
+  pct=Math.max(2,Math.min(98,pct));
+  ref.style.top=pct+'vh';
+  const label=ref.querySelector('.startReferenceLabel'); if(label)label.textContent='INÍCIO · '+Math.round(pct)+'%';
+}
+function positionPromptAtReadingLine(){
+  const el=$('#promptText'); if(!el)return;
+  const stage=el.parentElement; if(!stage)return;
+  const first=el.querySelector('[data-i="0"]'); if(!first)return;
+  let pct=Number(current.settings?.startPercent); if(!Number.isFinite(pct))pct=50;
+  pct=Math.max(2,Math.min(98,pct));
+  const targetY=stage.clientHeight*(pct/100);
+  const firstOffset=first.offsetTop;
+  manualY=targetY-firstOffset;
+  scrollStartY=manualY;
+  scrollEndY=Math.min(0,stage.clientHeight-el.scrollHeight-stage.clientHeight*.18);
+  el.style.transform=(current.settings.mirror?'scaleX(-1) ':'')+`translateY(${manualY}px)`;
+  syncStartReference();
+}
+function enableStartPositionDrag(){
+  const ref=$('#startReference'); if(!ref)return;
+  let dragging=false;
+  const move=(clientY)=>{
+    const pct=Math.max(2,Math.min(98,(clientY/window.innerHeight)*100));
+    current.settings.startPercent=Number(pct.toFixed(1));
+    positionPromptAtReadingLine();
+    markReferenceWord(true);
+  };
+  ref.onpointerdown=(e)=>{dragging=true;ref.setPointerCapture?.(e.pointerId);move(e.clientY);e.preventDefault()};
+  ref.onpointermove=(e)=>{if(dragging)move(e.clientY)};
+  ref.onpointerup=(e)=>{dragging=false;save();try{ref.releasePointerCapture?.(e.pointerId)}catch(_){} };
+  ref.onpointercancel=()=>{dragging=false;save()};
+}
+function renderPrompt(){
+  let el=$('#promptText');if(!el)return;
+  let around=words.map((w,i)=>`<span class="w" data-i="${i}">${esc(w)}</span>`).join(' ');
+  el.innerHTML=around;
+  $('#guide').style.display='none';
+}
+function setManualStart(){positionPromptAtReadingLine()}
+async function startManual(){
+  paused=false;
+  currentMicRms=0;
+  voiceNoiseFloor=0.004;
+  voiceHoldUntil=0;
+  voiceHoldUntil=0;
+  voiceActive=false;
+  renderPrompt();
+  positionPromptAtReadingLine();
+  const textEl=$('#promptText'), stage=textEl?.parentElement;
+  if(!textEl||!stage)return;
+  const mode=current.settings?.mode||'audio';
+  const applyTransform=()=>{ textEl.style.transform=(current.settings.mirror?'scaleX(-1) ':'')+`translateY(${manualY}px)`; };
+  const recalcBounds=()=>{
+    const minY=Math.min(0, stage.clientHeight-textEl.scrollHeight-stage.clientHeight*.18);
+    scrollEndY=minY;
+    if(manualY<minY)manualY=minY;
+    applyTransform();
+  };
+  recalcBounds();
+  if(mode!=='noaudio'){
+    const ready=await ensureReadingMic();
+    if(!ready){setStatus('red','Microfone não disponível para controlar a rolagem');return;}
+    setStatus('yellow','🎙️ Fale para rolar o texto');
+  }else{
+    voiceActive=true;
+    setStatus('green','Rolagem automática');
+  }
+  lastManualTs=performance.now();
+  if(manualRaf)cancelAnimationFrame(manualRaf);
+  const tick=(ts)=>{
+    const live=document.getElementById('promptText');
+    if(!live)return;
+    const dt=Math.min(0.05,Math.max(0,(ts-lastManualTs)/1000));
+    let canScroll=false;
+    if(started && !paused){
+      if(mode==='noaudio'){
+        canScroll=true;
+      }else{
+        const threshold=Math.max(0.008,voiceNoiseFloor*2.4);
+        if(currentMicRms>threshold)voiceHoldUntil=ts+900;
+        canScroll=ts<voiceHoldUntil;
+        voiceActive=canScroll;
+        setStatus(canScroll?'green':'yellow',canScroll?'🎙️ Lendo — texto rolando':'Pausa — aguardando sua fala');
+      }
+    }
+    if(canScroll && manualY>scrollEndY){
+      manualY-=30*scrollSpeed*dt;
+      recalcBounds();
+    }
+    lastManualTs=ts;
+    manualRaf=requestAnimationFrame(tick);
+  };
+  manualRaf=requestAnimationFrame(tick);
+}
+function togglePause(){paused=!paused;if(paused){voiceActive=false;setStatus('yellow','Pausado')}else{if((current.settings?.mode||'audio')==='noaudio')voiceActive=true;setStatus('green',(current.settings?.mode||'audio')==='noaudio'?'Rolagem automática':'Ativo')}$('#pause').textContent=paused?'▶ Continuar':'⏸ Pausar'}
+function parseTime(v){if(!v)return 0;let p=v.split(':').map(Number);return p[0]*3600+p[1]*60+(p[2]||0)}
+function updateTimer(){
+  let sec=Math.floor((Date.now()-startTime)/1000);
+  $('#timer').textContent=new Date(sec*1000).toISOString().slice(11,19);
+  if(targetSeconds&&current.settings.runnerOn){
+    const total=Math.max(1,scrollStartY-scrollEndY);
+    const done=Math.max(0,Math.min(1,(scrollStartY-manualY)/total));
+    const expected=Math.min(1,sec/targetSeconds);
+    const behind=expected-done>0.05 && done<1;
+    $('#runner').classList.toggle('show',behind);
+  }else if($('#runner'))$('#runner').classList.remove('show');
+}
+function setStatus(c,t){$('#statusDot').className='dot '+c;$('#statusText').textContent=t}
+function stopAll(){
+  document.onkeydown=null;
+  sessionId++;
+  started=false;
+  listening=false;
+  paused=false;
+  voiceActive=false;
+  if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null}
+  if(recognition){try{recognition.onend=null;recognition.onresult=null;recognition.onerror=null;recognition.stop()}catch(e){}recognition=null}
+  if(commandRecognition){try{commandRecognition.onend=null;commandRecognition.onresult=null;commandRecognition.onerror=null;commandRecognition.stop()}catch(e){}commandRecognition=null}
+  if(manualTimer){clearInterval(manualTimer);manualTimer=null}
+  if(manualRaf){cancelAnimationFrame(manualRaf);manualRaf=null}
+  if(elapsedTimer){clearInterval(elapsedTimer);elapsedTimer=null}
+  readingMicStream=null
+  stopLiveMicMeter();
+  if(mediaRecorder&&mediaRecorder.state!=='inactive'){
+    try{reviewAfterStop=false;mediaRecorder.onstop=null;mediaRecorder.ondataavailable=null;mediaRecorder.onerror=null;mediaRecorder.stop()}catch(e){}
+  }
+  mediaRecorder=null;
+  recordingActive=false;
+} 
+function stopRecognition(){stopAll()}
+function startSpeech(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    setStatus('red','Reconhecimento indisponível');
+    return;
+  }
+  const R=window.SpeechRecognition||window.webkitSpeechRecognition;
+  const mySession=sessionId;
+  const rec=new R();
+  recognition=rec;
+  rec.lang='pt-BR';
+  rec.continuous=true;
+  rec.interimResults=true;
+  rec.onstart=()=>{if(mySession===sessionId&&recognition===rec&&!paused)setStatus('yellow','Aguardando sua fala')};
+  rec.onspeechstart=()=>{};
+  rec.onspeechend=()=>{};
+  rec.onerror=e=>{if(mySession===sessionId&&recognition===rec){voiceActive=false;setStatus('red','Áudio: '+e.error)}};
+  rec.onend=()=>{
+    if(mySession===sessionId&&recognition===rec&&started&&!paused){try{rec.start()}catch(e){}}
+  };
+  rec.onresult=e=>{
+    if(mySession!==sessionId||recognition!==rec||!started)return;
+    let txt='';
+    for(let i=e.resultIndex;i<e.results.length;i++) txt+=e.results[i][0].transcript+' ';
+    if(txt.trim() && !paused){}
+  };
+  try{rec.start()}catch(e){setStatus('red','Não foi possível iniciar o áudio')}
+}
+function findMatch(spoken){let sw=normalize(spoken).split(' ').filter(Boolean);if(!sw.length)return -1;let target=words.map(normalize);let n=Math.min(8,sw.length);let tail=sw.slice(-n);let best=-1,bestScore=0;let start=Math.max(0,lastMatch-4),end=Math.min(target.length,start+350);for(let i=start;i<end;i++){let score=0;for(let j=0;j<tail.length&&i+j<target.length;j++){if(target[i+j]===tail[j])score++}let ratio=score/tail.length;if(ratio>bestScore&&ratio>=.6){bestScore=ratio;best=i}}if(best>=0)lastMatch=best;return best}
+function startStartCommandListener(onCommand){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){
+    setStatus('red','Comando de voz indisponível neste navegador');
+    return;
+  }
+  const cmds=(current.settings?.startCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);
+  if(!cmds.length){onCommand?.();return}
+
+  const mySession=sessionId;
+  const rec=new SR();
+  commandRecognition=rec;
+  rec.lang='pt-BR';
+  rec.continuous=true;
+  rec.interimResults=true;
+  rec.maxAlternatives=3;
+
+  rec.onstart=()=>{if(mySession===sessionId&&commandRecognition===rec)setStatus('green','🎙️ Ouvindo comando: '+(current.settings.startCmds||[]).map(c=>c.phrase).filter(Boolean).join(' / '))};
+  rec.onspeechstart=()=>{if(mySession===sessionId&&commandRecognition===rec)setStatus('green','🎙️ Voz detectada — reconhecendo…')};
+  rec.onresult=e=>{
+    if(mySession!==sessionId||commandRecognition!==rec)return;
+    let txt='';
+    for(let i=e.resultIndex;i<e.results.length;i++)txt+=(e.results[i][0]?.transcript||'')+' ';
+    const n=normalize(txt);
+    if(!n)return;
+    const hit=cmds.find(c=>n===c||n.includes(c)||c.includes(n));
+    if(hit){
+      try{rec.onend=null;rec.stop()}catch(e){}
+      commandRecognition=null;
+      setStatus('green','✓ Comando reconhecido: '+hit);
+      onCommand?.();
+    }else{
+      setStatus('yellow','Ouvi: “'+txt.trim()+'” — aguardando comando');
+    }
+  };
+  rec.onerror=e=>{
+    if(mySession!==sessionId||commandRecognition!==rec)return;
+    const msg={'not-allowed':'Permissão do microfone/reconhecimento negada','service-not-allowed':'Serviço de reconhecimento não permitido','audio-capture':'Microfone não disponível para reconhecimento','no-speech':'Nenhuma fala detectada'}[e.error]||('Erro '+e.error);
+    setStatus('red','Comando de voz: '+msg);
+  };
+  rec.onend=()=>{if(mySession===sessionId&&commandRecognition===rec&&!started)setTimeout(()=>{try{rec.start()}catch(e){}},150)};
+  try{rec.start()}catch(e){setStatus('red','Não foi possível iniciar o reconhecimento de voz')}
+}
+
+function startResumeListener(){if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window))return;const cmds=(current.settings?.resumeCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);if(!cmds.length)return;const R=window.SpeechRecognition||window.webkitSpeechRecognition;const rec=new R();commandRecognition=rec;rec.lang='pt-BR';rec.continuous=true;rec.interimResults=true;rec.onresult=e=>{let txt='';for(let i=e.resultIndex;i<e.results.length;i++)txt+=e.results[i][0].transcript+' ';const n=normalize(txt);if(cmds.some(c=>n.includes(c))){paused=false;const m=findMatch(n);if(m>=0){currentWord=Math.min(words.length-1,m);lastMatch=m;renderPrompt()}else renderPrompt();setStatus('green','Roteiro retomado')}};rec.onerror=()=>{};rec.onend=()=>{if(started&&!paused&&commandRecognition===rec){try{rec.start()}catch(e){}}};try{rec.start()}catch(e){}}
+function showSplash(){
+  stopAll();
+  document.body.className='';
+  const cols=[];
+  for(let i=0;i<32;i++){
+    const chars=Array.from({length:18+Math.floor(Math.random()*18)},()=>Math.random()>.5?'0':'1').join('\n');
+    cols.push(`<div class="splash-col" style="left:${i*3.25}%;animation-duration:${3+Math.random()*5}s;animation-delay:${-Math.random()*6}s">${chars}</div>`);
+  }
+  document.body.innerHTML=`<div id="splash" class="splash-screen"><div class="splash-matrix">${cols.join('')}</div><div class="splash-center"><h1 class="splash-title">OXPROMPTER</h1><button id="splashStart" class="splash-start">INICIAR</button></div><div class="splash-dev">OXPROMPTER 1.55.2</div></div>`;
+  $('#splashStart').onclick=()=>{const el=$('#splash');el.classList.add('leaving');setTimeout(()=>render(),500)};
+}
+showSplash();
+</script><script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+<script>window.teleprompterPauseMarker={showAt:function(y){var m=document.getElementById('pauseMarker');if(m){m.style.top=Math.max(30,y)+'px';m.style.display='block'}},hide:function(){var m=document.getElementById('pauseMarker');if(m)m.style.display='none'}};</script></body></html>
