@@ -108,6 +108,48 @@ body:not(.prompter){background:#050807;color:#d9fff5}body:not(.prompter) .top{ba
 @media(max-width:560px){.cameraCardBody .grid,.timeFields{grid-template-columns:1fr!important}}
 
 
+
+/* MOBILE TESTE 9 — controles organizados também no modo horizontal */
+@media (orientation:landscape) and (max-height:700px){
+  .mobile-camera .controls{
+    position:fixed;
+    left:auto;
+    right:max(10px, env(safe-area-inset-right));
+    top:50%;
+    bottom:auto;
+    transform:translateY(-50%);
+    width:52px;
+    max-width:52px;
+    min-width:52px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    padding:4px!important;
+    margin:0;
+    overflow:visible;
+  }
+  .mobile-camera .controls > *{flex:0 0 auto!important;}
+  .mobile-camera .controls .finalAdjust{width:48px;height:auto;padding:3px!important;}
+  .mobile-camera .controls .finalAdjust button,
+  .mobile-camera .controls #slower,
+  .mobile-camera .controls #faster,
+  .mobile-camera .controls #pause,
+  .mobile-camera .controls #restartTele,
+  .mobile-camera .controls #backTele,
+  .mobile-camera .controls #hideControls,
+  .mobile-camera .controls #widthToggle{
+    width:42px;
+    min-width:42px;
+    height:34px;
+    min-height:34px;
+    padding:3px!important;
+  }
+  .mobile-camera .controls .speed-level{
+    width:42px;min-width:42px;min-height:54px;height:54px;padding:3px!important;
+  }
+}
 </style><link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#42ffd0">
 <meta name="mobile-web-app-capable" content="yes">
@@ -874,20 +916,22 @@ async function startCountdown(){
   showPrompter(true);addRecordingControls();
   const startCmds=(current.settings?.startCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);
 
-  // No celular, o reconhecimento precisa ser iniciado diretamente no clique do usuário.
-  // Assim evitamos perder o gesto que autoriza o serviço de voz enquanto câmera/microfone abrem.
+  // No celular, o comando de voz precisa ter o microfone livre.
+  // Primeiro ouvimos o comando; somente depois abrimos a câmera/microfone da gravação.
   if(isAudio&&startCmds.length){
     setStatus('yellow','Aguardando comando inicial: '+(current.settings.startCmds||[]).map(c=>c.phrase).filter(Boolean).join(' / '));
-    let commandPromiseResolve;
-    const commandPromise=new Promise(resolve=>commandPromiseResolve=resolve);
-    startStartCommandListener(()=>commandPromiseResolve(true),()=>commandPromiseResolve(false));
-    const cameraPromise=startCameraAndRecording();
-    const result=await Promise.all([commandPromise,cameraPromise]);
-    if(!result[1]){setStatus('red','Câmera/microfone não ficaram disponíveis');return}
+    try{prepMicStream?.getTracks?.().forEach(t=>t.stop());}catch(e){}
+    prepMicStream=null;
+    let resolved=false;
+    const commandOk=await new Promise(resolve=>{
+      startStartCommandListener(()=>{if(!resolved){resolved=true;resolve(true)}},()=>{if(!resolved){resolved=true;resolve(false)}});
+    });
+    if(!commandOk){setStatus('red','Não foi possível iniciar o comando de voz');return}
+    const ok=await startCameraAndRecording();
+    if(!ok){setStatus('red','Câmera/microfone não ficaram disponíveis');return}
     beginCountdownNow();
   }else{
-    const cameraPromise=startCameraAndRecording();
-    const ok=await cameraPromise;
+    const ok=await startCameraAndRecording();
     if((current.settings?.recordOn||current.settings?.recordAudioOn)&&!ok)return;
     beginCountdownNow();
   }
