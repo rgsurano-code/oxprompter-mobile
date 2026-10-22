@@ -558,10 +558,17 @@ function stopLiveMicMeter(){if(liveMicRaf){cancelAnimationFrame(liveMicRaf);live
 function startLiveMicMeter(stream){
   stopLiveMicMeter(); if(!stream?.getAudioTracks?.().length)return;
   try{
-    liveMicContext=new (window.AudioContext||window.webkitAudioContext)();
-    if(liveMicContext.state==='suspended') liveMicContext.resume().catch(()=>{});
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx)throw new Error('AudioContext indisponível neste navegador');
+    liveMicContext=new AudioCtx();
+    // Safari iOS pode suspender o AudioContext quando a câmera/gravação inicia.
+    // Tentar reativá-lo agora e novamente quando o Safari voltar ao primeiro plano.
+    const resumeAudio=()=>{if(liveMicContext&&liveMicContext.state==='suspended')liveMicContext.resume().catch(()=>{});};
+    resumeAudio();
+    document.addEventListener('visibilitychange',resumeAudio,{passive:true});
+    liveMicContext.addEventListener?.('statechange',()=>{if(liveMicContext?.state==='suspended'&&document.visibilityState==='visible')resumeAudio()});
     const source=liveMicContext.createMediaStreamSource(stream);
-    liveMicAnalyser=liveMicContext.createAnalyser(); liveMicAnalyser.fftSize=512; source.connect(liveMicAnalyser);
+    liveMicAnalyser=liveMicContext.createAnalyser(); liveMicAnalyser.fftSize=1024; liveMicAnalyser.smoothingTimeConstant=0.15; source.connect(liveMicAnalyser);
     const data=new Uint8Array(liveMicAnalyser.fftSize);
     const tick=()=>{
       if(!liveMicAnalyser)return;
@@ -574,8 +581,8 @@ function startLiveMicMeter(stream){
       // Usa um limiar baixo e uma pequena sustentação para não cortar a rolagem
       // entre palavras e para funcionar também com microfones mais baixos.
       if(started && !paused && (current.settings?.mode||'audio')!=='noaudio'){
-        voiceNoiseFloor=voiceNoiseFloor*0.92+Math.min(rms,0.01)*0.08;
-        const threshold=Math.max(0.0055,voiceNoiseFloor*2.2);
+        voiceNoiseFloor=voiceNoiseFloor*0.97+Math.min(rms,0.008)*0.03;
+        const threshold=Math.max(/iPhone|iPad|iPod/.test(navigator.userAgent)?0.0035:0.0055,voiceNoiseFloor*2.0);
         const speaking=rms>threshold;
         if(speaking)voiceHoldUntil=performance.now()+850;
         voiceActive=performance.now()<voiceHoldUntil;
@@ -917,7 +924,7 @@ async function beginCountdownNow(){document.body.classList.remove('adjusting');d
 }
 async function authorizeSpeechRecognition(){
   if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
-    alert('O comando de voz precisa do reconhecimento de voz do Chrome.');
+    alert('Este navegador não oferece reconhecimento de fala compatível. No iPhone, mantenha o Safari aberto durante a leitura e permita o microfone. Se o controle por voz não responder, use o modo Automático ou teste outro navegador/dispositivo compatível.');
     return false;
   }
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1316,7 +1323,7 @@ function showSplash(){
     const chars=Array.from({length:18+Math.floor(Math.random()*18)},()=>Math.random()>.5?'0':'1').join('\n');
     cols.push(`<div class="splash-col" style="left:${i*3.25}%;animation-duration:${3+Math.random()*5}s;animation-delay:${-Math.random()*6}s">${chars}</div>`);
   }
-  document.body.innerHTML=`<div id="splash" class="splash-screen"><div class="splash-matrix">${cols.join('')}</div><div class="splash-center"><h1 class="splash-title">OXPROMPTER</h1><button id="splashStart" class="splash-start">INICIAR</button></div><div class="splash-dev">OXPROMPTER MOBILE TESTE 11</div></div>`;
+  document.body.innerHTML=`<div id="splash" class="splash-screen"><div class="splash-matrix">${cols.join('')}</div><div class="splash-center"><h1 class="splash-title">OXPROMPTER</h1><button id="splashStart" class="splash-start">INICIAR</button></div><div class="splash-dev">OXPROMPTER MOBILE TESTE 11.1 SAFARI</div></div>`;
   $('#splashStart').onclick=()=>{const el=$('#splash');el.classList.add('leaving');setTimeout(()=>render(),500)};
 }
 showSplash();
