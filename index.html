@@ -233,6 +233,8 @@ body.prompter.light .controls select{
 
 /* OXPROMPTER MOBILE TESTE 1 — câmera como fundo durante gravação */
 .mobileCameraBg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#000;transform:none;opacity:.78;filter:saturate(.95) contrast(1.02);pointer-events:none}
+@supports (-webkit-touch-callout: none){body.prompter.mobile-camera .mobileCameraBg{object-fit:contain;background:#000}}
+
 .mobileCameraShade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,.16) 35%,rgba(0,0,0,.30) 100%);pointer-events:none}
 .prompter.light .mobileCameraShade{background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08) 40%,rgba(255,255,255,.22))}
 body.prompter.mobile-camera .promptStage{z-index:2;background:transparent}
@@ -555,11 +557,20 @@ async function loadCameras(){
 let cameraStream=null,recordStream=null,mediaRecorder=null,recordChunks=[],recordingActive=false,recordingMime='',recordedBlob=null,recordedUrl=null,recordingHasVideo=false;
 let liveMicContext=null,liveMicAnalyser=null,liveMicRaf=null,readingMicStream=null,voiceHoldUntil=0,voiceNoiseFloor=0.004;
 function stopLiveMicMeter(){if(liveMicRaf){cancelAnimationFrame(liveMicRaf);liveMicRaf=null}if(liveMicContext){liveMicContext.close().catch(()=>{});liveMicContext=null}liveMicAnalyser=null;voiceHoldUntil=0}
+function resumeLiveMicContext(){
+  // Safari no iPhone pode suspender o AudioContext quando a tela muda ou a gravação começa.
+  if(liveMicContext && liveMicContext.state==='suspended'){
+    try{const p=liveMicContext.resume();if(p&&typeof p.catch==='function')p.catch(()=>{})}catch(e){}
+  }
+}
 function startLiveMicMeter(stream){
   stopLiveMicMeter(); if(!stream?.getAudioTracks?.().length)return;
   try{
-    liveMicContext=new (window.AudioContext||window.webkitAudioContext)();
-    if(liveMicContext.state==='suspended') liveMicContext.resume().catch(()=>{});
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx){setStatus('yellow','Medição de áudio indisponível neste navegador');return;}
+    liveMicContext=new AudioCtx();
+    resumeLiveMicContext();
+    liveMicContext.onstatechange=()=>{if(liveMicContext?.state==='suspended')resumeLiveMicContext()};
     const source=liveMicContext.createMediaStreamSource(stream);
     liveMicAnalyser=liveMicContext.createAnalyser(); liveMicAnalyser.fftSize=512; source.connect(liveMicAnalyser);
     const data=new Uint8Array(liveMicAnalyser.fftSize);
@@ -613,7 +624,7 @@ function ensureRecordingPreview(stream){
   return !!stream;
 }
 
-function chooseMime(withVideo=true){const types=withVideo?['video/mp4;codecs=h264,aac','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']:['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg','audio/mp4'];return types.find(t=>window.MediaRecorder?.isTypeSupported?.(t))||''}
+function chooseMime(withVideo=true){const types=withVideo?['video/mp4','video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=h264,aac','video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm']:['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg'];return types.find(t=>window.MediaRecorder?.isTypeSupported?.(t))||''}
 function recordingExt(mime){if(mime.includes('mp4'))return 'mp4';if(mime.includes('ogg'))return 'ogg';return 'webm'}
 
 async function restoreLiveCameraPreview(){
@@ -701,18 +712,19 @@ async function startCameraAndRecording(){
     if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordedBlob=null;
 
     const rec=mediaRecorder, chunks=recordChunks, mimeType=recordingMime;
-    rec.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
+    rec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data)};
     rec.onstart=()=>{if(mediaRecorder!==rec)return;recordingActive=true;document.body.classList.add('recording');if($('#recLabel'))$('#recLabel').textContent='GRAVANDO'};
     rec.onstop=()=>{
       // Usa sempre o recorder desta sessão, mesmo que outra ação já tenha
       // alterado a variável global mediaRecorder.
       if(chunks.length){
-        const blob=new Blob(chunks,{type:mimeType});
+        const actualMime=rec.mimeType||mimeType||(recordingHasVideo?'video/mp4':'audio/mp4');
+        const blob=new Blob(chunks,{type:actualMime});
         if(blob.size){
           if(recordedUrl)URL.revokeObjectURL(recordedUrl);
           recordedBlob=blob;
           recordedUrl=URL.createObjectURL(blob);
-          recordingMime=mimeType;
+          recordingMime=actualMime;
         }
       }
 
@@ -777,6 +789,8 @@ function showRecordingPreview(){
   const v=$('#recordedReviewVideo')||$('#recordedReviewAudio');
   if(v){
     v.src=recordedUrl;
+    v.playsInline=true; v.preload='metadata';
+    v.onerror=()=>{const sub=$('.record-review-sub');if(sub)sub.textContent='O Safari não conseguiu reproduzir a prévia. Tente SALVAR PRODUÇÃO e abrir o arquivo em Fotos/Arquivos.'};
     v.load();
   }
 
@@ -1024,7 +1038,7 @@ function enablePromptTouchDrag(){
   el.addEventListener('pointerup',stop); el.addEventListener('pointercancel',stop);
 }
 
-function showPrompter(preparing=false){if(!preparing)stopAll();current.settings=current.settings||{};if(!Number.isFinite(Number(current.settings.startPercent)))current.settings.startPercent=50;if(!Number.isFinite(Number(current.settings.textWidth)))current.settings.textWidth=600;if(!Number.isFinite(Number(current.settings.textWidthPct)))current.settings.textWidthPct=.84;let s=current.settings||{};s.theme=(s.theme==='light'||s.theme==='white')?'white':'dark';current.settings.theme=s.theme;started=!preparing;sessionId++;currentWord=0;lastMatch=0;words=buildWords(current.text);startTime=preparing?0:Date.now();targetSeconds=parseTime(s.target);preparingPrompter=!!preparing;document.body.className='prompter '+((s.theme==='light'||s.theme==='white')?'light':'')+(s.mode==='noaudio'?' no-audio':'')+(s.mobileCameraBg?' mobile-camera':'')+(preparing?' adjusting':'');document.body.innerHTML=`<div class="promptHud"><div class="hudBox"><div id="timer" class="promptTimer">00:00</div><div class="hudAlert"><span id="runner" class="runner" aria-label="Aviso de tempo">🏃</span><span id="statusDot" class="dot ${s.mode==='noaudio'?'green':''}"></span></div><div id="statusText" class="hudStatusText">${s.mode==='noaudio'?'Rolagem automática':(s.mode==='semi'?'Semi-automático · aguardando voz':'Aguardando fala')}</div>${s.mode==='noaudio'?'':`<div class="hudMic">🎙️ <span class="hudMicTrack"><span id="liveMicLevel" class="hudMicLevel"></span></span></div><div id="liveMicDb" class="hudDb">-60 dB</div>`}</div></div>${preparing&&s.mode!=='noaudio'&&((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).length)?`<div class="start-command-banner"><span class="label">COMANDO PARA INICIAR</span><span class="phrase">“${esc((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).join('”  ou  “'))}”</span></div>`:''}<div class="promptStage">${s.mobileCameraBg?'<video id="mobileCameraBgVideo" class="mobileCameraBg" autoplay muted playsinline></video><div class="mobileCameraShade"></div><div class="mobile-camera-badge">CÂMERA + TELEPROMPTER</div>':''}<div id="startReference" class="startReference"><span class="startReferenceLabel">INÍCIO · 50%</span></div><div id="promptText" class="promptText"></div><div id="guide" class="guide"></div></div><div class="controls"><button id="pause" class="iconBtn" title="Pausar/continuar">⏸</button><button id="restartTele" class="iconBtn" title="Recomeçar">↻</button><button id="finishTele" class="iconBtn stop-rec" title="Finalizar gravação">⏹</button><button id="backTele" class="iconBtn" title="Voltar à preparação">←</button><button id="hideControls" class="iconBtn" title="Ocultar controles">●</button></div><button id="showControls" class="controlsReveal hidden" title="Mostrar controles">●</button>`;if(s.mirror)$('#promptText').style.transform='scaleX(-1)';$('#promptText').style.fontSize=s.font+'px';$('#promptText').style.maxWidth=Math.round((window.innerWidth||720)*(Number(s.textWidthPct)||.84))+'px';$('#promptText').style.opacity=Math.max(.35,Math.min(1,Number(s.mobileTextOpacity||90)/100));renderPrompt();positionPromptAtReadingLine();markReferenceWord(preparing);syncStartReference();if(preparing)enableStartPositionDrag();$('#pause').onclick=()=>{togglePause();if(mediaRecorder){try{if(mediaRecorder.state==='recording'){mediaRecorder.pause();$('#pause').textContent='▶'}else if(mediaRecorder.state==='paused'){mediaRecorder.resume();$('#pause').textContent='⏸'}}catch(e){}}};$('#finishTele').onclick=()=>{if(mediaRecorder&&mediaRecorder.state!=='inactive'){reviewAfterStop=true;setStatus('yellow','Preparando prévia da gravação...');stopRecordingForReview()}else{if(confirm('Finalizar a leitura e voltar à preparação?')){discardCurrentRecording();prepare()}}};document.onkeydown=e=>{if(e.code==='Space'&&document.body.classList.contains('prompter')){const tag=(e.target&&e.target.tagName)||'';if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){e.preventDefault();togglePause()}}};$('#restartTele').onclick=async()=>{
+function showPrompter(preparing=false){if(!preparing)stopAll();current.settings=current.settings||{};if(!Number.isFinite(Number(current.settings.startPercent)))current.settings.startPercent=50;if(!Number.isFinite(Number(current.settings.textWidth)))current.settings.textWidth=600;if(!Number.isFinite(Number(current.settings.textWidthPct)))current.settings.textWidthPct=.84;let s=current.settings||{};s.theme=(s.theme==='light'||s.theme==='white')?'white':'dark';current.settings.theme=s.theme;started=!preparing;sessionId++;currentWord=0;lastMatch=0;words=buildWords(current.text);startTime=preparing?0:Date.now();targetSeconds=parseTime(s.target);preparingPrompter=!!preparing;document.body.className='prompter '+((s.theme==='light'||s.theme==='white')?'light':'')+(s.mode==='noaudio'?' no-audio':'')+(s.mobileCameraBg?' mobile-camera':'')+(preparing?' adjusting':'');document.body.innerHTML=`<div class="promptHud"><div class="hudBox"><div id="timer" class="promptTimer">00:00</div><div class="hudAlert"><span id="runner" class="runner" aria-label="Aviso de tempo">🏃</span><span id="statusDot" class="dot ${s.mode==='noaudio'?'green':''}"></span></div><div id="statusText" class="hudStatusText">${s.mode==='noaudio'?'Rolagem automática':(s.mode==='semi'?'Semi-automático · aguardando voz':'Aguardando fala')}</div>${s.mode==='noaudio'?'':`<div class="hudMic">🎙️ <span class="hudMicTrack"><span id="liveMicLevel" class="hudMicLevel"></span></span></div><div id="liveMicDb" class="hudDb">-60 dB</div>`}</div></div>${preparing&&s.mode!=='noaudio'&&((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).length)?`<div class="start-command-banner"><span class="label">COMANDO PARA INICIAR</span><span class="phrase">“${esc((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).join('”  ou  “'))}”</span></div>`:''}<div class="promptStage">${s.mobileCameraBg?'<video id="mobileCameraBgVideo" class="mobileCameraBg" autoplay muted playsinline></video><div class="mobileCameraShade"></div><div class="mobile-camera-badge">CÂMERA + TELEPROMPTER</div>':''}<div id="startReference" class="startReference"><span class="startReferenceLabel">INÍCIO · 50%</span></div><div id="promptText" class="promptText"></div><div id="guide" class="guide"></div></div><div class="controls"><button id="pause" class="iconBtn" title="Pausar/continuar">⏸</button><button id="restartTele" class="iconBtn" title="Recomeçar">↻</button><button id="finishTele" class="iconBtn stop-rec" title="Finalizar gravação">⏹</button><button id="backTele" class="iconBtn" title="Voltar à preparação">←</button><button id="hideControls" class="iconBtn" title="Ocultar controles">●</button></div><button id="showControls" class="controlsReveal hidden" title="Mostrar controles">●</button>`;if(s.mirror)$('#promptText').style.transform='scaleX(-1)';$('#promptText').style.fontSize=s.font+'px';$('#promptText').style.maxWidth=Math.round((window.innerWidth||720)*(Number(s.textWidthPct)||.84))+'px';$('#promptText').style.opacity=Math.max(.35,Math.min(1,Number(s.mobileTextOpacity||90)/100));renderPrompt();positionPromptAtReadingLine();markReferenceWord(preparing);syncStartReference();if(preparing)enableStartPositionDrag();$('#pause').onclick=()=>{resumeLiveMicContext();togglePause();if(mediaRecorder){try{if(mediaRecorder.state==='recording'){mediaRecorder.pause();$('#pause').textContent='▶'}else if(mediaRecorder.state==='paused'){mediaRecorder.resume();$('#pause').textContent='⏸'}}catch(e){}}};$('#finishTele').onclick=()=>{if(mediaRecorder&&mediaRecorder.state!=='inactive'){reviewAfterStop=true;setStatus('yellow','Preparando prévia da gravação...');stopRecordingForReview()}else{if(confirm('Finalizar a leitura e voltar à preparação?')){discardCurrentRecording();prepare()}}};document.onkeydown=e=>{if(e.code==='Space'&&document.body.classList.contains('prompter')){const tag=(e.target&&e.target.tagName)||'';if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){e.preventDefault();togglePause()}}};$('#restartTele').onclick=async()=>{
   // RECOMEÇAR: encerra somente a sessão/gravação atual.
   // Não destrói o microfone/câmera de preparação, para que a nova gravação
   // possa ser criada imediatamente.
@@ -1181,7 +1195,7 @@ async function startManual(){
       if(mode==='noaudio'){
         canScroll=true;
       }else{
-        const threshold=Math.max(0.008,voiceNoiseFloor*2.4);
+        const threshold=Math.max(0.004,voiceNoiseFloor*1.8);
         if(currentMicRms>threshold)voiceHoldUntil=ts+900;
         canScroll=ts<voiceHoldUntil;
         voiceActive=canScroll;
@@ -1233,6 +1247,8 @@ function stopAll(){
   recordingActive=false;
 } 
 function stopRecognition(){stopAll()}
+document.addEventListener('touchstart',()=>{if(document.body.classList.contains('prompter'))resumeLiveMicContext()},{passive:true});
+document.addEventListener('pointerdown',()=>{if(document.body.classList.contains('prompter'))resumeLiveMicContext()},{passive:true});
 function startSpeech(){
   if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
     setStatus('red','Reconhecimento indisponível');
