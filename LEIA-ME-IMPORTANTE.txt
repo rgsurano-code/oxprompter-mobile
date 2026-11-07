@@ -1,4 +1,8 @@
-OXPROMPTER MOBILE — PROJETO REVISADO
+OXPROMPTER MOBILE — V0.5
+
+Escolha Vertical (9:16) ou Horizontal (16:9) antes de iniciar.
+No Safari/iOS, gire o aparelho para o formato escolhido antes de testar ou iniciar a câmera.
+Compatibilidade física de câmera no iPhone/Android: NÃO TESTADO.
 
 Consulte README.md para abrir e publicar o aplicativo.
 Consulte RELATORIO-AUDITORIA.md para alterações, testes e limitações.

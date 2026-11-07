@@ -1,5 +1,33 @@
 # Auditoria e revisão — OXPROMPTER Mobile
 
+## Registro de implementação V0.5 — 07/11/2026
+
+### Base examinada
+
+O espelho local não continha um arquivo separado identificado como V0.4. A pasta `current-repo` tinha marcadores de conflito em `js/media.js`, `js/reader.js` e `css/styles.css`; usei a cópia íntegra `zip-project` para resolver esses três arquivos. As demais listas de arquivos eram iguais.
+
+### Alterações
+
+- A preparação apresenta a seleção prévia **Vertical (9:16)** ou **Horizontal (16:9)** e conserva o formato escolhido.
+- No Safari/iOS, a seleção pede que o iPhone esteja fisicamente na orientação escolhida antes de abrir a câmera. A orientação incompatível impede que a câmera seja inicializada nessa etapa.
+- No iOS, a câmera só abre quando a orientação física corresponde à escolha; então a captura recebe a solicitação de formato/resolução selecionada. Se o navegador expuser controle de zoom, o código tenta restaurá-lo ao mínimo. A prévia usa `contain` para evitar o recorte de preenchimento.
+- No Android/Chrome, a seleção continua usando as restrições de orientação, resolução e FPS já existentes.
+- Os modos Automático, por voz e início por toque, e os botões escuros Salvar produção/Excluir foram preservados.
+- O cache do service worker foi atualizado para V0.5.
+
+### Validação desta entrega
+
+- **Sintaxe JavaScript: APROVADO** — checada com Node.js 24.22.1 nos scripts do aplicativo.
+- **Testes unitários existentes: APROVADO** — 7 passaram, 0 falharam (`node --test tests/core.test.cjs`).
+- **Verificação isolada de orientação: APROVADO** — simulou Safari/iOS e Android; confirmou que as proporções escolhidas são solicitadas depois de alinhar a orientação e que as restrições do Android permanecem iguais.
+- **Testes automatizados de navegador: NÃO TESTADO** — Playwright não está instalado neste ambiente e `npm` não está disponível.
+- **iPhone/Safari físico: NÃO TESTADO.**
+- **Android/Chrome físico: NÃO TESTADO.**
+
+### Limite de orientação no iOS
+
+O Safari decide quais dimensões de câmera estão disponíveis e pode aproximar as restrições solicitadas. Para evitar o recorte fechado observado, esta versão só solicita a captura depois de o iPhone estar na orientação escolhida. A proporção final pode variar conforme iPhone, Safari e rotação. O ajuste de `contain` afeta a prévia; não edita nem compõe o vídeo gravado.
+
 Data: 28/10/2026. Origem: OXPROMPTER-MOBILE-TESTE11-3-PARA-TRANSFERIR.zip.
 
 ## Resultado
@@ -102,12 +130,3 @@ Antes de usar em produção, execute uma tomada curta com áudio e vídeo em cad
 - [WebKit — MediaRecorder API](https://webkit.org/blog/11353/mediarecorder-api/): comportamento e formatos da implementação WebKit; a escolha no aplicativo é feita por detecção em tempo de execução.
 
 SHA-256 do ZIP de origem: `9ac1a35f5758bad520f98a7d885effc928591e06a0ccdb22e24aca27e9448e5d`.
-
-
-## V0.4 — restauração do início por toque
-- Renomeado o modo de comando por voz para **Iniciar com Voz**.
-- Mantido o modo **Automático** sem alteração de fluxo.
-- No modo **Início com Toque**, após preparar mídia e microfone, é exibido um botão destacado dentro da área de leitura. O toque inicia a contagem regressiva e, ao final, inicia a leitura.
-- Estilo do botão compatível com tema escuro e tema claro.
-- Service worker atualizado para invalidar o cache anterior.
-- Validação: `node --check` em `js/reader.js` e `js/preparation.js` APROVADO; `npm test` (7 testes) APROVADO. Testes de navegador não executados: dependência Playwright ausente neste ambiente. Android/iPhone reais NÃO TESTADOS.
