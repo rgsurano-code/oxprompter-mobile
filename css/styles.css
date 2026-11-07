@@ -363,13 +363,3 @@ body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-le
 .touch-start-button{position:absolute;z-index:80;left:50%;top:50%;transform:translate(-50%,-50%);width:min(84vw,360px);min-height:58px;padding:16px 22px;border:2px solid #42ffd0;border-radius:14px;background:rgba(3,18,14,.96);color:#42ffd0;font-size:clamp(15px,4vw,20px);font-weight:900;letter-spacing:.06em;text-align:center;box-shadow:0 0 24px rgba(66,255,208,.28);touch-action:manipulation}
 .touch-start-button:active{background:#42ffd0;color:#03100d;transform:translate(-50%,-50%) scale(.98)}
 .prompter.light .touch-start-button{background:rgba(255,255,255,.97);color:#087a62;border-color:#087a62}
-/* Correção iOS: mostra todo o enquadramento da câmera,
-   sem recortar a imagem para preencher a tela.
-   Mantém o comportamento do Android. */
-@supports (-webkit-touch-callout: none) {
-  body.prompter.mobile-camera .mobileCameraBg {
-    object-fit: contain !important;
-    object-position: center center !important;
-    background: #000 !important;
-  }
-}
