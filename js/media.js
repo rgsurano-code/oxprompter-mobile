@@ -39,30 +39,44 @@ function setupIOSCameraBackground(videoStream){
   window.addEventListener('orientationchange', window.__iosCamResize);
 
   const ctx = canvas.getContext('2d');
+  
   const src = document.createElement('video');
   src.autoplay = true;
   src.muted = true;
   src.playsInline = true;
   src.setAttribute('playsinline', '');
+  src.setAttribute('x5-playsinline', '');
   src.srcObject = videoStream;
-  src.play().catch(()=>{});
+  
+  const playPromise = src.play();
+  if(playPromise){
+    playPromise.catch(e => {
+      console.warn('iOS camera: vídeo não conseguiu tocar automaticamente', e);
+      setTimeout(() => {
+        src.play().catch(e2 => console.error('iOS camera: falha ao tocar vídeo', e2));
+      }, 100);
+    });
+  }
 
   const settings = videoStream.getVideoTracks()[0]?.getSettings?.() || {};
   const nativeW = settings.width || 1920;
   const nativeH = settings.height || 1080;
   const sourcePortrait = nativeH > nativeW;
 
-  window.__iosCam = {canvas, ctx, src, sourcePortrait};
+  window.__iosCam = {canvas, ctx, src, sourcePortrait, active: true};
 
-  const draw = () => {
+  const drawFrame = () => {
     const cam = window.__iosCam;
-    if(!cam) return;
+    if(!cam || !cam.active) return;
+    
     const {canvas:c, ctx:x, src:v, sourcePortrait:srcPort} = cam;
 
     x.fillStyle = '#000';
     x.fillRect(0, 0, c.width, c.height);
 
-    if(!v.videoWidth){ requestAnimationFrame(draw); return; }
+    if(!v.videoWidth || !v.videoHeight){
+      return;
+    }
 
     const vw = v.videoWidth;
     const vh = v.videoHeight;
@@ -85,10 +99,37 @@ function setupIOSCameraBackground(videoStream){
       const dh = vh * scale;
       x.drawImage(v, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
     }
-
-    requestAnimationFrame(draw);
   };
-  draw();
+
+  let animFrameId = null;
+  let intervalId = null;
+  
+  const startAnimation = () => {
+    const animate = () => {
+      if(!window.__iosCam || !window.__iosCam.active) return;
+      drawFrame();
+      animFrameId = requestAnimationFrame(animate);
+    };
+    animFrameId = requestAnimationFrame(animate);
+    
+    intervalId = setInterval(() => {
+      if(!window.__iosCam || !window.__iosCam.active) return;
+      drawFrame();
+    }, 33);
+  };
+  
+  startAnimation();
+  
+  window.__iosCam.animFrameId = animFrameId;
+  window.__iosCam.intervalId = intervalId;
+  
+  console.log('iOS camera background configurado:', {
+    videoWidth: src.videoWidth,
+    videoHeight: src.videoHeight,
+    canvasWidth: canvas.width,
+    canvasHeight: canvas.height,
+    sourcePortrait
+  });
 
   return canvas;
 }
@@ -96,8 +137,13 @@ function setupIOSCameraBackground(videoStream){
 function stopIOSCameraBackground(){
   const cam = window.__iosCam;
   if(cam){
-    try{ cam.src.pause(); }catch(e){}
-    cam.src.srcObject = null;
+    cam.active = false;
+    if(cam.animFrameId) cancelAnimationFrame(cam.animFrameId);
+    if(cam.intervalId) clearInterval(cam.intervalId);
+    try{ 
+      cam.src.pause(); 
+      cam.src.srcObject = null;
+    }catch(e){}
     window.__iosCam = null;
   }
   if(window.__iosCamResize){
@@ -364,7 +410,6 @@ async function startCameraAndRecording(){
 
     if(videoStream) await applyRecordingOrientation(videoStream);
 
-    // iOS: canvas como fundo e fonte de gravação vertical
     let canvasStream = null;
     if(wantVideo && isIOS()){
       const canvas = setupIOSCameraBackground(videoStream);
