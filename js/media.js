@@ -22,33 +22,59 @@ let prepCombinedStream=null;
 let prepAccessPromise=null;
 function selectedMicConstraints(){const id=$('#mic')?.value||current.settings?.micDeviceId||'';return id?{deviceId:{exact:id}}:true}
 function isIOSWebKit(){const ua=navigator.userAgent||'';return /iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
-function recordingOrientationConstraints(base,strictAspect=false){
-  const o=current.settings?.mobileRecordOrientation||'portrait';
+function recordingOrientationConstraints(base,reverseOrientation=false){
+  const requested=current.settings?.mobileRecordOrientation||'portrait';
+  const o=reverseOrientation?(requested==='portrait'?'landscape':'portrait'):requested;
   const res=String(current.settings?.recordResolution||'auto');
   const fps=String(current.settings?.recordFps||'auto');
   let w=res==='720'?1280:res==='1080'?1920:res==='2160'?3840:1920;
   let h=res==='720'?720:res==='1080'?1080:res==='2160'?2160:1080;
   if(o==='portrait'){const t=w;w=h;h=t}
   const ratio=o==='landscape'?16/9:9/16;
-  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:strictAspect?{exact:ratio}:{ideal:ratio},resizeMode:{ideal:'none'}};
+  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:ratio},resizeMode:{ideal:'none'}};
   if(fps!=='auto')video.frameRate={ideal:Number(fps),max:Number(fps)};
   return video;
 }
-function selectedCameraConstraints(strictAspect=false){
+function selectedCameraConstraints(reverseOrientation=false){
   const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
-  return recordingOrientationConstraints(id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}},strictAspect);
+  return recordingOrientationConstraints(id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}},reverseOrientation);
+}
+async function waitForFirstCameraFrame(stream){
+  const track=stream?.getVideoTracks?.()[0];if(!track)return null;
+  const video=document.createElement('video');video.muted=true;video.playsInline=true;video.autoplay=true;video.width=1;video.height=1;
+  video.style.cssText='position:fixed;left:-10000px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';document.body.appendChild(video);video.srcObject=stream;
+  let timer=null,finish;
+  const firstFrame=new Promise(resolve=>{let done=false;finish=()=>{if(done)return;done=true;if(timer)clearTimeout(timer);resolve()};timer=setTimeout(finish,1500);if(video.readyState>=2&&video.videoWidth)finish();else if(video.requestVideoFrameCallback)video.requestVideoFrameCallback(()=>finish());else video.addEventListener('loadeddata',finish,{once:true})});
+  try{const play=video.play();if(play?.catch)play.catch(()=>{})}catch(e){}
+  await firstFrame;
+  const settings=track.getSettings?.()||{};const result={width:video.videoWidth||settings.width||0,height:video.videoHeight||settings.height||0};
+  try{video.pause();video.srcObject=null;video.remove()}catch(e){}
+  return result;
 }
 async function requestSelectedCameraStream(){
-  if(isIOSWebKit()){
-    try{return await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints(true)})}
-    catch(e){if(!['OverconstrainedError','ConstraintNotSatisfiedError','NotSupportedError','TypeError'].includes(e?.name))throw e}
+  const requested=current.settings?.mobileRecordOrientation||'portrait';
+  let stream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints(false)});
+  if(!isIOSWebKit())return stream;
+  const firstSize=await waitForFirstCameraFrame(stream);
+  const firstOrientation=firstSize?.width&&firstSize?.height?(firstSize.height>firstSize.width?'portrait':'landscape'):'';
+  if(!firstOrientation||firstOrientation===requested)return stream;
+  // Safari can settle camera dimensions only after its first frame. Stop the
+  // original track before retrying with the sensor orientation reversed.
+  try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints(true)});
+    await waitForFirstCameraFrame(stream);
+    return stream;
+  }catch(e){
+    stream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints(false)});
+    await waitForFirstCameraFrame(stream);
+    return stream;
   }
-  return navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints(false)});
 }
 async function applyRecordingOrientation(stream){
   const track=stream?.getVideoTracks?.()[0];
-  if(track&&isIOSWebKit())try{await track.applyConstraints(recordingOrientationConstraints({},true))}catch(e){}
-  try{await track?.applyConstraints(recordingOrientationConstraints({},false));}catch(e){}
+  if(track&&isIOSWebKit())await waitForFirstCameraFrame(stream);
+  else try{await track?.applyConstraints(recordingOrientationConstraints({},false));}catch(e){}
   updateCameraCapabilityHint(stream);
 }
 
