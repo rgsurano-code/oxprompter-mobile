@@ -358,8 +358,3 @@ body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-le
 #recordReview #saveRecording{background:#42ffd0!important;color:#03100d!important;border:1px solid #42ffd0!important;}
 #recordReview .record-review-actions button:focus-visible{outline:3px solid #fff!important;outline-offset:3px;}
 @media(max-width:480px){#recordReview .record-review-actions{display:grid;grid-template-columns:1fr 1fr;}#recordReview .record-review-actions button{padding:10px 8px;font-size:13px;}#recordReview video{max-height:48dvh;}}
-
-/* V0.4 — botão de início por toque integrado à área de leitura */
-.touch-start-button{position:absolute;z-index:80;left:50%;top:50%;transform:translate(-50%,-50%);width:min(84vw,360px);min-height:58px;padding:16px 22px;border:2px solid #42ffd0;border-radius:14px;background:rgba(3,18,14,.96);color:#42ffd0;font-size:clamp(15px,4vw,20px);font-weight:900;letter-spacing:.06em;text-align:center;box-shadow:0 0 24px rgba(66,255,208,.28);touch-action:manipulation}
-.touch-start-button:active{background:#42ffd0;color:#03100d;transform:translate(-50%,-50%) scale(.98)}
-.prompter.light .touch-start-button{background:rgba(255,255,255,.97);color:#087a62;border-color:#087a62}
