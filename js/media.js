@@ -21,22 +21,315 @@ let prepMicStream=null;
 let prepCombinedStream=null;
 let prepAccessPromise=null;
 function selectedMicConstraints(){const id=$('#mic')?.value||current.settings?.micDeviceId||'';return id?{deviceId:{exact:id}}:true}
-function recordingOrientationConstraints(base){
-  const o=current.settings?.mobileRecordOrientation||'portrait';
-  const res=String(current.settings?.recordResolution||'auto');
-  const fps=String(current.settings?.recordFps||'auto');
-  let w=res==='720'?1280:res==='1080'?1920:res==='2160'?3840:1920;
-  let h=res==='720'?720:res==='1080'?1080:res==='2160'?2160:1080;
-  if(o==='portrait'){const t=w;w=h;h=t}
-  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:o==='landscape'?16/9:9/16},resizeMode:{ideal:'none'}};
-  if(fps!=='auto')video.frameRate={ideal:Number(fps),max:Number(fps)};
+function isIPhoneRecordingBrowser() {
+  return /iPhone|iPod/.test(navigator.userAgent);
+}
+
+function recordingOrientationConstraints(base = {}) {
+  // Fora do iPhone, mantém a configuração utilizada no arquivo enviado.
+  const orientation = isIPhoneRecordingBrowser()
+    ? (window.matchMedia('(orientation: landscape)').matches
+        ? 'landscape'
+        : 'portrait')
+    : (current.settings?.mobileRecordOrientation || 'portrait');
+
+  const resolution = String(current.settings?.recordResolution || 'auto');
+  const fps = Number(current.settings?.recordFps);
+
+  const longSide =
+    resolution === '720' ? 1280 :
+    resolution === '2160' ? 3840 :
+    1920;
+
+  const shortSide =
+    resolution === '720' ? 720 :
+    resolution === '2160' ? 2160 :
+    1080;
+
+  const landscape = orientation === 'landscape';
+
+  const video = {
+    ...base,
+    width: { ideal: landscape ? longSide : shortSide },
+    height: { ideal: landscape ? shortSide : longSide },
+    aspectRatio: { ideal: landscape ? 16 / 9 : 9 / 16 },
+    resizeMode: { ideal: 'none' }
+  };
+
+  if (Number.isFinite(fps) && fps > 0) {
+    video.frameRate = { ideal: fps, max: fps };
+  }
+
   return video;
 }
-async function applyRecordingOrientation(stream){
-  const track=stream?.getVideoTracks?.()[0];
-  try{await track?.applyConstraints(recordingOrientationConstraints({}));}catch(e){}
+
+async function applyRecordingOrientation(stream) {
+  const track = stream?.getVideoTracks?.()[0];
+
+  if (!track || track.readyState !== 'live') {
+    throw new Error('A câmera não possui vídeo ativo.');
+  }
+
+  try {
+    await track.applyConstraints(recordingOrientationConstraints({}));
+  } catch (error) {
+    // As restrições são sugestões; o Safari pode não aceitá-las.
+    // A alternativa vertical verifica as dimensões reais depois.
+    console.warn('A câmera manteve a configuração disponível.', error);
+  }
+
   updateCameraCapabilityHint(stream);
 }
+
+let iphonePortraitCleanup = null;
+
+function stopIPhonePortraitCapture() {
+  const cleanup = iphonePortraitCleanup;
+  iphonePortraitCleanup = null;
+  if (cleanup) cleanup();
+}
+
+function configureIPhonePortraitPreview(enabled) {
+  const styleId = 'oxIPhonePortraitPreviewStyle';
+
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style');
+    style.id = styleId;
+
+    style.textContent = `
+      body.prompter.mobile-camera.ox-iphone-portrait {
+        height: 100vh !important;
+        height: 100dvh !important;
+        min-height: 0 !important;
+        overflow: hidden;
+      }
+
+      body.prompter.mobile-camera.ox-iphone-portrait .promptStage {
+        position: relative;
+        width: 100%;
+        height: 100vh !important;
+        height: 100dvh !important;
+        min-height: 0 !important;
+        overflow: hidden;
+        background: transparent !important;
+      }
+
+      body.prompter.mobile-camera.ox-iphone-portrait #mobileCameraBgVideo,
+      body.prompter.mobile-camera.ox-iphone-portrait .mobileCameraBg {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        object-fit: cover !important;
+        object-position: center center !important;
+        transform: none !important;
+        background: #000 !important;
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
+  document.body.classList.toggle('ox-iphone-portrait', enabled);
+}
+
+async function prepareIPhonePortraitStream(sourceStream, wantPortrait) {
+  stopIPhonePortraitCapture();
+
+  const enabled = isIPhoneRecordingBrowser() && wantPortrait;
+  configureIPhonePortraitPreview(enabled);
+
+  if (!enabled) return sourceStream;
+
+  const sourceTrack = sourceStream?.getVideoTracks?.()[0];
+  if (!sourceTrack || sourceTrack.readyState !== 'live') {
+    throw new Error('Não há câmera ativa para a gravação vertical.');
+  }
+
+  const video = document.createElement('video');
+  video.muted = true;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.setAttribute('playsinline', '');
+  video.setAttribute('aria-hidden', 'true');
+
+  // Mantém o elemento em reprodução sem cobrir a interface.
+  // Não use display:none: alguns navegadores suspendem o vídeo.
+  video.style.cssText =
+    'position:fixed;left:0;top:0;width:1px;height:1px;' +
+    'opacity:0;pointer-events:none;z-index:-1;';
+
+  video.srcObject = sourceStream;
+  document.body.appendChild(video);
+
+  let frameId = null;
+  let canvasStream = null;
+  let disposed = false;
+
+  const cleanup = () => {
+    if (disposed) return;
+    disposed = true;
+
+    if (frameId !== null) cancelAnimationFrame(frameId);
+    canvasStream?.getTracks().forEach(track => track.stop());
+
+    video.pause();
+    video.srcObject = null;
+    video.remove();
+
+    // Não interrompe as faixas originais da preparação.
+  };
+
+  try {
+    await video.play();
+
+    await new Promise((resolve, reject) => {
+      const deadline = performance.now() + 8000;
+
+      const check = () => {
+        if (disposed || sourceTrack.readyState !== 'live') {
+          reject(new Error('A câmera foi interrompida.'));
+          return;
+        }
+
+        if (
+          video.readyState >= 2 &&
+          video.videoWidth > 0 &&
+          video.videoHeight > 0
+        ) {
+          resolve();
+          return;
+        }
+
+        if (performance.now() >= deadline) {
+          reject(new Error('A câmera não forneceu uma imagem para o modo vertical.'));
+          return;
+        }
+
+        frameId = requestAnimationFrame(check);
+      };
+
+      check();
+    });
+
+    frameId = null;
+
+    // Usa as dimensões reais exibidas pelo vídeo, não apenas getSettings().
+    if (video.videoHeight > video.videoWidth) {
+      cleanup();
+      return sourceStream;
+    }
+
+    const canvas = document.createElement('canvas');
+
+    if (typeof canvas.captureStream !== 'function') {
+      throw new Error(
+        'Este Safari não oferece a captura necessária para gerar vídeo vertical. ' +
+        'Atualize o iOS e tente novamente.'
+      );
+    }
+
+    const resolution = String(current.settings?.recordResolution || 'auto');
+    const targetWidth =
+      resolution === '720' ? 720 :
+      resolution === '2160' ? 2160 :
+      1080;
+    const targetHeight =
+      resolution === '720' ? 1280 :
+      resolution === '2160' ? 3840 :
+      1920;
+
+    // Não amplia além do recorte disponível da câmera.
+    const scale = Math.min(
+      1,
+      video.videoWidth / targetWidth,
+      video.videoHeight / targetHeight
+    );
+
+    // Mantém exatamente a proporção vertical com dimensões pares.
+    const unit = Math.floor(targetWidth * scale / 18);
+    if (unit < 1) throw new Error('A resolução da câmera é insuficiente.');
+
+    canvas.width = unit * 18;
+    canvas.height = unit * 32;
+
+    const context = canvas.getContext('2d', { alpha: false });
+    if (!context) throw new Error('Não foi possível preparar o vídeo vertical.');
+
+    const configuredFps = Number(current.settings?.recordFps);
+    const fps = Number.isFinite(configuredFps) && configuredFps > 0
+      ? configuredFps
+      : 30;
+
+    let lastDraw = -Infinity;
+
+    const draw = timestamp => {
+      if (disposed) return;
+
+      if (
+        video.readyState >= 2 &&
+        video.videoWidth &&
+        video.videoHeight &&
+        timestamp - lastDraw >= 1000 / fps
+      ) {
+        const inputWidth = video.videoWidth;
+        const inputHeight = video.videoHeight;
+        const outputRatio = canvas.width / canvas.height;
+        const inputRatio = inputWidth / inputHeight;
+
+        let cropWidth = inputWidth;
+        let cropHeight = inputHeight;
+
+        if (inputRatio > outputRatio) {
+          cropWidth = inputHeight * outputRatio;
+        } else {
+          cropHeight = inputWidth / outputRatio;
+        }
+
+        context.drawImage(
+          video,
+          (inputWidth - cropWidth) / 2,
+          (inputHeight - cropHeight) / 2,
+          cropWidth,
+          cropHeight,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        lastDraw = timestamp;
+      }
+
+      frameId = requestAnimationFrame(draw);
+    };
+
+    draw(performance.now());
+    canvasStream = canvas.captureStream(fps);
+
+    if (!canvasStream.getVideoTracks().some(track => track.readyState === 'live')) {
+      throw new Error('O Safari não criou a faixa de vídeo vertical.');
+    }
+
+    iphonePortraitCleanup = cleanup;
+
+    const hint = document.getElementById('cameraCapabilityHint');
+    if (hint) {
+      hint.textContent =
+        `Saída vertical: ${canvas.width} × ${canvas.height}. ` +
+        'Recorte central, sem distorção.';
+    }
+
+    return canvasStream;
+  } catch (error) {
+    cleanup();
+    configureIPhonePortraitPreview(false);
+    throw error;
+  }
+}
+
 function selectedCameraConstraints(){
   const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
   return recordingOrientationConstraints(id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}});
@@ -256,7 +549,19 @@ async function startCameraAndRecording(){
       }
     }
 
-    if(videoStream) await applyRecordingOrientation(videoStream);
+    if (videoStream) {
+      // Registra o formato antes das operações assíncronas.
+      const wantIPhonePortrait =
+        isIPhoneRecordingBrowser() &&
+        !window.matchMedia('(orientation: landscape)').matches;
+
+      await applyRecordingOrientation(videoStream);
+
+      videoStream = await prepareIPhonePortraitStream(
+        videoStream,
+        wantIPhonePortrait
+      );
+    }
 
     // Clone tracks so stopping a recording NEVER stops the preparation streams.
     const tracks=[];
@@ -283,6 +588,20 @@ async function startCameraAndRecording(){
     if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordedBlob=null;
 
     const rec=mediaRecorder, chunks=recordChunks, mimeType=recordingMime;
+    const cleanupThisPortraitSession = iphonePortraitCleanup;
+
+    const releaseThisPortraitSession = () => {
+      if (!cleanupThisPortraitSession) return;
+
+      cleanupThisPortraitSession();
+
+      if (iphonePortraitCleanup === cleanupThisPortraitSession) {
+        iphonePortraitCleanup = null;
+      }
+    };
+
+    rec.addEventListener('stop', releaseThisPortraitSession, { once: true });
+    rec.addEventListener('error', releaseThisPortraitSession, { once: true });
     rec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data)};
     rec.onstart=()=>{if(mediaRecorder!==rec)return;recordingActive=true;document.body.classList.add('recording');if($('#recLabel'))$('#recLabel').textContent='GRAVANDO'};
     rec.onstop=()=>{
@@ -329,8 +648,46 @@ async function startCameraAndRecording(){
   }
 }
 
-function stopRecordingUiOnly(){stopLiveMicMeter();try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}recordStream=null;cameraStream=null;$('#recordPreview')?.remove()}
-function stopCameraStreams(clearRecording=false){stopLiveMicMeter();if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}cameraStream=null;$('#recordPreview')?.remove();if(clearRecording){recordedBlob=null;if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordChunks=[]}}
+function stopRecordingUiOnly() {
+  stopLiveMicMeter();
+
+  try {
+    recordStream?.getTracks?.().forEach(track => track.stop());
+  } catch (error) {}
+
+  stopIPhonePortraitCapture();
+  configureIPhonePortraitPreview(false);
+
+  recordStream = null;
+  cameraStream = null;
+  $('#recordPreview')?.remove();
+}
+
+function stopCameraStreams(clearRecording = false) {
+  stopLiveMicMeter();
+
+  if (recordStream) {
+    recordStream.getTracks().forEach(track => track.stop());
+    recordStream = null;
+  }
+
+  stopIPhonePortraitCapture();
+  configureIPhonePortraitPreview(false);
+
+  cameraStream = null;
+  $('#recordPreview')?.remove();
+
+  if (clearRecording) {
+    recordedBlob = null;
+
+    if (recordedUrl) {
+      URL.revokeObjectURL(recordedUrl);
+      recordedUrl = null;
+    }
+
+    recordChunks = [];
+  }
+}
 function saveRecordingFile(){if(!recordedBlob)return false;const ext=recordingExt(recordedBlob.type||recordingMime);const a=document.createElement('a');a.href=recordedUrl;a.download=(current?.name||'teleprompter')+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.'+ext;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove()},500);return true}
 function showRecordingPreview(){
   if(!recordedBlob||!recordedUrl)return;
