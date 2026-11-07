@@ -1,162 +1,3 @@
-function isIOS(){
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-}
-
-function setupIOSCameraBackground(videoStream){
-  const bg = document.getElementById('mobileCameraBgVideo');
-  if(!bg || !isIOS()) return null;
-
-  let canvas = document.getElementById('mobileCameraBgCanvas');
-  if(!canvas){
-    canvas = document.createElement('canvas');
-    canvas.id = 'mobileCameraBgCanvas';
-    canvas.className = 'mobileCameraBg';
-    if(bg.nextSibling) bg.parentNode.insertBefore(canvas, bg.nextSibling);
-    else bg.parentNode.appendChild(canvas);
-  }
-
-  bg.style.display = 'none';
-  canvas.style.display = 'block';
-
-  function resizeCanvas(){
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
-  }
-  resizeCanvas();
-
-  if(window.__iosCamResize){
-    window.removeEventListener('resize', window.__iosCamResize);
-    window.removeEventListener('orientationchange', window.__iosCamResize);
-  }
-  window.__iosCamResize = () => { resizeCanvas(); };
-  window.addEventListener('resize', window.__iosCamResize);
-  window.addEventListener('orientationchange', window.__iosCamResize);
-
-  const ctx = canvas.getContext('2d');
-  
-  const src = document.createElement('video');
-  src.autoplay = true;
-  src.muted = true;
-  src.playsInline = true;
-  src.setAttribute('playsinline', '');
-  src.setAttribute('x5-playsinline', '');
-  src.srcObject = videoStream;
-  
-  const playPromise = src.play();
-  if(playPromise){
-    playPromise.catch(e => {
-      console.warn('iOS camera: vídeo não conseguiu tocar automaticamente', e);
-      setTimeout(() => {
-        src.play().catch(e2 => console.error('iOS camera: falha ao tocar vídeo', e2));
-      }, 100);
-    });
-  }
-
-  const settings = videoStream.getVideoTracks()[0]?.getSettings?.() || {};
-  const nativeW = settings.width || 1920;
-  const nativeH = settings.height || 1080;
-  const sourcePortrait = nativeH > nativeW;
-
-  window.__iosCam = {canvas, ctx, src, sourcePortrait, active: true};
-
-  const drawFrame = () => {
-    const cam = window.__iosCam;
-    if(!cam || !cam.active) return;
-    
-    const {canvas:c, ctx:x, src:v, sourcePortrait:srcPort} = cam;
-
-    x.fillStyle = '#000';
-    x.fillRect(0, 0, c.width, c.height);
-
-    if(!v.videoWidth || !v.videoHeight){
-      return;
-    }
-
-    const vw = v.videoWidth;
-    const vh = v.videoHeight;
-    const needsRotation = !srcPort;
-
-    if(needsRotation){
-      x.save();
-      x.translate(c.width / 2, c.height / 2);
-      x.rotate(Math.PI / 2);
-      const availW = c.height;
-      const availH = c.width;
-      const scale = Math.max(availW / vw, availH / vh);
-      const dw = vw * scale;
-      const dh = vh * scale;
-      x.drawImage(v, -dw / 2, -dh / 2, dw, dh);
-      x.restore();
-    } else {
-      const scale = Math.max(c.width / vw, c.height / vh);
-      const dw = vw * scale;
-      const dh = vh * scale;
-      x.drawImage(v, (c.width - dw) / 2, (c.height - dh) / 2, dw, dh);
-    }
-  };
-
-  let animFrameId = null;
-  let intervalId = null;
-  
-  const startAnimation = () => {
-    const animate = () => {
-      if(!window.__iosCam || !window.__iosCam.active) return;
-      drawFrame();
-      animFrameId = requestAnimationFrame(animate);
-    };
-    animFrameId = requestAnimationFrame(animate);
-    
-    intervalId = setInterval(() => {
-      if(!window.__iosCam || !window.__iosCam.active) return;
-      drawFrame();
-    }, 33);
-  };
-  
-  startAnimation();
-  
-  window.__iosCam.animFrameId = animFrameId;
-  window.__iosCam.intervalId = intervalId;
-  
-  console.log('iOS camera background configurado:', {
-    videoWidth: src.videoWidth,
-    videoHeight: src.videoHeight,
-    canvasWidth: canvas.width,
-    canvasHeight: canvas.height,
-    sourcePortrait
-  });
-
-  return canvas;
-}
-
-function stopIOSCameraBackground(){
-  const cam = window.__iosCam;
-  if(cam){
-    cam.active = false;
-    if(cam.animFrameId) cancelAnimationFrame(cam.animFrameId);
-    if(cam.intervalId) clearInterval(cam.intervalId);
-    try{ 
-      cam.src.pause(); 
-      cam.src.srcObject = null;
-    }catch(e){}
-    window.__iosCam = null;
-  }
-  if(window.__iosCamResize){
-    window.removeEventListener('resize', window.__iosCamResize);
-    window.removeEventListener('orientationchange', window.__iosCamResize);
-    window.__iosCamResize = null;
-  }
-  const canvas = document.getElementById('mobileCameraBgCanvas');
-  if(canvas) canvas.style.display = 'none';
-  const bg = document.getElementById('mobileCameraBgVideo');
-  if(bg) bg.style.display = '';
-}
-
 async function ensurePrepMicAccess(){
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
   const id=$('#mic')?.value||current.settings?.micDeviceId||'';
@@ -258,7 +99,7 @@ async function previewCamera(){
       if(name==='NotAllowedError')hint.textContent='⚠️ Câmera bloqueada. Permita a câmera nas permissões do navegador para este site.';
       else if(name==='NotFoundError')hint.textContent='⚠️ Nenhuma câmera foi encontrada neste aparelho.';
       else if(name==='NotReadableError')hint.textContent='⚠️ A câmera está sendo usada por outro aplicativo. Feche-o e tente novamente.';
-      else hint.textContent='⚠️ Não foi possível abrir a câmera. Toque em "Testar câmera" para tentar novamente.';
+      else hint.textContent='⚠️ Não foi possível abrir a câmera. Toque em “Testar câmera” para tentar novamente.';
     }
     return false;
   }
@@ -279,8 +120,8 @@ async function loadCameras(){
     sel.innerHTML='<option value="">Não foi possível acessar a câmera</option>';
     const hint=$('#cameraHint');
     if(hint){
-      if(e?.name==='NotAllowedError')hint.textContent='⚠️ O navegador bloqueou a câmera. Permita a câmera nas permissões deste site e toque em "Testar câmera".';
-      else hint.textContent='⚠️ Não foi possível acessar a câmera. Toque em "Testar câmera" para tentar novamente.';
+      if(e?.name==='NotAllowedError')hint.textContent='⚠️ O navegador bloqueou a câmera. Permita a câmera nas permissões deste site e toque em “Testar câmera”.';
+      else hint.textContent='⚠️ Não foi possível acessar a câmera. Toque em “Testar câmera” para tentar novamente.';
     }
   }
 }
@@ -288,6 +129,7 @@ let cameraStream=null,recordStream=null,mediaRecorder=null,recordChunks=[],recor
 let liveMicContext=null,liveMicAnalyser=null,liveMicRaf=null,readingMicStream=null,voiceHoldUntil=0,voiceNoiseFloor=0.004;
 function stopLiveMicMeter(){if(liveMicRaf){cancelAnimationFrame(liveMicRaf);liveMicRaf=null}if(liveMicContext){liveMicContext.close().catch(()=>{});liveMicContext=null}liveMicAnalyser=null;voiceHoldUntil=0}
 function resumeLiveMicContext(){
+  // Safari no iPhone pode suspender o AudioContext quando a tela muda ou a gravação começa.
   if(liveMicContext && liveMicContext.state==='suspended'){
     try{const p=liveMicContext.resume();if(p&&typeof p.catch==='function')p.catch(()=>{})}catch(e){}
   }
@@ -310,6 +152,9 @@ function startLiveMicMeter(stream){
       const rms=Math.sqrt(sum/data.length); currentMicRms=rms; const pct=Math.min(100,Math.max(2,rms*300));
       const bar=$('#liveMicLevel');if(bar)bar.style.width=pct+'%';
       const db=20*Math.log10(Math.max(rms,.0001));const txt=$('#liveMicDb');if(txt)txt.textContent=Math.max(-60,Math.round(db))+' dB';
+      // O microfone controla a rolagem: fala = rola, silêncio = pausa.
+      // Usa um limiar baixo e uma pequena sustentação para não cortar a rolagem
+      // entre palavras e para funcionar também com microfones mais baixos.
       if(started && !paused && (current.settings?.mode||'audio')!=='noaudio'){
         voiceNoiseFloor=voiceNoiseFloor*0.92+Math.min(rms,0.01)*0.08;
         const threshold=Math.max(0.0055,voiceNoiseFloor*2.2);
@@ -328,6 +173,7 @@ function hasLiveTrack(stream,type){
 
 async function ensureReadingMic(){
   if((current.settings?.mode||'audio')==='noaudio')return null;
+  // A silent video recording still owns live video tracks; retain its stream.
   if(!hasLiveTrack(readingMicStream,'audio'))readingMicStream=null;
   if(!hasLiveTrack(prepMicStream,'audio'))prepMicStream=null;
   if(recordStream&&hasLiveTrack(recordStream,'audio')){startLiveMicMeter(recordStream);return recordStream}
@@ -345,6 +191,7 @@ async function ensureReadingMic(){
 }
 
 function ensureRecordingPreview(stream){
+  // No MOBILE: a câmera deve ocupar o fundo do teleprompter, sem uma janela de prévia sobre o texto.
   return !!stream;
 }
 
@@ -358,6 +205,7 @@ async function restoreLiveCameraPreview(){
     if(!track)return false;
     let pv=$('#cameraPreview');
     if(!pv){
+      // Recreate the preview only when the current screen has a camera slot.
       const host=$('.cameraPreviewHost')||$('.cameraPreview')||$('#cameraPreviewWrap');
       if(host){
         pv=document.createElement('video');
@@ -410,24 +258,10 @@ async function startCameraAndRecording(){
 
     if(videoStream) await applyRecordingOrientation(videoStream);
 
-    let canvasStream = null;
-    if(wantVideo && isIOS()){
-      const canvas = setupIOSCameraBackground(videoStream);
-      if(canvas){
-        const fps = Number(current.settings?.recordFps) || 30;
-        canvasStream = canvas.captureStream(fps);
-      }
-    }
-
+    // Clone tracks so stopping a recording NEVER stops the preparation streams.
     const tracks=[];
-    if(canvasStream){
-      canvasStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
-    } else if(wantVideo&&videoStream){
-      videoStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
-    }
-    if(wantAudioRecord&&audioStream){
-      audioStream.getAudioTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
-    }
+    if(wantVideo&&videoStream)videoStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
+    if(wantAudioRecord&&audioStream)audioStream.getAudioTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
     if(!tracks.length){setStatus('red','Nenhuma faixa de gravação disponível');return false}
 
     recordStream=new MediaStream(tracks);
@@ -436,15 +270,8 @@ async function startCameraAndRecording(){
     if(needMic&&audioStream)startLiveMicMeter(audioStream);
 
     if(wantVideo){
-      ensureRecordingPreview(recordStream||videoStream);
-      if(current.settings?.mobileCameraBg){
-        if(isIOS()){
-          // fundo já está no canvas criado acima
-        } else {
-          const bg=$('#mobileCameraBgVideo');
-          if(bg){bg.srcObject=videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;try{await bg.play()}catch(e){}}
-        }
-      }
+      // Usa o mesmo stream que será gravado. Não abre a câmera novamente.
+      ensureRecordingPreview(recordStream||videoStream);if(current.settings?.mobileCameraBg){const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;try{await bg.play()}catch(e){}}}
     }
 
     if(!wantVideo&&current.settings.mobileCameraBg){try{const st=await ensurePrepCameraAccess();const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=st;await bg.play()}}catch(e){setStatus('yellow','Câmera de fundo indisponível')}}
@@ -459,7 +286,8 @@ async function startCameraAndRecording(){
     rec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data)};
     rec.onstart=()=>{if(mediaRecorder!==rec)return;recordingActive=true;document.body.classList.add('recording');if($('#recLabel'))$('#recLabel').textContent='GRAVANDO'};
     rec.onstop=()=>{
-      stopIOSCameraBackground();
+      // Usa sempre o recorder desta sessão, mesmo que outra ação já tenha
+      // alterado a variável global mediaRecorder.
       if(chunks.length){
         const actualMime=rec.mimeType||mimeType||(recordingHasVideo?'video/mp4':'audio/mp4');
         const blob=new Blob(chunks,{type:actualMime});
@@ -502,18 +330,7 @@ async function startCameraAndRecording(){
 }
 
 function stopRecordingUiOnly(){stopLiveMicMeter();try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}recordStream=null;cameraStream=null;$('#recordPreview')?.remove()}
-function stopCameraStreams(clearRecording=false){
-  stopIOSCameraBackground();
-  stopLiveMicMeter();
-  if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}
-  cameraStream=null;
-  $('#recordPreview')?.remove();
-  if(clearRecording){
-    recordedBlob=null;
-    if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}
-    recordChunks=[]
-  }
-}
+function stopCameraStreams(clearRecording=false){stopLiveMicMeter();if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}cameraStream=null;$('#recordPreview')?.remove();if(clearRecording){recordedBlob=null;if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordChunks=[]}}
 function saveRecordingFile(){if(!recordedBlob)return false;const ext=recordingExt(recordedBlob.type||recordingMime);const a=document.createElement('a');a.href=recordedUrl;a.download=(current?.name||'teleprompter')+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.'+ext;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove()},500);return true}
 function showRecordingPreview(){
   if(!recordedBlob||!recordedUrl)return;
@@ -576,7 +393,6 @@ function discardCurrentRecording(){
   }
   mediaRecorder=null;
   recordingActive=false;
-  stopIOSCameraBackground();
   stopCameraStreams(true);
   if(recordedUrl)URL.revokeObjectURL(recordedUrl);
   recordedUrl=null;
@@ -605,3 +421,4 @@ async function testMic(){
 }
 
 function closeMicTest(){if(micRaf){cancelAnimationFrame(micRaf);micRaf=null}micStream=null;if(micAudioContext){micAudioContext.close().catch(()=>{});micAudioContext=null}micAnalyser=null;$('.mic-modal')?.remove()}
+
