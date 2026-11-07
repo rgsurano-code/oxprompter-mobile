@@ -102,3 +102,12 @@ Antes de usar em produção, execute uma tomada curta com áudio e vídeo em cad
 - [WebKit — MediaRecorder API](https://webkit.org/blog/11353/mediarecorder-api/): comportamento e formatos da implementação WebKit; a escolha no aplicativo é feita por detecção em tempo de execução.
 
 SHA-256 do ZIP de origem: `9ac1a35f5758bad520f98a7d885effc928591e06a0ccdb22e24aca27e9448e5d`.
+
+
+## V0.4 — restauração do início por toque
+- Renomeado o modo de comando por voz para **Iniciar com Voz**.
+- Mantido o modo **Automático** sem alteração de fluxo.
+- No modo **Início com Toque**, após preparar mídia e microfone, é exibido um botão destacado dentro da área de leitura. O toque inicia a contagem regressiva e, ao final, inicia a leitura.
+- Estilo do botão compatível com tema escuro e tema claro.
+- Service worker atualizado para invalidar o cache anterior.
+- Validação: `node --check` em `js/reader.js` e `js/preparation.js` APROVADO; `npm test` (7 testes) APROVADO. Testes de navegador não executados: dependência Playwright ausente neste ambiente. Android/iPhone reais NÃO TESTADOS.

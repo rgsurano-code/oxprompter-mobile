@@ -11,7 +11,7 @@ function prepare(){stopPrepMedia();stopAll();current.settings=current.settings||
 </div></div>
 
 <div class="card prepCard"><div class="section-title">Leitura</div><div class="grid">
-<div class="field"><label>Modo</label><select id="mode"><option value="noaudio">Automático</option><option value="audio">Por volume da voz + comando inicial</option><option value="semi">Por volume da voz (início por toque)</option></select></div>
+<div class="field"><label>Modo</label><select id="mode"><option value="noaudio">Automático</option><option value="audio">Iniciar com Voz</option><option value="semi">Início com Toque</option></select></div>
 <div class="field"><label>Microfone</label><select id="mic"><option value="">Carregando microfones...</option></select><div class="row"><button type="button" id="refreshMic">↻ Atualizar</button><button type="button" id="testMic">🎙️ Testar</button></div><div id="micHint" class="muted">Selecione e teste o microfone. Depois de autorizar, mantenha a permissão do Chrome ativa para evitar novas solicitações.</div></div>
 </div></div>
 
