@@ -1,4 +1,4 @@
-const CACHE='oxprompter-mobile-v0.4-toque-voz';
+const CACHE='oxprompter-mobile-revisado-1';
 const ASSETS=['./','./index.html','./css/styles.css','./js/core.js','./js/library.js','./js/preparation.js','./js/media.js','./js/reader.js','./js/speech.js','./js/app.js','./js/documents.js','./vendor/jszip.min.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('oxprompter-mobile-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
