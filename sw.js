@@ -1,14 +1,1 @@
-const CACHE='oxprompter-mobile-revisado-1';
-const ASSETS=['./','./index.html','./css/styles.css','./js/core.js','./js/library.js','./js/preparation.js','./js/media.js','./js/reader.js','./js/speech.js','./js/app.js','./js/documents.js','./vendor/jszip.min.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
-self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('oxprompter-mobile-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',event=>{
-  const request=event.request,url=new URL(request.url);
-  if(request.method!=='GET'||url.origin!==self.location.origin)return;
-  event.respondWith(caches.open(CACHE).then(async cache=>{
-    if(request.mode==='navigate'){
-      try{return await fetch(request)}catch(error){return (await cache.match('./index.html'))||Response.error()}
-    }
-    return (await cache.match(request))||fetch(request);
-  }));
-});
+const CACHE='oxprompter-mobile-v17-1-0';self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html','./manifest.json','./icons/icon-192.png','./icons/icon-512.png']))));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));self.addEventListener('fetch',e=>{if(e.request.method==='GET')e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return res}).catch(()=>caches.match('./index.html'))))});
