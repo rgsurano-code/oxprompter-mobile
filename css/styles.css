@@ -228,7 +228,7 @@ body.prompter.light .controls select{
 
 /* OXPROMPTER MOBILE TESTE 1 — câmera como fundo durante gravação */
 .mobileCameraBg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#000;transform:none;opacity:.78;filter:saturate(.95) contrast(1.02);pointer-events:none}
-@supports (-webkit-touch-callout: none){body.prompter.mobile-camera .mobileCameraBg{object-fit:contain;background:#000}}
+@supports (-webkit-touch-callout: none){body.prompter.mobile-camera .mobileCameraBg{object-fit:contain;object-position:center center;background:#000}}
 
 .mobileCameraShade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,.16) 35%,rgba(0,0,0,.30) 100%);pointer-events:none}
 .prompter.light .mobileCameraShade{background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08) 40%,rgba(255,255,255,.22))}
@@ -320,8 +320,7 @@ body.prompter .mobile-camera-badge{display:none}
 body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-level{color:#005342!important}
 
 
-/* OXPROMPTER MOBILE — ajuste iOS: quadro de câmera ocupa todo o palco.
-   Mantém as regras gerais do Android inalteradas. */
+/* OXPROMPTER MOBILE — iOS: preservar o quadro da câmera sem zoom/corte. */
 @supports (-webkit-touch-callout: none) {
   body.prompter.mobile-camera .mobileCameraBg {
     position: absolute !important;
@@ -337,8 +336,8 @@ body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-le
   body.prompter.mobile-camera .promptStage {
     position: relative;
     overflow: hidden;
-    min-height: 100dvh;
     min-height: 100vh;
+    min-height: 100dvh;
   }
 }
 
@@ -358,3 +357,8 @@ body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-le
 #recordReview #saveRecording{background:#42ffd0!important;color:#03100d!important;border:1px solid #42ffd0!important;}
 #recordReview .record-review-actions button:focus-visible{outline:3px solid #fff!important;outline-offset:3px;}
 @media(max-width:480px){#recordReview .record-review-actions{display:grid;grid-template-columns:1fr 1fr;}#recordReview .record-review-actions button{padding:10px 8px;font-size:13px;}#recordReview video{max-height:48dvh;}}
+
+/* V0.4 — botão de início por toque integrado à área de leitura */
+.touch-start-button{position:absolute;z-index:80;left:50%;top:50%;transform:translate(-50%,-50%);width:min(84vw,360px);min-height:58px;padding:16px 22px;border:2px solid #42ffd0;border-radius:14px;background:rgba(3,18,14,.96);color:#42ffd0;font-size:clamp(15px,4vw,20px);font-weight:900;letter-spacing:.06em;text-align:center;box-shadow:0 0 24px rgba(66,255,208,.28);touch-action:manipulation}
+.touch-start-button:active{background:#42ffd0;color:#03100d;transform:translate(-50%,-50%) scale(.98)}
+.prompter.light .touch-start-button{background:rgba(255,255,255,.97);color:#087a62;border-color:#087a62}

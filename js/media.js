@@ -10,7 +10,7 @@ async function ensurePrepMicAccess(){
 async function ensurePrepCameraAccess(){
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
   if(hasLiveTrack(prepCameraStream,'video'))return prepCameraStream;
-  prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
+  prepCameraStream=await requestSelectedCameraStream();
     updateCameraCapabilityHint(prepCameraStream);
   return prepCameraStream;
 }
@@ -21,31 +21,42 @@ let prepMicStream=null;
 let prepCombinedStream=null;
 let prepAccessPromise=null;
 function selectedMicConstraints(){const id=$('#mic')?.value||current.settings?.micDeviceId||'';return id?{deviceId:{exact:id}}:true}
-function recordingOrientationConstraints(base){
+function isIOSWebKit(){const ua=navigator.userAgent||'';return /iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
+function recordingOrientationConstraints(base,strictAspect=false){
   const o=current.settings?.mobileRecordOrientation||'portrait';
   const res=String(current.settings?.recordResolution||'auto');
   const fps=String(current.settings?.recordFps||'auto');
   let w=res==='720'?1280:res==='1080'?1920:res==='2160'?3840:1920;
   let h=res==='720'?720:res==='1080'?1080:res==='2160'?2160:1080;
   if(o==='portrait'){const t=w;w=h;h=t}
-  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:o==='landscape'?16/9:9/16},resizeMode:{ideal:'none'}};
+  const ratio=o==='landscape'?16/9:9/16;
+  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:strictAspect?{exact:ratio}:{ideal:ratio},resizeMode:{ideal:'none'}};
   if(fps!=='auto')video.frameRate={ideal:Number(fps),max:Number(fps)};
   return video;
 }
+function selectedCameraConstraints(strictAspect=false){
+  const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
+  return recordingOrientationConstraints(id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}},strictAspect);
+}
+async function requestSelectedCameraStream(){
+  if(isIOSWebKit()){
+    try{return await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints(true)})}
+    catch(e){if(!['OverconstrainedError','ConstraintNotSatisfiedError','NotSupportedError','TypeError'].includes(e?.name))throw e}
+  }
+  return navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints(false)});
+}
 async function applyRecordingOrientation(stream){
   const track=stream?.getVideoTracks?.()[0];
-  try{await track?.applyConstraints(recordingOrientationConstraints({}));}catch(e){}
+  if(track&&isIOSWebKit())try{await track.applyConstraints(recordingOrientationConstraints({},true))}catch(e){}
+  try{await track?.applyConstraints(recordingOrientationConstraints({},false));}catch(e){}
   updateCameraCapabilityHint(stream);
-}
-function selectedCameraConstraints(){
-  const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
-  return recordingOrientationConstraints(id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}});
 }
 
 function updateCameraCapabilityHint(stream){
   const el=$('#cameraCapabilityHint'); if(!el)return;
   const track=stream?.getVideoTracks?.()[0]; const st=track?.getSettings?.()||{}; const caps=track?.getCapabilities?.()||{};
   const parts=[]; if(st.width&&st.height)parts.push(`Atual: ${st.width} × ${st.height}`); if(st.frameRate)parts.push(`${Math.round(st.frameRate)} fps`);
+  if(st.width&&st.height){const wanted=current.settings?.mobileRecordOrientation||'portrait',actual=st.height>st.width?'portrait':'landscape';parts.push(`Orientação ${actual===wanted?'aplicada':'retornada diferente'} (solicitada: ${wanted==='portrait'?'vertical':'horizontal'}; câmera: ${actual==='portrait'?'vertical':'horizontal'})`)}
   const r=caps.width, f=caps.frameRate;
   if(r?.max)parts.push(`largura máx. informada: ${r.max}px`); if(f?.max)parts.push(`até ${Math.round(f.max)} fps informado`);
   el.textContent=parts.length?parts.join(' · '):'O navegador não informou todos os recursos. A gravação usará a configuração mais próxima disponível.';
@@ -87,7 +98,7 @@ async function previewCamera(){
       return true;
     }
     if(prepCameraStream){try{prepCameraStream.getTracks().forEach(t=>t.stop())}catch(e){}}
-    prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
+    prepCameraStream=await requestSelectedCameraStream();
     v.srcObject=prepCameraStream;
     try{await v.play()}catch(e){}
     if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
@@ -251,7 +262,7 @@ async function startCameraAndRecording(){
       const existingId=existing?.getSettings?.().deviceId||'';
       if(existing&&(!id||existingId===id))videoStream=prepCameraStream;
       else{
-        videoStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
+        videoStream=await requestSelectedCameraStream();
         prepCameraStream=videoStream;
       }
     }

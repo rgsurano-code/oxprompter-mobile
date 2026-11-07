@@ -1,24 +1,23 @@
-# Correção de enquadramento no iOS
+# Correção da gravação vertical no iOS — OXPROMPTER Mobile V0.4
 
-## Projeto e plataforma
+## Escopo
 
-OXPROMPTER Mobile, aplicativo web/PWA. Falha relatada em iPhone/iOS; o Android funciona como esperado.
+Corrigir o caminho vertical da câmera frontal no Safari iOS, preservando o fluxo de início por toque da V0.4 e sem alterar o caminho Android.
 
-## Achado
+## Alterações aplicadas
 
-Na folha `css/styles.css`, havia duas regras para o fundo de câmera no iOS. Uma pedia `object-fit: contain`, mas uma regra posterior, mais forte, definia `object-fit: cover !important`. Isso faz a imagem preencher o palco cortando partes do quadro e pode aparentar zoom na tela de leitura.
+- No iOS, a câmera tenta primeiro uma solicitação explícita de proporção 9:16 ou 16:9, conforme a preferência de gravação. Se o navegador rejeitar a proporção exata, o aplicativo tenta novamente com a preferência flexível já usada anteriormente.
+- A mesma solicitação explícita é tentada ao reaplicar as restrições à faixa existente antes de criar a gravação.
+- A indicação de capacidades passa a mostrar a orientação retornada pela câmera e a comparar com a orientação solicitada. Isso evita esconder uma divergência do Safari.
+- A prévia iOS usa `contain`, sem ampliar nem cortar a imagem. O palco usa a altura dinâmica da tela, e o nome do cache foi alterado para ativar os arquivos desta correção após publicação.
 
-## Correção aplicada
+## Limites
 
-A regra final de iOS agora usa `object-fit: contain`, preservando o quadro inteiro na tela de leitura. Se a proporção da câmera não coincidir com a tela, podem aparecer faixas pretas.
+O navegador pode não aceitar a proporção exata em todos os iPhones/Safaris. Nesse caso, o aplicativo mantém a tentativa flexível e mostra as dimensões/orientação retornadas. A prévia CSS não transforma o arquivo: a gravação continua usando a faixa de vídeo criada pelo navegador.
 
-## Limite da correção
+## Verificação
 
-Essa alteração corrige o enquadramento visual do elemento de prévia. O arquivo gravado usa a faixa de vídeo da câmera por `MediaRecorder`; CSS não altera essa faixa. A gravação baixada ainda precisa ser conferida em um iPhone para saber se existe um segundo problema na orientação da captura.
-
-## Testes e situação
-
-- Revisão estática da regra CSS: aplicada.
-- Teste em iPhone/Safari: não executado neste ambiente.
-- Verificação do arquivo baixado no iPhone: pendente.
-- Situação: correção visual preparada; validação final da gravação pendente em aparelho real.
+- Revisão estática do código e das referências de cache: concluída.
+- Testes automatizados: não executados nesta correção.
+- Teste em iPhone/Safari e inspeção do arquivo gravado: pendentes; precisam ser feitos no aparelho real.
+- Situação: **apto para homologação em iPhone; ainda não aprovado para distribuição com a orientação vertical certificada**.
