@@ -222,6 +222,8 @@ async function restoreLiveCameraPreview(){
   }catch(e){return false}
 }
 
+let activeIOSCanvasCleanup=null;
+
 async function startCameraAndRecording(){
   const wantVideo=current.settings?.recordOn===true;
   const wantAudioRecord=current.settings?.recordAudioOn===true;
@@ -231,6 +233,23 @@ async function startCameraAndRecording(){
   try{
     const needAudio=wantAudioRecord||needMic;
     let audioStream=null,videoStream=null;
+    let canvasStream=null, iosCanvas=null, iosSourceVideo=null, iosFrameId=null;
+    const cleanupIOSCanvas=()=>{
+      if(iosFrameId!==null){cancelAnimationFrame(iosFrameId);iosFrameId=null}
+      if(iosCanvas){iosCanvas._recording=false;iosCanvas=null}
+      if(iosSourceVideo){
+        try{iosSourceVideo.pause()}catch(e){}
+        iosSourceVideo.srcObject=null;
+        iosSourceVideo.remove();
+        iosSourceVideo=null;
+      }
+      if(canvasStream){
+        try{canvasStream.getTracks().forEach(t=>t.stop())}catch(e){}
+        canvasStream=null;
+      }
+      if(activeIOSCanvasCleanup===cleanupIOSCanvas)activeIOSCanvasCleanup=null;
+    };
+    activeIOSCanvasCleanup=cleanupIOSCanvas;
 
     if(!hasLiveTrack(prepMicStream,'audio'))prepMicStream=null;
     if(!hasLiveTrack(prepCameraStream,'video'))prepCameraStream=null;
@@ -258,11 +277,98 @@ async function startCameraAndRecording(){
 
     if(videoStream) await applyRecordingOrientation(videoStream);
 
+    // ===== CORREÇÃO iOS: usar canvas para forçar orientação vertical =====
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||
+                (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
+
+    if(isIOS && wantVideo && videoStream){
+      const vTrack=videoStream.getVideoTracks()[0];
+      const settings=vTrack?.getSettings?.()||{};
+      const nativeW=settings.width||1920;
+      const nativeH=settings.height||1080;
+      const orientation=current.settings?.mobileRecordOrientation||'portrait';
+      const res=String(current.settings?.recordResolution||'auto');
+      let outW=res==='720'?720:res==='1080'?1080:res==='2160'?2160:1080;
+      let outH=res==='720'?1280:res==='1080'?1920:res==='2160'?3840:1920;
+      if(orientation!=='portrait'){const t=outW;outW=outH;outH=t}
+
+      const canvas=document.createElement('canvas');
+      iosCanvas=canvas;
+      canvas.width=outW;
+      canvas.height=outH;
+      canvas.id='_recCanvas';
+      const ctx=canvas.getContext('2d');
+      if(!ctx)throw new Error('Não foi possível preparar o vídeo vertical.');
+      if(typeof canvas.captureStream!=='function')throw new Error('Este navegador não permite capturar o vídeo vertical.');
+
+      const srcVideo=document.createElement('video');
+      iosSourceVideo=srcVideo;
+      srcVideo.srcObject=videoStream;
+      srcVideo.muted=true;
+      srcVideo.autoplay=true;
+      srcVideo.playsInline=true;
+      srcVideo.setAttribute('playsinline','');
+      srcVideo.style.cssText='position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;';
+      document.body.appendChild(srcVideo);
+      await srcVideo.play().catch(()=>{});
+      await new Promise((resolve,reject)=>{
+        const deadline=performance.now()+8000;
+        const waitForFrame=()=>{
+          if(srcVideo.readyState>=2&&srcVideo.videoWidth>0&&srcVideo.videoHeight>0){resolve();return}
+          if(performance.now()>=deadline){reject(new Error('A câmera não forneceu imagem para a gravação vertical.'));return}
+          iosFrameId=requestAnimationFrame(waitForFrame);
+        };
+        waitForFrame();
+      });
+      if(iosFrameId!==null){cancelAnimationFrame(iosFrameId);iosFrameId=null}
+
+      const configuredFps=Number(current.settings?.recordFps);
+      const targetFps=Number.isFinite(configuredFps)&&configuredFps>0?configuredFps:30;
+      let lastFrame=0;
+
+      function drawFrame(ts){
+        if(!canvas._recording) return;
+        const interval=1000/targetFps;
+        if(ts-lastFrame>=interval){
+          lastFrame=ts;
+          ctx.save();
+          ctx.fillStyle='#000';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+          // Ajuste: desenha o vídeo cobrindo o canvas (cover)
+          const vw=srcVideo.videoWidth||nativeW;
+          const vh=srcVideo.videoHeight||nativeH;
+          const scale=Math.max(canvas.width/vw,canvas.height/vh);
+          const dw=vw*scale;
+          const dh=vh*scale;
+          const dx=(canvas.width-dw)/2;
+          const dy=(canvas.height-dh)/2;
+          ctx.drawImage(srcVideo,dx,dy,dw,dh);
+          ctx.restore();
+        }
+        iosFrameId=requestAnimationFrame(drawFrame);
+      }
+      canvas._recording=true;
+      iosFrameId=requestAnimationFrame(drawFrame);
+
+      canvasStream=canvas.captureStream(targetFps);
+      // Adiciona as faixas de áudio ao stream do canvas
+      if(wantAudioRecord && audioStream){
+        audioStream.getAudioTracks().forEach(t=>canvasStream.addTrack(t.clone()));
+      }
+    }
+    // ===== FIM CORREÇÃO iOS =====
+
     // Clone tracks so stopping a recording NEVER stops the preparation streams.
     const tracks=[];
-    if(wantVideo&&videoStream)videoStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
-    if(wantAudioRecord&&audioStream)audioStream.getAudioTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
-    if(!tracks.length){setStatus('red','Nenhuma faixa de gravação disponível');return false}
+    if(isIOS && canvasStream){
+      // No iOS, usa o stream do canvas (já tem vídeo + áudio)
+      canvasStream.getTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
+    } else {
+      if(wantVideo&&videoStream)videoStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
+      if(wantAudioRecord&&audioStream)audioStream.getAudioTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
+    }
+    if(!tracks.length){cleanupIOSCanvas();setStatus('red','Nenhuma faixa de gravação disponível');return false}
 
     recordStream=new MediaStream(tracks);
     cameraStream=recordStream;
@@ -270,7 +376,6 @@ async function startCameraAndRecording(){
     if(needMic&&audioStream)startLiveMicMeter(audioStream);
 
     if(wantVideo){
-      // Usa o mesmo stream que será gravado. Não abre a câmera novamente.
       ensureRecordingPreview(recordStream||videoStream);if(current.settings?.mobileCameraBg){const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;try{await bg.play()}catch(e){}}}
     }
 
@@ -286,8 +391,6 @@ async function startCameraAndRecording(){
     rec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data)};
     rec.onstart=()=>{if(mediaRecorder!==rec)return;recordingActive=true;document.body.classList.add('recording');if($('#recLabel'))$('#recLabel').textContent='GRAVANDO'};
     rec.onstop=()=>{
-      // Usa sempre o recorder desta sessão, mesmo que outra ação já tenha
-      // alterado a variável global mediaRecorder.
       if(chunks.length){
         const actualMime=rec.mimeType||mimeType||(recordingHasVideo?'video/mp4':'audio/mp4');
         const blob=new Blob(chunks,{type:actualMime});
@@ -308,6 +411,7 @@ async function startCameraAndRecording(){
       recordStream=null;
       cameraStream=null;
       $('#recordPreview')?.remove();
+      cleanupIOSCanvas();
       stopLiveMicMeter();stopPrepMedia();readingMicStream?.getTracks().forEach(t=>t.stop());readingMicStream=null;
 
       if(reviewAfterStop){
@@ -321,16 +425,35 @@ async function startCameraAndRecording(){
         }
       }
     };
-    rec.onerror=()=>{recordingActive=false;document.body.classList.remove('recording')};
+    rec.onerror=()=>{recordingActive=false;document.body.classList.remove('recording');cleanupIOSCanvas()};
     return true;
   }catch(e){
-    stopCameraStreams();alert(e.name==='NotAllowedError'?'O navegador bloqueou o acesso à câmera/microfone. Autorize o site e tente novamente.':'Não foi possível iniciar a gravação: '+e.message);
+    cleanupIOSCanvas();stopCameraStreams();alert(e.name==='NotAllowedError'?'O navegador bloqueou o acesso à câmera/microfone. Autorize o site e tente novamente.':'Não foi possível iniciar a gravação: '+e.message);
     return false;
   }
 }
 
-function stopRecordingUiOnly(){stopLiveMicMeter();try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}recordStream=null;cameraStream=null;$('#recordPreview')?.remove()}
-function stopCameraStreams(clearRecording=false){stopLiveMicMeter();if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}cameraStream=null;$('#recordPreview')?.remove();if(clearRecording){recordedBlob=null;if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordChunks=[]}}
+function stopRecordingUiOnly(){
+  stopLiveMicMeter();
+  try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}
+  if(activeIOSCanvasCleanup){const cleanup=activeIOSCanvasCleanup;activeIOSCanvasCleanup=null;cleanup()}
+  recordStream=null;
+  cameraStream=null;
+  $('#recordPreview')?.remove();
+}
+function stopCameraStreams(clearRecording=false){
+  stopLiveMicMeter();
+  if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}
+  if(activeIOSCanvasCleanup){const cleanup=activeIOSCanvasCleanup;activeIOSCanvasCleanup=null;cleanup()}
+  cameraStream=null;
+  $('#recordPreview')?.remove();
+  if(clearRecording){
+    recordedBlob=null;
+    if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}
+    recordChunks=[];
+  }
+}
+
 function saveRecordingFile(){if(!recordedBlob)return false;const ext=recordingExt(recordedBlob.type||recordingMime);const a=document.createElement('a');a.href=recordedUrl;a.download=(current?.name||'teleprompter')+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.'+ext;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove()},500);return true}
 function showRecordingPreview(){
   if(!recordedBlob||!recordedUrl)return;
