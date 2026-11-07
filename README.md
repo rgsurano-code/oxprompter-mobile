@@ -1,13 +1,4 @@
-# OXPROMPTER Mobile — V0.5
-
-## V0.5 — formato e câmera no iPhone
-
-- Antes de iniciar, selecione **Vertical (9:16)** ou **Horizontal (16:9)** em Preparar gravação.
-- No Safari/iOS, gire o aparelho para o formato escolhido antes de testar a câmera ou iniciar. A câmera só abre depois disso; então o app solicita o formato escolhido e a prévia mostra o quadro inteiro, sem recorte de preenchimento.
-- No Android/Chrome, permanecem as restrições de câmera já usadas pela versão anterior.
-- Os modos Automático, por voz e início por toque, além dos botões escuros **Salvar produção** e **Excluir**, foram mantidos.
-
-O enquadramento e as dimensões disponíveis no Safari dependem do aparelho e do navegador. iPhone e Android físicos ainda precisam de teste antes de considerar a câmera homologada.
+# OXPROMPTER Mobile — versão revisada
 
 ## Como abrir
 
@@ -56,15 +47,13 @@ Os arquivos JavaScript usam escopo compartilhado e carregamento `defer` na ordem
 
 Substitua todos os arquivos, mantendo a mesma origem HTTPS. Feche as abas antigas e reabra para ativar o novo service worker. Se o navegador continuar mostrando a versão antiga, confira a atualização do service worker nas ferramentas de desenvolvimento. Limpar os dados do site também apaga a biblioteca: faça backup antes. Em atualizações futuras, altere a versão de `CACHE` em `sw.js` e mantenha a lista `ASSETS` sincronizada.
 
-## Substituir os arquivos com GitHub Desktop
-
-1. Extraia `OXPROMPTER-V0.5.zip` em uma pasta temporária.
-2. No GitHub Desktop, selecione o repositório correto e use **Repository → Show in Explorer**.
-3. Copie todos os arquivos e pastas extraídos para a pasta raiz desse repositório. Quando solicitado, escolha substituir os arquivos existentes. O ZIP não contém `.git`; mantenha a pasta `.git` que já existe no repositório.
-4. Volte ao GitHub Desktop, confira a lista de alterações e faça o commit local quando estiver satisfeito.
-
-O ZIP só contém os arquivos do aplicativo. Esta entrega não faz commit nem envia alterações ao GitHub. Para atualizar a hospedagem, mantenha a mesma origem HTTPS para preservar os dados locais do navegador.
-
 ## Limites de compatibilidade
 
 Veja `RELATORIO-AUDITORIA.md` para os testes efetivamente realizados. Chromium e WebKit em computador não equivalem a testes em aparelhos reais. Permissões, troca de lentes, gravações longas, instalação PWA e salvamento no iOS ainda exigem homologação física. Resolução, orientação, taxa de quadros e formato são negociados com o navegador; não há promessa de 4K/60 fps nem conversão universal para MP4.
+
+
+## Atualização V0.4 — modos de início
+- Automático mantém o início automático.
+- O modo de comando por voz passa a se chamar **Iniciar com Voz**.
+- **Início com Toque** prepara câmera/microfone e exibe o botão **TOQUE PARA INICIAR** dentro da área de leitura; ao tocar, inicia a contagem regressiva e depois a rolagem.
+- Cache do service worker atualizado para forçar a renovação dos arquivos após publicação.

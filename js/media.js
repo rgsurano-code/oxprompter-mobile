@@ -9,11 +9,9 @@ async function ensurePrepMicAccess(){
 }
 async function ensurePrepCameraAccess(){
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
-  if(isIOSWebKitCamera()&&!recordingOrientationMatchesViewport())throw new Error('record-orientation-mismatch');
   if(hasLiveTrack(prepCameraStream,'video'))return prepCameraStream;
   prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
-  if(isIOSWebKitCamera())await applyRecordingOrientation(prepCameraStream);
-  updateCameraCapabilityHint(prepCameraStream);
+    updateCameraCapabilityHint(prepCameraStream);
   return prepCameraStream;
 }
 
@@ -22,40 +20,6 @@ let prepCameraStream=null;
 let prepMicStream=null;
 let prepCombinedStream=null;
 let prepAccessPromise=null;
-function isIOSWebKitCamera(){
-  const ua=navigator.userAgent||'';
-  const appleTouchDevice=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&Number(navigator.maxTouchPoints)>1);
-  return appleTouchDevice&&/AppleWebKit/i.test(ua);
-}
-function recordingOrientationMatchesViewport(){
-  const landscape=window.matchMedia?.('(orientation: landscape)')?.matches??(window.innerWidth>window.innerHeight);
-  const target=current.settings?.mobileRecordOrientation||'portrait';
-  return target==='landscape'?landscape:!landscape;
-}
-function updateRecordOrientationHint(){
-  const hint=$('#recordOrientationHint');
-  if(!hint)return false;
-  if(!isIOSWebKitCamera()){hint.hidden=true;return true}
-  hint.hidden=false;
-  const landscape=(current.settings?.mobileRecordOrientation||'portrait')==='landscape';
-  const label=landscape?'horizontal (16:9)':'vertical (9:16)';
-  const matches=recordingOrientationMatchesViewport();
-  hint.textContent=matches
-    ? `iPhone: formato ${label} selecionado. A câmera será aberta nesta orientação.`
-    : `Para gravar em ${label}, gire o iPhone para essa posição antes de testar a câmera ou iniciar.`;
-  return matches;
-}
-function handleRecordOrientationChange(){
-  updateRecordOrientationHint();
-  if(!isIOSWebKitCamera()||document.body.classList.contains('prompter')||!prepCameraStream)return;
-  try{prepCameraStream.getTracks().forEach(track=>track.stop())}catch(e){}
-  prepCameraStream=null;
-  const preview=$('#cameraPreview');if(preview)preview.srcObject=null;
-  const hint=$('#cameraHint');
-  if(hint)hint.textContent=recordingOrientationMatchesViewport()
-    ? 'Orientação ajustada. Toque em “Testar câmera” para reabrir a prévia.'
-    : 'Gire o iPhone para o formato selecionado antes de testar a câmera.';
-}
 function selectedMicConstraints(){const id=$('#mic')?.value||current.settings?.micDeviceId||'';return id?{deviceId:{exact:id}}:true}
 function recordingOrientationConstraints(base){
   const o=current.settings?.mobileRecordOrientation||'portrait';
@@ -70,28 +34,12 @@ function recordingOrientationConstraints(base){
 }
 async function applyRecordingOrientation(stream){
   const track=stream?.getVideoTracks?.()[0];
-  if(isIOSWebKitCamera()){
-    try{
-      const zoom=track?.getCapabilities?.().zoom;
-      if(zoom&&typeof track.applyConstraints==='function'){
-        const reset=Math.max(zoom.min??1,Math.min(zoom.max??1,1));
-        if(track.getSettings?.().zoom!==reset){
-          const constraints=recordingOrientationConstraints({});
-          constraints.advanced=[{zoom:reset}];
-          await track.applyConstraints(constraints);
-        }
-      }
-    }catch(e){}
-    updateCameraCapabilityHint(stream);
-    return;
-  }
   try{await track?.applyConstraints(recordingOrientationConstraints({}));}catch(e){}
   updateCameraCapabilityHint(stream);
 }
 function selectedCameraConstraints(){
   const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
-  const base=id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}};
-  return recordingOrientationConstraints(base);
+  return recordingOrientationConstraints(id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}});
 }
 
 function updateCameraCapabilityHint(stream){
@@ -122,14 +70,7 @@ async function loadMicrophones(){
 }
 async function previewCamera(){
   const v=$('#cameraPreview'); if(!v||!navigator.mediaDevices?.getUserMedia)return false;
-  v.classList.toggle('ios-camera-preview',isIOSWebKitCamera());
   const hint=$('#cameraHint');
-  if(isIOSWebKitCamera()&&!recordingOrientationMatchesViewport()){
-    updateRecordOrientationHint();
-    v.srcObject=null;
-    if(hint)hint.textContent='Gire o iPhone para o formato selecionado antes de abrir a câmera.';
-    return false;
-  }
   try{
     const stream=await ensurePrepCameraAccess();
     const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
@@ -147,7 +88,6 @@ async function previewCamera(){
     }
     if(prepCameraStream){try{prepCameraStream.getTracks().forEach(t=>t.stop())}catch(e){}}
     prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
-    if(isIOSWebKitCamera())await applyRecordingOrientation(prepCameraStream);
     v.srcObject=prepCameraStream;
     try{await v.play()}catch(e){}
     if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
@@ -167,12 +107,6 @@ async function previewCamera(){
 
 async function loadCameras(){
   const sel=$('#camera');if(!sel)return;
-  if(isIOSWebKitCamera()&&!recordingOrientationMatchesViewport()){
-    updateRecordOrientationHint();
-    const preview=$('#cameraPreview');if(preview)preview.srcObject=null;
-    const hint=$('#cameraHint');if(hint)hint.textContent='Gire o iPhone para o formato selecionado antes de abrir a câmera.';
-    return;
-  }
   try{
     await ensurePrepCameraAccess();
     const devices=await navigator.mediaDevices.enumerateDevices();
@@ -193,41 +127,23 @@ async function loadCameras(){
 }
 let cameraStream=null,recordStream=null,mediaRecorder=null,recordChunks=[],recordingActive=false,recordingMime='',recordedBlob=null,recordedUrl=null,recordingHasVideo=false;
 let liveMicContext=null,liveMicAnalyser=null,liveMicRaf=null,readingMicStream=null,voiceHoldUntil=0,voiceNoiseFloor=0.004;
-function stopLiveMicMeter(closeContext=true){
-  if(liveMicRaf){cancelAnimationFrame(liveMicRaf);liveMicRaf=null}
-  if(liveMicSource){try{liveMicSource.disconnect()}catch(e){}liveMicSource=null}
-  liveMicAnalyser=null;voiceHoldUntil=0;
-  if(closeContext&&liveMicContext){const ctx=liveMicContext;liveMicContext=null;try{ctx.close().catch(()=>{})}catch(e){}}
-}
-// Deve ser chamado diretamente no toque do usuário, antes de getUserMedia e de outros awaits.
-// O Safari do iOS pode manter AudioContext criado fora do gesto em estado suspended.
-function unlockLiveMicFromGesture(){
-  try{
-    const AudioCtx=window.AudioContext||window.webkitAudioContext;
-    if(!AudioCtx)return false;
-    if(!liveMicContext||liveMicContext.state==='closed')liveMicContext=new AudioCtx();
-    const result=liveMicContext.resume();
-    if(result&&typeof result.catch==='function')result.catch(()=>{});
-    return true;
-  }catch(e){return false}
-}
+function stopLiveMicMeter(){if(liveMicRaf){cancelAnimationFrame(liveMicRaf);liveMicRaf=null}if(liveMicContext){liveMicContext.close().catch(()=>{});liveMicContext=null}liveMicAnalyser=null;voiceHoldUntil=0}
 function resumeLiveMicContext(){
+  // Safari no iPhone pode suspender o AudioContext quando a tela muda ou a gravação começa.
   if(liveMicContext && liveMicContext.state==='suspended'){
     try{const p=liveMicContext.resume();if(p&&typeof p.catch==='function')p.catch(()=>{})}catch(e){}
   }
 }
-let liveMicSource=null;
 function startLiveMicMeter(stream){
-  stopLiveMicMeter(false); if(!stream?.getAudioTracks?.().length)return;
+  stopLiveMicMeter(); if(!stream?.getAudioTracks?.().length)return;
   try{
     const AudioCtx=window.AudioContext||window.webkitAudioContext;
     if(!AudioCtx){setStatus('yellow','Medição de áudio indisponível neste navegador');return;}
-    if(!liveMicContext||liveMicContext.state==='closed')liveMicContext=new AudioCtx();
+    liveMicContext=new AudioCtx();
     resumeLiveMicContext();
     liveMicContext.onstatechange=()=>{if(liveMicContext?.state==='suspended')resumeLiveMicContext()};
-    liveMicSource=liveMicContext.createMediaStreamSource(stream);
-    const source=liveMicSource;
-    liveMicAnalyser=liveMicContext.createAnalyser(); liveMicAnalyser.fftSize=1024; liveMicAnalyser.smoothingTimeConstant=0.15; source.connect(liveMicAnalyser);
+    const source=liveMicContext.createMediaStreamSource(stream);
+    liveMicAnalyser=liveMicContext.createAnalyser(); liveMicAnalyser.fftSize=512; source.connect(liveMicAnalyser);
     const data=new Uint8Array(liveMicAnalyser.fftSize);
     const tick=()=>{
       if(!liveMicAnalyser)return;
