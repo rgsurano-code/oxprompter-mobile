@@ -28,7 +28,7 @@ function recordingOrientationConstraints(base){
   let w=res==='720'?1280:res==='1080'?1920:res==='2160'?3840:1920;
   let h=res==='720'?720:res==='1080'?1080:res==='2160'?2160:1080;
   if(o==='portrait'){const t=w;w=h;h=t}
-  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:o==='landscape'?16/9:9/16},resizeMode:{ideal:'none'}};
+  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:o==='landscape'?16/9:9/16}};
   if(fps!=='auto')video.frameRate={ideal:Number(fps),max:Number(fps)};
   return video;
 }
@@ -49,6 +49,31 @@ function updateCameraCapabilityHint(stream){
   const r=caps.width, f=caps.frameRate;
   if(r?.max)parts.push(`largura máx. informada: ${r.max}px`); if(f?.max)parts.push(`até ${Math.round(f.max)} fps informado`);
   el.textContent=parts.length?parts.join(' · '):'O navegador não informou todos os recursos. A gravação usará a configuração mais próxima disponível.';
+}
+
+function isIOSDevice(){
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+// No iOS o getUserMedia entrega a câmera em paisagem, mesmo pedindo retrato.
+// Detecta essa inversão e marca o <video> para o CSS rotacionar.
+function applyPreviewOrientation(videoEl, stream){
+  if(!videoEl || !stream) return;
+  const track = stream.getVideoTracks?.()[0];
+  const st = track?.getSettings?.() || {};
+  const w = st.width  || videoEl.videoWidth  || 0;
+  const h = st.height || videoEl.videoHeight || 0;
+  const want = current?.settings?.mobileRecordOrientation || 'portrait';
+
+  videoEl.classList.remove('ios-rotated');
+  if(!isIOSDevice() || !w || !h) return;
+
+  const streamLandscape = w > h;
+  const wantLandscape  = want === 'landscape';
+  if(streamLandscape === wantLandscape) return; // já coincide
+
+  videoEl.classList.add('ios-rotated');
 }
 
 async function loadMicrophones(){
@@ -82,6 +107,7 @@ async function previewCamera(){
     const sameFacing=!existingFacing||existingFacing===desiredFacing;
     if(existing&&sameFacing&&(!id||existingId===id)){
       v.srcObject=stream;
+      applyPreviewOrientation(v, stream);
       try{await v.play()}catch(e){}
       if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
       return true;
@@ -89,6 +115,7 @@ async function previewCamera(){
     if(prepCameraStream){try{prepCameraStream.getTracks().forEach(t=>t.stop())}catch(e){}}
     prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
     v.srcObject=prepCameraStream;
+    applyPreviewOrientation(v, prepCameraStream);
     try{await v.play()}catch(e){}
     if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
     return true;
@@ -216,6 +243,7 @@ async function restoreLiveCameraPreview(){
     }
     if(!pv)return false;
     if(pv.srcObject!==stream)pv.srcObject=stream;
+    applyPreviewOrientation(pv, stream);
     pv.autoplay=true;pv.muted=true;pv.playsInline=true;
     try{await pv.play()}catch(e){}
     return true;
@@ -226,7 +254,7 @@ async function startCameraAndRecording(){
   const wantVideo=current.settings?.recordOn===true;
   const wantAudioRecord=current.settings?.recordAudioOn===true;
   const needMic=current.settings?.mode!=='noaudio';
-  if(!wantVideo&&!wantAudioRecord){if(current.settings?.mobileCameraBg){try{const st=await ensurePrepCameraAccess();const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=st;await bg.play()}}catch(e){setStatus('yellow','Câmera indisponível; leitura disponível')}}return true;}
+  if(!wantVideo&&!wantAudioRecord){if(current.settings?.mobileCameraBg){try{const st=await ensurePrepCameraAccess();const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=st;applyPreviewOrientation(bg, st);await bg.play()}}catch(e){setStatus('yellow','Câmera indisponível; leitura disponível')}}return true;}
   if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){alert('Este navegador não oferece gravação de mídia necessária.');return false}
   try{
     const needAudio=wantAudioRecord||needMic;
@@ -271,10 +299,10 @@ async function startCameraAndRecording(){
 
     if(wantVideo){
       // Usa o mesmo stream que será gravado. Não abre a câmera novamente.
-      ensureRecordingPreview(recordStream||videoStream);if(current.settings?.mobileCameraBg){const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;try{await bg.play()}catch(e){}}}
+      ensureRecordingPreview(recordStream||videoStream);if(current.settings?.mobileCameraBg){const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;applyPreviewOrientation(bg, videoStream);try{await bg.play()}catch(e){}}}
     }
 
-    if(!wantVideo&&current.settings.mobileCameraBg){try{const st=await ensurePrepCameraAccess();const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=st;await bg.play()}}catch(e){setStatus('yellow','Câmera de fundo indisponível')}}
+    if(!wantVideo&&current.settings.mobileCameraBg){try{const st=await ensurePrepCameraAccess();const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=st;applyPreviewOrientation(bg, st);await bg.play()}}catch(e){setStatus('yellow','Câmera de fundo indisponível')}}
     const mime=chooseMime(wantVideo);
     mediaRecorder=mime?new MediaRecorder(recordStream,{mimeType:mime}):new MediaRecorder(recordStream);
     recordingHasVideo=wantVideo;
@@ -421,4 +449,3 @@ async function testMic(){
 }
 
 function closeMicTest(){if(micRaf){cancelAnimationFrame(micRaf);micRaf=null}micStream=null;if(micAudioContext){micAudioContext.close().catch(()=>{});micAudioContext=null}micAnalyser=null;$('.mic-modal')?.remove()}
-
