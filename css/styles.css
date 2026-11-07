@@ -320,7 +320,7 @@ body.prompter .mobile-camera-badge{display:none}
 body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-level{color:#005342!important}
 
 
-/* OXPROMPTER MOBILE — iOS: preservar o quadro da câmera sem zoom/corte. */
+/* OXPROMPTER MOBILE — iOS: a prévia ocupa todo o palco, como solicitado. */
 @supports (-webkit-touch-callout: none) {
   body.prompter.mobile-camera .mobileCameraBg {
     position: absolute !important;
@@ -329,7 +329,7 @@ body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-le
     height: 100% !important;
     max-width: none !important;
     max-height: none !important;
-    object-fit: contain !important;
+    object-fit: cover !important;
     object-position: center center !important;
     transform: none !important;
   }

@@ -9,11 +9,11 @@ Corrigir o caminho vertical da câmera frontal no Safari iOS, preservando o flux
 - No iOS, a câmera tenta primeiro uma solicitação explícita de proporção 9:16 ou 16:9, conforme a preferência de gravação. Se o navegador rejeitar a proporção exata, o aplicativo tenta novamente com a preferência flexível já usada anteriormente.
 - A mesma solicitação explícita é tentada ao reaplicar as restrições à faixa existente antes de criar a gravação.
 - A indicação de capacidades passa a mostrar a orientação retornada pela câmera e a comparar com a orientação solicitada. Isso evita esconder uma divergência do Safari.
-- A prévia iOS usa `contain`, sem ampliar nem cortar a imagem. O palco usa a altura dinâmica da tela, e o nome do cache foi alterado para ativar os arquivos desta correção após publicação.
+- A prévia iOS usa `cover` para ocupar todo o palco, conforme a intenção registrada na versão anterior. Isso pode cortar as bordas se as proporções da câmera e da tela forem diferentes. O palco usa a altura dinâmica da tela, e o nome do cache foi alterado para ativar os arquivos desta atualização após publicação.
 
 ## Limites
 
-O navegador pode não aceitar a proporção exata em todos os iPhones/Safaris. Nesse caso, o aplicativo mantém a tentativa flexível e mostra as dimensões/orientação retornadas. A prévia CSS não transforma o arquivo: a gravação continua usando a faixa de vídeo criada pelo navegador.
+O navegador pode não aceitar a proporção exata em todos os iPhones/Safaris. Nesse caso, o aplicativo mantém a tentativa flexível e mostra as dimensões/orientação retornadas. A regra `cover` altera somente a prévia; a gravação continua usando a faixa de vídeo criada pelo navegador, sem a regra CSS.
 
 ## Verificação
 
