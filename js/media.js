@@ -20,9 +20,10 @@ let prepCameraStream=null;
 let prepMicStream=null;
 let prepCombinedStream=null;
 let prepAccessPromise=null;
+let frameCanvas=null,frameCtx=null,frameLoop=null,frameSourceVideo=null,frameTargetW=0,frameTargetH=0,frameName='';
 function selectedMicConstraints(){const id=$('#mic')?.value||current.settings?.micDeviceId||'';return id?{deviceId:{exact:id}}:true}
-// CORREÇÃO: a câmera usa a resolução nativa do aparelho e segue a posição física do celular.
-// Nenhuma restrição de largura/altura, proporção ou resizeMode é forçada.
+// A câmera usa a resolução nativa do aparelho; o enquadramento final é feito no canvas
+// da gravação (9:16 em pé / 16:9 deitado), com recorte automático "cover", sem faixas nem bordas.
 function selectedCameraConstraints(){
   const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
   return id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}};
@@ -37,13 +38,75 @@ function updateCameraCapabilityHint(stream){
   el.textContent=parts.length?parts.join(' · '):'A câmera grava na resolução nativa do aparelho. Gire o celular para alternar entre vertical e horizontal.';
 }
 
-// Faz a prévia mostrar o quadro real e completo (sem corte), na proporção real da câmera.
+// Faz a prévia da preparação mostrar o quadro real e completo (sem corte), na proporção real da câmera.
 function fitPreviewToTrack(video,stream){
   if(!video)return;
   const track=stream?.getVideoTracks?.()[0]; const st=track?.getSettings?.()||{};
   if(st.width&&st.height)video.style.aspectRatio=(st.width/st.height).toFixed(4);
   else video.style.aspectRatio='';
   video.style.objectFit='contain';
+}
+
+// ===== ENQUADRAMENTO AUTOMÁTICO PARA REDES SOCIAIS =====
+function getDeviceOrientation(){
+  if(window.matchMedia){
+    if(matchMedia('(orientation: landscape)').matches)return 'landscape';
+    if(matchMedia('(orientation: portrait)').matches)return 'portrait';
+  }
+  return (window.innerHeight>window.innerWidth)?'portrait':'landscape';
+}
+function clampFps(n){n=Number(n)||30;return Math.min(60,Math.max(15,Math.round(n)))}
+// 9:16 (Stories/Reels/TikTok) com o celular em pé; 16:9 (YouTube/feed) com ele deitado.
+function chooseSocialFrame(){
+  const pref=current.settings?.recordingFormat;
+  const ori=getDeviceOrientation();
+  let w=0,h=0,name='';
+  if(pref==='square'){w=1080;h=1080;name='1:1 (quadrado)'}
+  else if(pref==='landscape'||(pref!=='portrait'&&ori==='landscape')){w=1920;h=1080;name='16:9 (horizontal)'}
+  else{w=1080;h=1920;name='9:16 (vertical)'}
+  return {w,h,name};
+}
+function applyCoverCrop(srcW,srcH,dstW,dstH){
+  const srcRatio=srcW/srcH,dstRatio=dstW/dstH;
+  let sx=0,sy=0,sw=srcW,sh=srcH;
+  if(srcRatio>dstRatio){sw=dstRatio*sh;sx=(srcW-sw)/2}
+  else{sh=sw/dstRatio;sy=(srcH-sh)/2}
+  return {sx,sy,sw,sh};
+}
+function startFrameCapture(video){
+  stopFrameCapture();
+  const frame=chooseSocialFrame();
+  frameTargetW=frame.w;frameTargetH=frame.h;frameName=frame.name;
+  frameCanvas=document.createElement('canvas');
+  frameCanvas.width=frameTargetW;frameCanvas.height=frameTargetH;
+  frameCtx=frameCanvas.getContext('2d',{alpha:false});
+  frameSourceVideo=video;
+  const draw=()=>{
+    if(!frameSourceVideo||!frameCanvas||!frameCtx){frameLoop=null;return}
+    const vw=frameSourceVideo.videoWidth, vh=frameSourceVideo.videoHeight;
+    if(vw&&vh){
+      const c=applyCoverCrop(vw,vh,frameTargetW,frameTargetH);
+      frameCtx.drawImage(frameSourceVideo,c.sx,c.sy,c.sw,c.sh,0,0,frameTargetW,frameTargetH);
+    }
+    frameLoop=requestAnimationFrame(draw);
+  };
+  frameLoop=requestAnimationFrame(draw);
+  setStatus('green','Enquadramento: '+frameName);
+}
+function stopFrameCapture(){
+  if(frameLoop){cancelAnimationFrame(frameLoop);frameLoop=null}
+  frameSourceVideo=null;
+  frameCanvas=null;frameCtx=null;
+  frameTargetW=0;frameTargetH=0;frameName='';
+}
+async function switchPreviewToFrame(stream){
+  const pv=$('#cameraPreview');
+  if(!pv)return;
+  pv.srcObject=stream;
+  const ratio=frameTargetW&&frameTargetH?(frameTargetW/frameTargetH):'';
+  if(ratio)pv.style.aspectRatio=ratio.toFixed(4);else pv.style.aspectRatio='';
+  pv.style.objectFit='fill';
+  try{await pv.play()}catch(e){}
 }
 
 async function loadMicrophones(){
@@ -149,9 +212,6 @@ function startLiveMicMeter(stream){
       const rms=Math.sqrt(sum/data.length); currentMicRms=rms; const pct=Math.min(100,Math.max(2,rms*300));
       const bar=$('#liveMicLevel');if(bar)bar.style.width=pct+'%';
       const db=20*Math.log10(Math.max(rms,.0001));const txt=$('#liveMicDb');if(txt)txt.textContent=Math.max(-60,Math.round(db))+' dB';
-      // O microfone controla a rolagem: fala = rola, silêncio = pausa.
-      // Usa um limiar baixo e uma pequena sustentação para não cortar a rolagem
-      // entre palavras e para funcionar também com microfones mais baixos.
       if(started && !paused && (current.settings?.mode||'audio')!=='noaudio'){
         voiceNoiseFloor=voiceNoiseFloor*0.92+Math.min(rms,0.01)*0.08;
         const threshold=Math.max(0.0055,voiceNoiseFloor*2.2);
@@ -202,7 +262,6 @@ async function restoreLiveCameraPreview(){
     if(!track)return false;
     let pv=$('#cameraPreview');
     if(!pv){
-      // Recreate the preview only when the current screen has a camera slot.
       const host=$('.cameraPreviewHost')||$('.cameraPreview')||$('#cameraPreviewWrap');
       if(host){
         pv=document.createElement('video');
@@ -253,20 +312,45 @@ async function startCameraAndRecording(){
       }
     }
 
-    // Clone tracks so stopping a recording NEVER stops the preparation streams.
+    // ENQUADRAMENTO: a câmera nativa quase sempre entrega o quadro em paisagem.
+    // Para postar SEM faixas nem bordas, o vídeo passa por um canvas na proporção
+    // da rede social (9:16 em pé / 16:9 deitado), com recorte automático "cover".
+    let canvasStream=null;
+    if(wantVideo&&videoStream){
+      const hidden=document.createElement('video');
+      hidden.muted=true;hidden.playsInline=true;hidden.autoplay=true;
+      hidden.setAttribute('playsinline','');
+      hidden.srcObject=videoStream;
+      try{await hidden.play()}catch(e){}
+      startFrameCapture(hidden);
+      const fps=clampFps(Number(current.settings?.recordFps)||30);
+      try{canvasStream=frameCanvas.captureStream(fps)}catch(e){try{canvasStream=frameCanvas.captureStream()}catch(e2){canvasStream=null}}
+      if(!canvasStream||!canvasStream.getVideoTracks().length){
+        stopFrameCapture();
+        setStatus('red','Este navegador não conseguiu enquadrar a gravação. Atualize o navegador ou use o Chrome.');
+        return false;
+      }
+    }
+
     const tracks=[];
-    if(wantVideo&&videoStream)videoStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
+    if(wantVideo&&canvasStream)canvasStream.getVideoTracks().forEach(t=>tracks.push(t));
     if(wantAudioRecord&&audioStream)audioStream.getAudioTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
-    if(!tracks.length){setStatus('red','Nenhuma faixa de gravação disponível');return false}
+    if(!tracks.length){stopFrameCapture();setStatus('red','Nenhuma faixa de gravação disponível');return false}
 
     recordStream=new MediaStream(tracks);
     cameraStream=recordStream;
-    await restoreLiveCameraPreview();
+
+    if(wantVideo&&canvasStream){
+      await switchPreviewToFrame(canvasStream);
+    }else{
+      await restoreLiveCameraPreview();
+    }
     if(needMic&&audioStream)startLiveMicMeter(audioStream);
 
     if(wantVideo){
-      // Usa o mesmo stream que será gravado. Não abre a câmera novamente.
-      ensureRecordingPreview(recordStream||videoStream);if(current.settings?.mobileCameraBg){const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;try{await bg.play()}catch(e){}}}
+      // Usa o mesmo stream enquadrado que será gravado. Não abre a câmera novamente.
+      ensureRecordingPreview(recordStream||videoStream);
+      if(current.settings?.mobileCameraBg){const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;try{await bg.play()}catch(e){}}}
     }
 
     if(!wantVideo&&current.settings.mobileCameraBg){try{const st=await ensurePrepCameraAccess();const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=st;await bg.play()}}catch(e){setStatus('yellow','Câmera de fundo indisponível')}}
@@ -294,6 +378,8 @@ async function startCameraAndRecording(){
         }
       }
 
+      stopFrameCapture();
+
       if(mediaRecorder===rec)mediaRecorder=null;
       recordingActive=false;
       document.body.classList.remove('recording');
@@ -319,13 +405,14 @@ async function startCameraAndRecording(){
     rec.onerror=()=>{recordingActive=false;document.body.classList.remove('recording')};
     return true;
   }catch(e){
+    stopFrameCapture();
     stopCameraStreams();alert(e.name==='NotAllowedError'?'O navegador bloqueou o acesso à câmera/microfone. Autorize o site e tente novamente.':'Não foi possível iniciar a gravação: '+e.message);
     return false;
   }
 }
 
-function stopRecordingUiOnly(){stopLiveMicMeter();try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}recordStream=null;cameraStream=null;$('#recordPreview')?.remove()}
-function stopCameraStreams(clearRecording=false){stopLiveMicMeter();if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}cameraStream=null;$('#recordPreview')?.remove();if(clearRecording){recordedBlob=null;if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordChunks=[]}}
+function stopRecordingUiOnly(){stopLiveMicMeter();stopFrameCapture();try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}recordStream=null;cameraStream=null;$('#recordPreview')?.remove()}
+function stopCameraStreams(clearRecording=false){stopLiveMicMeter();stopFrameCapture();if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}cameraStream=null;$('#recordPreview')?.remove();if(clearRecording){recordedBlob=null;if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordChunks=[]}}
 function saveRecordingFile(){if(!recordedBlob)return false;const ext=recordingExt(recordedBlob.type||recordingMime);const a=document.createElement('a');a.href=recordedUrl;a.download=(current?.name||'teleprompter')+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.'+ext;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove()},500);return true}
 function showRecordingPreview(){
   if(!recordedBlob||!recordedUrl)return;
@@ -338,6 +425,12 @@ function showRecordingPreview(){
   modal.id='recordReview';
   modal.className='record-review';
   modal.innerHTML=`
+    <style>
+    #recordReview .record-review-actions .dangerBtn{background:#5f0f0f !important;color:#ffe3e3 !important;border:1px solid #ff6b6b !important;font-weight:800 !important;box-shadow:0 0 12px rgba(255,70,70,.25) !important;}
+    #recordReview .record-review-actions .dangerBtn:hover,#recordReview .record-review-actions .dangerBtn:focus{background:#8f1515 !important;color:#fff !important;}
+    #recordReview .record-review-actions .primaryBtn{background:#0a4aa8 !important;color:#dbeaff !important;border:1px solid #69a9ff !important;font-weight:800 !important;box-shadow:0 0 12px rgba(70,140,255,.25) !important;}
+    #recordReview .record-review-actions .primaryBtn:hover,#recordReview .record-review-actions .primaryBtn:focus{background:#0e5cc8 !important;color:#fff !important;}
+    </style>
     <div class="record-review-card">
       <div class="record-review-head">
         <div class="record-review-title">🎬 GRAVAÇÃO FINALIZADA</div>

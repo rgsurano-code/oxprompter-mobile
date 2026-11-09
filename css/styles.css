@@ -351,3 +351,31 @@ body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-le
 .tap-to-start-banner .label{display:block;color:#42ffd0;font-size:11px;letter-spacing:.16em;margin-bottom:4px}
 .tap-to-start-banner .title{font-size:20px;color:#fff;font-weight:800}
 @media(max-width:700px){.tap-to-start-banner{top:58px;width:92vw;padding:8px 12px}.tap-to-start-banner .title{font-size:16px}}
+/* ===== BOTÕES DA PRÉVIA DA GRAVAÇÃO =====
+   EXCLUIR = vermelho | SALVAR = azul */
+.record-review-actions .dangerBtn{
+  background:#6b0f0f !important;
+  color:#ffe3e3 !important;
+  border:1px solid #ff6b6b !important;
+  box-shadow:0 0 14px rgba(255,70,70,.28) !important;
+  font-weight:800 !important;
+}
+.record-review-actions .dangerBtn:hover,
+.record-review-actions .dangerBtn:focus{
+  background:#8f1515 !important;
+  color:#fff !important;
+  border-color:#ff8a8a !important;
+}
+.record-review-actions .primaryBtn{
+  background:#0a4aa8 !important;
+  color:#dbeaff !important;
+  border:1px solid #69a9ff !important;
+  box-shadow:0 0 14px rgba(70,140,255,.28) !important;
+  font-weight:800 !important;
+}
+.record-review-actions .primaryBtn:hover,
+.record-review-actions .primaryBtn:focus{
+  background:#0e5cc8 !important;
+  color:#fff !important;
+  border-color:#8ab8ff !important;
+}
