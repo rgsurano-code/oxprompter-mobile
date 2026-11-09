@@ -384,3 +384,15 @@ body.prompter .controls button.pause-rec{background:#8f1515 !important;color:#ff
 body.prompter .controls button.pause-rec.playing{background:#0a7a3c !important;color:#dfffe9 !important;border:1px solid #4ade80 !important}
 body.prompter .controls button.restart-rec{background:#8a6d00 !important;color:#fff3c4 !important;border:1px solid #ffd34d !important;font-weight:800 !important}
 body.prompter .controls button.save-rec{background:#0a4aa8 !important;color:#dbeaff !important;border:1px solid #69a9ff !important;font-weight:800 !important}
+
+/* ====== CONTROLES DE GRAVAÇÃO DO TELEPROMPTER — BLOCO COMPLETO ======
+   Apague as 4 linhas antigas (button.pause-rec / pause-rec.playing / restart-rec / save-rec,
+   que usavam apenas .pause-rec etc.) e cole este bloco inteiro no lugar.
+   Os seletores usam ID + classe para vencer qualquer regra genérica ".controls button" com
+   !important que apareça depois no arquivo. */
+body.prompter .controls button#pause.pause-rec{background:#b91c1c !important;color:#fff1f2 !important;border:1px solid #f87171 !important;font-weight:800 !important}
+body.prompter .controls button#pause.pause-rec.playing{background:#15803d !important;color:#f0fdf4 !important;border:1px solid #4ade80 !important}
+body.prompter .controls button#restartTele.restart-rec{background:#eab308 !important;color:#1c1917 !important;border:1px solid #fde047 !important;font-weight:800 !important}
+body.prompter .controls button#finishTele.save-rec{background:#0a4aa8 !important;color:#dbeaff !important;border:1px solid #69a9ff !important;font-weight:800 !important}
+body.prompter .controls button#backTele{background:#ffffff !important;color:#000000 !important;border:1px solid #000000 !important;font-weight:800 !important}
+body.prompter .controls button#widthToggle{background:#ea580c !important;color:#fff7ed !important;border:1px solid #fb923c !important;font-weight:800 !important}
