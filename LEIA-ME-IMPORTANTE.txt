@@ -1,7 +1,9 @@
-OXPROMPTER MOBILE — PROJETO REVISADO
+OXPROMPTER MOBILE — V1.1.0 — CANDIDATA PARA HOMOLOGAÇÃO
 
 Consulte README.md para abrir e publicar o aplicativo.
-Consulte RELATORIO-AUDITORIA.md para alterações, testes e limitações.
+Consulte REVISAO-V1.1.0.md para alterações, testes atuais e limitações.
+Consulte TESTE-NO-CELULAR.md para validar a câmera no Android e iPhone reais.
+RELATORIO-AUDITORIA.md descreve a revisão anterior.
 
 Computador: Node.js 20 ou superior; execute npm start e abra http://localhost:8080.
 Android/iPhone: publique em hospedagem HTTPS. Abrir o HTML como arquivo não é suportado.

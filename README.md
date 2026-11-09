@@ -1,4 +1,9 @@
-# OXPROMPTER Mobile — versão revisada
+# OXPROMPTER Mobile — V1.1.0
+
+Reescrita do módulo de câmera e correções de preservação de dados. Esta é uma candidata para homologação em aparelhos reais. Consulte [REVISAO-V1.1.0.md](REVISAO-V1.1.0.md) e [TESTE-NO-CELULAR.md](TESTE-NO-CELULAR.md).
+
+Antes de atualizar, exporte seus roteiros. Substitua todos os arquivos na mesma origem HTTPS e feche as abas e a PWA antiga. Confira **V1.1.0** na abertura. Não limpe o armazenamento para atualizar.
+
 
 ## Como abrir
 
@@ -33,7 +38,8 @@ A chave local `tp_data_v1` foi mantida para aproveitar dados da versão anterior
 - `js/documents.js`: extração de texto de documentos.
 - `js/library.js`: biblioteca, importação, edição e senha.
 - `js/preparation.js`: opções e persistência da preparação.
-- `js/media.js`: permissões, dispositivos, medidor e gravação.
+- `js/camera.js`: captura única, ciclo de vida e saída orientada compartilhada.
+- `js/media.js`: áudio, seleção de dispositivos, gravação e revisão.
 - `js/reader.js`: contagem, sessão, rolagem e cronômetro.
 - `js/speech.js`: comando inicial de voz.
 - `js/app.js`: abertura, controles e eventos do aplicativo.
@@ -49,11 +55,4 @@ Substitua todos os arquivos, mantendo a mesma origem HTTPS. Feche as abas antiga
 
 ## Limites de compatibilidade
 
-Veja `RELATORIO-AUDITORIA.md` para os testes efetivamente realizados. Chromium e WebKit em computador não equivalem a testes em aparelhos reais. Permissões, troca de lentes, gravações longas, instalação PWA e salvamento no iOS ainda exigem homologação física. Resolução, orientação, taxa de quadros e formato são negociados com o navegador; não há promessa de 4K/60 fps nem conversão universal para MP4.
-
-
-## Atualização V0.4 — modos de início
-- Automático mantém o início automático.
-- O modo de comando por voz passa a se chamar **Iniciar com Voz**.
-- **Início com Toque** prepara câmera/microfone e exibe o botão **TOQUE PARA INICIAR** dentro da área de leitura; ao tocar, inicia a contagem regressiva e depois a rolagem.
-- Cache do service worker atualizado para forçar a renovação dos arquivos após publicação.
+Veja `REVISAO-V1.1.0.md` para os testes atuais. `RELATORIO-AUDITORIA.md` registra a revisão anterior. Chromium e WebKit em computador não equivalem a testes em aparelhos reais. Permissões, troca de lentes, gravações longas, instalação PWA e salvamento no iOS ainda exigem homologação física. Resolução, orientação, taxa de quadros e formato são negociados com o navegador; não há promessa de 4K/60 fps nem conversão universal para MP4.

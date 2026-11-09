@@ -3,8 +3,8 @@ const fs=require('fs'),path=require('path'),http=require('http'),assert=require(
 fs.mkdirSync(path.join(__dirname,'results'),{recursive:true});
 const root=path.resolve(__dirname,'..');
 const server=http.createServer((req,res)=>{const file=path.join(root,req.url==='/'?'index.html':req.url);fs.readFile(file,(e,data)=>{res.writeHead(e?404:200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html'});res.end(e?'missing':data)})});
-(async()=>{await new Promise(r=>server.listen(8766,'127.0.0.1',r));const results=[];for(const [name,type] of [['chromium',chromium],['webkit',webkit]]){
-const browser=await type.launch({headless:true});const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+(async()=>{await new Promise(r=>server.listen(8766,'127.0.0.1',r));const results=[];for(const [name,type] of [['chromium',chromium],['webkit',webkit]].filter(([name])=>!process.env.OXPROMPTER_ENGINE||name===process.env.OXPROMPTER_ENGINE)){
+const browser=await type.launch({headless:true,...(name==='chromium'&&process.env.OXPROMPTER_BROWSER_CHANNEL?{channel:process.env.OXPROMPTER_BROWSER_CHANNEL}:{})});const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
 try{
 await page.goto('http://127.0.0.1:8766');await page.evaluate(async()=>{db.passwordHash=await hash('old');db.scripts=[{id:'test-id',name:'Original',text:'Texto original',updated:Date.now(),settings:{}}];save();showBiblioteca()});
 await page.locator('[data-open]').click();await page.locator('#quickName').fill('Editado');await page.locator('#quickText').fill('Texto editado');await page.locator('#quickCreate').click();assert.equal(await page.evaluate(()=>db.scripts.length),1);assert.equal(await page.evaluate(()=>current.id),'test-id');assert.equal(await page.evaluate(()=>current.text),'Texto editado');

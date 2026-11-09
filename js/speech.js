@@ -21,17 +21,8 @@ function startStartCommandListener(onCommand,onFailure){
   rec.onresult=e=>{
     if(mySession!==sessionId||commandRecognition!==rec)return;
     let txt='';
-    // Safari/iOS pode entregar a frase em resultados parciais separados.
-    // Examina todas as alternativas disponíveis, sem depender apenas da primeira.
-    const candidates=[];
-    for(let i=0;i<e.results.length;i++){
-      const result=e.results[i];
-      for(let j=0;j<Math.min(result.length||1,3);j++){
-        const phrase=result[j]?.transcript||'';
-        if(phrase){candidates.push(phrase);txt+=phrase+' ';}
-      }
-    }
-    const n=normalize(candidates.join(' '));
+    for(let i=e.resultIndex;i<e.results.length;i++)txt+=(e.results[i][0]?.transcript||'')+' ';
+    const n=normalize(txt);
     if(!n)return;
     const hit=cmds.find(c=>(' '+n+' ').includes(' '+c+' '));
     if(hit){
