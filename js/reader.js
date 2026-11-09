@@ -1,4 +1,4 @@
-async function beginCountdownNow(){document.body.classList.remove('adjusting');document.querySelector('.start-command-banner')?.remove();markReferenceWord(false);syncStartReference();
+async function beginCountdownNow(){document.body.classList.remove('adjusting');document.querySelector('.start-command-banner')?.remove();document.querySelector('.tap-to-start-banner')?.remove();markReferenceWord(false);syncStartReference();
   document.querySelector('.countdown-overlay')?.remove();
   const n=Math.max(1,Number(current.settings.count)||5);const mySession=sessionId;
   const overlay=document.createElement('div');overlay.className='countdown-overlay';overlay.innerHTML='<div class="countdown-label">PREPARE-SE</div><div id="countValue">'+n+'</div>';document.body.appendChild(overlay);
@@ -43,12 +43,35 @@ function offerStartRetry(){
   const button=document.createElement('button');button.id='manualStart';button.textContent='Iniciar por toque';button.className='manual-start';
   button.onclick=async()=>{button.disabled=true;sessionId++;await prepareReadingSession(true);button.disabled=false};document.body.appendChild(button);
 }
+function offerTapToStart(onStart){
+  document.querySelector('.tap-to-start-banner')?.remove();
+  const banner=document.createElement('div');
+  banner.className='tap-to-start-banner';
+  banner.innerHTML='<span class="label">INÍCIO POR TOQUE</span><span class="title">Toque na tela para iniciar a contagem</span>';
+  document.body.appendChild(banner);
+  setStatus('yellow','👆 Toque na tela para iniciar a contagem');
+  const handler=e=>{
+    const t=e.target;
+    if(t&&t.closest){
+      if(t.closest('#startReference'))return;
+      if(t.closest('button')||t.closest('.controls')||t.closest('.controlsReveal'))return;
+    }
+    cleanup();
+    onStart();
+  };
+  const cleanup=()=>{
+    document.removeEventListener('pointerdown',handler);
+    banner.remove();
+  };
+  document.addEventListener('pointerdown',handler);
+}
 async function prepareReadingSession(skipCommand=false){
   const token=sessionId;
   scrollSpeed=Math.max(.2,Math.min(3,Number(current.settings.speed)||1));
   let launching=false;
   const launch=async()=>{
     if(token!==sessionId||launching)return;launching=true;$('#manualStart')?.remove();
+    document.querySelector('.tap-to-start-banner')?.remove();
     const ok=await startCameraAndRecording();
     if(token!==sessionId){stopCameraStreams();stopPrepMedia();return}
     if(!ok){offerStartRetry();return}
@@ -56,18 +79,29 @@ async function prepareReadingSession(skipCommand=false){
     if(token!==sessionId)return;
     $('#manualStart')?.remove();beginCountdownNow();
   };
+  const mode=current.settings.mode;
   const cmds=(current.settings.startCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);
-  if(!skipCommand&&current.settings.mode==='audio'&&cmds.length){
-    stopPrepMedia();offerStartRetry();
-    setStatus('yellow','Aguardando comando de voz ou toque em Iniciar');
+  if(!skipCommand&&mode==='audio'){
+    // Iniciar VOZ — só inicia com o comando de voz.
+    stopPrepMedia();
+    if(!cmds.length){
+      setStatus('yellow','Iniciar VOZ: adicione um comando de voz na preparação');
+      offerStartRetry();
+      return;
+    }
+    setStatus('yellow','🎙️ Iniciar VOZ — aguardando o comando');
     startStartCommandListener(launch,()=>{offerStartRetry()});
+  }else if(!skipCommand&&mode==='semi'){
+    // Início Toque — só inicia a contagem com um toque na tela.
+    stopPrepMedia();
+    offerTapToStart(launch);
   }else{
     if(commandRecognition){commandRecognition.onend=null;commandRecognition.abort();commandRecognition=null}
     await launch();
   }
 }
 
-function normalize(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9áàâãéêíóôõúçñ\s]/gi,' ').replace(/\s+/g,' ').trim()}
+function normalize(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9áàâãéêíóôúçñ\s]/gi,' ').replace(/\s+/g,' ').trim()}
 function buildWords(text){return text.replace(/\[[^\]]*\]/g,' ').split(/\s+/).filter(Boolean)}
 function updateSpeedUI(){const el=$('#speedLevel');if(!el)return;const lvl=Math.max(1,Math.min(10,Math.round(scrollSpeed*3.33)));const bars='▮'.repeat(Math.ceil(lvl/2))+'▯'.repeat(5-Math.ceil(lvl/2));el.textContent=bars+'  '+scrollSpeed.toFixed(1)+'x';el.title='Velocidade '+scrollSpeed.toFixed(1)+'x';}
 function adjustFinalFont(delta){
@@ -123,7 +157,7 @@ function enablePromptTouchDrag(){
   el.addEventListener('pointerup',stop); el.addEventListener('pointercancel',stop);
 }
 
-function showPrompter(preparing=false){if(!preparing)stopAll();current.settings=current.settings||{};if(!Number.isFinite(Number(current.settings.startPercent)))current.settings.startPercent=50;if(!Number.isFinite(Number(current.settings.textWidth)))current.settings.textWidth=600;if(!Number.isFinite(Number(current.settings.textWidthPct)))current.settings.textWidthPct=.84;let s=current.settings||{};s.theme=(s.theme==='light'||s.theme==='white')?'white':'dark';current.settings.theme=s.theme;started=!preparing;sessionId++;currentWord=0;lastMatch=0;words=buildWords(current.text);startTime=preparing?0:Date.now();targetSeconds=parseTime(s.target);preparingPrompter=!!preparing;document.body.className='prompter '+((s.theme==='light'||s.theme==='white')?'light':'')+(s.mode==='noaudio'?' no-audio':'')+(s.mobileCameraBg?' mobile-camera':'')+(preparing?' adjusting':'');document.body.innerHTML=`<div class="promptHud"><div class="hudBox"><div id="timer" class="promptTimer">00:00</div><div class="hudAlert"><span id="runner" class="runner" aria-label="Aviso de tempo">🏃</span><span id="statusDot" class="dot ${s.mode==='noaudio'?'green':''}"></span></div><div id="statusText" class="hudStatusText">${s.mode==='noaudio'?'Rolagem automática':(s.mode==='semi'?'Semi-automático · aguardando voz':'Aguardando fala')}</div>${s.mode==='noaudio'?'':`<div class="hudMic">🎙️ <span class="hudMicTrack"><span id="liveMicLevel" class="hudMicLevel"></span></span></div><div id="liveMicDb" class="hudDb">-60 dB</div>`}</div></div>${preparing&&s.mode!=='noaudio'&&((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).length)?`<div class="start-command-banner"><span class="label">COMANDO PARA INICIAR</span><span class="phrase">“${esc((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).join('”  ou  “'))}”</span></div>`:''}<div class="promptStage">${s.mobileCameraBg?'<video id="mobileCameraBgVideo" class="mobileCameraBg" autoplay muted playsinline></video><div class="mobileCameraShade"></div><div class="mobile-camera-badge">CÂMERA + TELEPROMPTER</div>':''}<div id="startReference" class="startReference"><span class="startReferenceLabel">INÍCIO · 50%</span></div><div id="promptText" class="promptText"></div><div id="guide" class="guide"></div></div><div class="controls"><button id="pause" class="iconBtn" title="Pausar/continuar">⏸</button><button id="restartTele" class="iconBtn" title="Recomeçar">↻</button><button id="finishTele" class="iconBtn stop-rec" title="Finalizar gravação">⏹</button><button id="backTele" class="iconBtn" title="Voltar à preparação">←</button><button id="hideControls" class="iconBtn" title="Ocultar controles">●</button></div><button id="showControls" class="controlsReveal hidden" title="Mostrar controles">●</button>`;if(s.timerOn===false)$('#timer').style.visibility='hidden';if(s.mirror)$('#promptText').style.transform='scaleX(-1)';$('#promptText').style.fontSize=s.font+'px';$('#promptText').style.maxWidth=Math.round((window.innerWidth||720)*(Number(s.textWidthPct)||.84))+'px';$('#promptText').style.opacity=Math.max(.35,Math.min(1,Number(s.mobileTextOpacity||90)/100));renderPrompt();positionPromptAtReadingLine();markReferenceWord(preparing);syncStartReference();if(preparing)enableStartPositionDrag();$('#pause').onclick=()=>{resumeLiveMicContext();togglePause()};$('#finishTele').onclick=()=>{if(mediaRecorder&&mediaRecorder.state!=='inactive'){reviewAfterStop=true;setStatus('yellow','Preparando prévia da gravação...');stopRecordingForReview()}else{if(confirm('Finalizar a leitura e voltar à preparação?')){discardCurrentRecording();prepare()}}};document.onkeydown=e=>{if(e.code==='Space'&&document.body.classList.contains('prompter')){const tag=(e.target&&e.target.tagName)||'';if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){e.preventDefault();togglePause()}}};$('#restartTele').onclick=async()=>{
+function showPrompter(preparing=false){if(!preparing)stopAll();current.settings=current.settings||{};if(!Number.isFinite(Number(current.settings.startPercent)))current.settings.startPercent=50;if(!Number.isFinite(Number(current.settings.textWidth)))current.settings.textWidth=600;if(!Number.isFinite(Number(current.settings.textWidthPct)))current.settings.textWidthPct=.84;let s=current.settings||{};s.theme=(s.theme==='light'||s.theme==='white')?'white':'dark';current.settings.theme=s.theme;started=!preparing;sessionId++;currentWord=0;lastMatch=0;words=buildWords(current.text);startTime=preparing?0:Date.now();targetSeconds=parseTime(s.target);preparingPrompter=!!preparing;document.body.className='prompter '+((s.theme==='light'||s.theme==='white')?'light':'')+(s.mode==='noaudio'?' no-audio':'')+(s.mobileCameraBg?' mobile-camera':'')+(preparing?' adjusting':'');document.body.innerHTML=`<div class="promptHud"><div class="hudBox"><div id="timer" class="promptTimer">00:00</div><div class="hudAlert"><span id="runner" class="runner" aria-label="Aviso de tempo">🏃</span><span id="statusDot" class="dot ${s.mode==='noaudio'?'green':''}"></span></div><div id="statusText" class="hudStatusText">${s.mode==='noaudio'?'Rolagem automática':(s.mode==='semi'?'Início por toque — toque para começar':'Iniciar VOZ — aguardando comando')}</div>${s.mode==='noaudio'?'':`<div class="hudMic">🎙️ <span class="hudMicTrack"><span id="liveMicLevel" class="hudMicLevel"></span></span></div><div id="liveMicDb" class="hudDb">-60 dB</div>`}</div></div>${preparing&&s.mode==='audio'&&((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).length)?`<div class="start-command-banner"><span class="label">COMANDO PARA INICIAR</span><span class="phrase">“${esc((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).join('”  ou  “'))}”</span></div>`:''}<div class="promptStage">${s.mobileCameraBg?'<video id="mobileCameraBgVideo" class="mobileCameraBg" autoplay muted playsinline></video><div class="mobileCameraShade"></div><div class="mobile-camera-badge">CÂMERA + TELEPROMPTER</div>':''}<div id="startReference" class="startReference"><span class="startReferenceLabel">INÍCIO · 50%</span></div><div id="promptText" class="promptText"></div><div id="guide" class="guide"></div></div><div class="controls"><button id="pause" class="iconBtn" title="Pausar/continuar">⏸</button><button id="restartTele" class="iconBtn" title="Recomeçar">↻</button><button id="finishTele" class="iconBtn stop-rec" title="Finalizar gravação">⏹</button><button id="backTele" class="iconBtn" title="Voltar à preparação">←</button><button id="hideControls" class="iconBtn" title="Ocultar controles">●</button></div><button id="showControls" class="controlsReveal hidden" title="Mostrar controles">●</button>`;if(s.timerOn===false)$('#timer').style.visibility='hidden';if(s.mirror)$('#promptText').style.transform='scaleX(-1)';$('#promptText').style.fontSize=s.font+'px';$('#promptText').style.maxWidth=Math.round((window.innerWidth||720)*(Number(s.textWidthPct)||.84))+'px';$('#promptText').style.opacity=Math.max(.35,Math.min(1,Number(s.mobileTextOpacity||90)/100));renderPrompt();positionPromptAtReadingLine();markReferenceWord(preparing);syncStartReference();if(preparing)enableStartPositionDrag();$('#pause').onclick=()=>{resumeLiveMicContext();togglePause()};$('#finishTele').onclick=()=>{if(mediaRecorder&&mediaRecorder.state!=='inactive'){reviewAfterStop=true;setStatus('yellow','Preparando prévia da gravação...');stopRecordingForReview()}else{if(confirm('Finalizar a leitura e voltar à preparação?')){discardCurrentRecording();prepare()}}};document.onkeydown=e=>{if(e.code==='Space'&&document.body.classList.contains('prompter')){const tag=(e.target&&e.target.tagName)||'';if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){e.preventDefault();togglePause()}}};$('#restartTele').onclick=async()=>{
   discardCurrentRecording();stopAll();showPrompter(true);await prepareReadingSession();
 };
 $('#backTele').onclick=()=>{discardCurrentRecording();document.body.classList.remove('fullscreen-active','controls-hidden');prepare()};const hideBtn=$('#hideControls'),showBtn=$('#showControls'),controls=$('.controls');hideBtn.onclick=()=>{controls.classList.add('controls-hidden');showBtn.classList.remove('hidden')};showBtn.onclick=()=>{controls.classList.remove('controls-hidden');showBtn.classList.add('hidden')};document.onfullscreenchange=null;window.onresize=resizePrompter;enablePromptTouchDrag();setupReadingControls();updateSpeedUI();if(!preparing){elapsedTimer=setInterval(updateTimer,250);startManual();}}
@@ -195,7 +229,7 @@ async function startManual(){
   if(mode!=='noaudio'){
     const ready=await ensureReadingMic();
     if(!ready){setStatus('red','Microfone não disponível para controlar a rolagem');return;}
-    setStatus('yellow',mode==='semi'?'🎙️ Semi-automático: fale para avançar o texto':'🎙️ Fale para rolar o texto');
+    setStatus('yellow',mode==='semi'?'🎙️ Início por toque — fale para avançar o texto':'🎙️ Iniciar VOZ — fale para rolar o texto');
   }else{
     voiceActive=true;
     setStatus('green','Rolagem automática');
@@ -267,7 +301,7 @@ function stopAll(){
   if(manualRaf){cancelAnimationFrame(manualRaf);manualRaf=null}
   if(elapsedTimer){clearInterval(elapsedTimer);elapsedTimer=null}
   readingMicStream?.getTracks().forEach(t=>t.stop());readingMicStream=null;
-  document.querySelector('.countdown-overlay')?.remove();$('#manualStart')?.remove();closeMicTest();
+  document.querySelector('.countdown-overlay')?.remove();$('#manualStart')?.remove();document.querySelector('.tap-to-start-banner')?.remove();closeMicTest();
   stopLiveMicMeter();
   if(mediaRecorder&&mediaRecorder.state!=='inactive'){
     try{reviewAfterStop=false;mediaRecorder.onstop=null;mediaRecorder.ondataavailable=null;mediaRecorder.onerror=null;mediaRecorder.stop()}catch(e){}

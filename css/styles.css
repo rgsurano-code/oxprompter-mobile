@@ -345,3 +345,9 @@ body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-le
 /* ===== CORREÇÃO DE ENQUADRAMENTO — prévia mostra o quadro real e completo (sem corte) ===== */
 .camera-preview{object-fit:contain!important;background:#000!important}
 .camera-preview-note{color:#8dcfc0}
+
+/* ===== MODO INÍCIO POR TOQUE — aviso visual para tocar na tela ===== */
+.tap-to-start-banner{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:46;width:min(900px,88vw);padding:12px 18px;border:1px solid rgba(66,255,208,.55);border-radius:10px;background:rgba(3,16,13,.94);box-shadow:0 0 20px rgba(66,255,208,.14);text-align:center;color:#dffef7}
+.tap-to-start-banner .label{display:block;color:#42ffd0;font-size:11px;letter-spacing:.16em;margin-bottom:4px}
+.tap-to-start-banner .title{font-size:20px;color:#fff;font-weight:800}
+@media(max-width:700px){.tap-to-start-banner{top:58px;width:92vw;padding:8px 12px}.tap-to-start-banner .title{font-size:16px}}
