@@ -3,17 +3,17 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 function context(raw,quota=false){
   const store=new Map(raw===undefined?[]:[['tp_data_v1',raw]]),alerts=[];
-  const sandbox={window:{},document:{addEventListener(){}},alert:message=>alerts.push(message),localStorage:{getItem:k=>store.get(k)||null,setItem(k,v){if(quota)throw new Error('quota');store.set(k,v)}},console,EventTarget,CustomEvent,DOMException,Blob,setTimeout,clearTimeout,cancelAnimationFrame(){}};
+  const sandbox={window:{},document:{addEventListener(){}},alert:message=>alerts.push(message),localStorage:{getItem:k=>store.get(k)||null,setItem(k,v){if(quota)throw new Error('quota');store.set(k,v)}},console,TextDecoder,DOMException};
   vm.createContext(sandbox);
-  for(const file of ['../engine/media-session.js','../engine/voice.js','core.js','documents.js','media.js','reader.js','speech.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file),'utf8'),sandbox,{filename:file});
+  for(const file of ['core.js','documents.js','camera.js','media.js','reader.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file),'utf8'),sandbox,{filename:file});
   return {run:code=>vm.runInContext(code,sandbox),store,alerts};
 }
 test('corrupted storage does not crash or overwrite the original',()=>{
   const c=context('{invalid');assert.equal(c.run('window.storageRecovery'),true);assert.equal(c.run('save()'),false);assert.equal(c.store.get('tp_data_v1'),'{invalid');
 });
-test('partially malformed legacy data is preserved for recovery',()=>{
+test('valid legacy data and password are retained; malformed scripts filtered',()=>{
   const c=context(JSON.stringify({passwordHash:'abc',scripts:[{id:'1',name:'Roteiro',text:'Olá',settings:{startCmds:'broken'}},{name:42}],settings:{theme:'white'}}));
-  assert.equal(c.run('window.storageRecovery'),true);assert.equal(c.run('save()'),false);assert(c.store.get('tp_data_v1').includes('Roteiro'));
+  assert.equal(c.run('db.scripts.length'),1);assert.equal(c.run('db.passwordHash'),'abc');assert.equal(c.run('db.settings.theme'),'white');assert.equal(c.run('db.scripts[0].settings.startCmds.length'),0);
 });
 test('quota failure is reported once and leaves previous data intact',()=>{
   const c=context(undefined,true);assert.equal(c.run('save()'),false);c.run('save()');assert.equal(c.alerts.length,1);

@@ -1,0 +1,10 @@
+APROVADO: configurações e prévia proporcionais em telas de 320 a 1280 pixels
+APROVADO: quadro vertical não inicia como horizontal e rotação corrige a prévia
+APROVADO: portrait: prévia → leitura sem reabrir câmera nem perder bordas
+APROVADO: portrait: formato fixo ao redimensionar e arquivo real com quatro bordas
+APROVADO: landscape: prévia → leitura sem reabrir câmera nem perder bordas
+APROVADO: landscape: formato fixo ao redimensionar e arquivo real com quatro bordas
+APROVADO: voltar durante a tomada oferece preservar e Cancelar mantém o gravador
+APROVADO: recomeçar reinicia texto, cronômetro e gravador em uma nova tomada
+APROVADO: câmera negada mantém tentativa de recuperação e nenhuma fonte ativa
+APROVADO: nenhum erro JavaScript não tratado

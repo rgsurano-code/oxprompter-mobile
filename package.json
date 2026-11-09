@@ -1,14 +1,18 @@
 {
   "name": "oxprompter-mobile",
-  "version": "2.0.0-beta.3",
+  "version": "1.1.1",
   "private": true,
   "description": "Teleprompter mobile estático revisado",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test tests/core.test.cjs tests/theme-media.test.cjs tests/theme-settings.test.cjs tests/framing.test.cjs tests/single-word.test.cjs",
-    "check": "node tests/theme-check.cjs"
+    "test": "node --test tests/core.test.cjs tests/regressions.test.cjs",
+    "test:browser": "node tests/browser.cjs && node tests/extra.cjs",
+    "test:camera": "node tests/camera.browser.cjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
   }
 }

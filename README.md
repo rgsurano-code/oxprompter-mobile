@@ -1,69 +1,58 @@
-# Atualização: enquadramento e comandos de uma palavra
+# OXPROMPTER Mobile — V1.1.1
 
-Referência visual: OXPROMPTER-MOBILE-AJUSTE-IOS-TESTE.zip, indicado pelo usuário. O CSS, os ícones e o manifesto desse pacote foram preservados. O CSS também está embutido no index.html para evitar visual sem estilos se o arquivo externo não carregar. O usuário informou que o tema publicado está diferente; o endereço público ainda não foi fornecido para confirmar a causa. Não foi presumido que essa diferença já está resolvida no site.
+Tela final com somente Salvar/Excluir no tema do programa; configuração e prévia da câmera reorganizadas. Consulte também REVISAO-V1.1.1.md. Esta é uma candidata para homologação em aparelhos reais. Consulte [REVISAO-V1.1.1.md](REVISAO-V1.1.1.md) e [TESTE-NO-CELULAR.md](TESTE-NO-CELULAR.md).
 
-## Enquadramento antes de prosseguir
+Antes de atualizar, exporte seus roteiros. Substitua todos os arquivos na mesma origem HTTPS e feche as abas e a PWA antiga. Confira **V1.1.1** na abertura. Não limpe o armazenamento para atualizar.
 
-A seleção Vertical/Horizontal foi removida. Agora há Imagem inteira, Preencher a tela, Plano médio (1,25×), Close (1,6×) e Ajuste manual (1× a 2,5×), com posição lateral, altura e centralização. Imagem inteira usa a câmera nativa sem recorte digital. Os outros modos usam a mesma imagem composta na prévia e na faixa de vídeo gravada, sem incluir o texto do teleprompter.
 
-A orientação do celular define automaticamente o formato antes do início. O take mantém as dimensões estabelecidas ao iniciar para evitar mudanças de formato durante a gravação. Nos modos digitais, girar durante o take adapta o recorte dentro do formato já iniciado. Para mudar o formato do arquivo, finalize e inicie outro take com o aparelho na nova posição.
+## Como abrir
 
-A aproximação é digital e pode reduzir a nitidez e exigir mais processamento. Se o navegador não oferecer captura de canvas, os modos digitais ficam indisponíveis; use Imagem inteira. A presença da API não comprova compatibilidade física: em iPhone/Android, confira um take curto antes de usar.
+No computador, com Node.js 20 ou superior instalado, abra esta pasta no terminal e execute `npm start`. Acesse http://localhost:8080. Não é necessário instalar dependências para executar o aplicativo.
 
-## Comandos iniciais de uma palavra
+No celular, publique os arquivos desta pasta em uma hospedagem **HTTPS** e abra o endereço no Safari do iPhone ou Chrome do Android. Abrir o HTML diretamente pelo gerenciador de arquivos não é uma instalação suportada. Um endereço HTTP da rede local também não habilita os recursos de câmera/microfone no celular.
 
-Na preparação, toque em Gravar, Começar ou Ação para adicionar essa palavra. O mesmo atalho não é duplicado. Use + Comando para escrever outra palavra ou frase. Comandos existentes são preservados. Selecione o modo Por volume da voz + comando inicial para utilizá-los. Eles iniciam a contagem: não são comandos de pausa/finalização durante a gravação. O início por toque continua disponível.
+No iPhone, use Compartilhar → Adicionar à Tela de Início; no Android, use a opção de instalação do navegador, quando disponível. A instalação é opcional. Na primeira abertura, conecte-se à internet para carregar todos os arquivos. O reconhecimento do comando de voz pode precisar de internet mesmo depois disso.
 
-## Testes desta atualização
+## Uso
 
-Consulte RELATORIO-ENQUADRAMENTO-COMANDOS.md. Os relatórios anteriores da pasta descrevem versões anteriores.
+1. Crie sua senha local e entre. Ela bloqueia a interface, mas não criptografa os roteiros.
+2. Escreva um roteiro ou importe TXT, MD, SRT, HTML, RTF simples, DOCX ou ODT. DOC antigo deve ser convertido para DOCX. Arquivos de até 20 MB; conteúdo principal DOCX/ODT descompactado de até 10 MB.
+3. Toque em Adicionar texto. Ajuste fonte, velocidade, tema e largura.
+4. Escolha Automático para rolagem contínua. Os modos por voz usam **volume do microfone**, não acompanham palavra por palavra. Ruídos e outras vozes podem mover o texto.
+5. No modo com comando inicial, adicione uma frase completa. Se o serviço de voz não funcionar, use **Iniciar por toque**.
+6. Escolha vídeo, áudio e câmera ao fundo independentemente. Teste os dispositivos pelos botões de teste; a entrada na preparação não pede permissões sozinha.
+7. Inicie, aguarde a contagem e leia. Ajuste fonte, velocidade e largura pelos controles. Arraste o texto para reposicionar. Pause pelo botão ou barra de espaço.
+8. Finalize pelo quadrado, confira a prévia e toque em Salvar produção. O navegador inicia o download; confira Arquivos/Downloads. O teleprompter fica sobre a prévia e **não é incluído no vídeo gravado**.
 
----
+## Backup e dados existentes
 
-# OXPROMPTER Mobile — atualização com tema original
+Use **Exportar roteiros** na biblioteca. Para restaurar, use **Importar arquivo** e selecione o JSON exportado. A restauração adiciona cópias dos textos, nomes e observações, sem apagar a biblioteca; os ajustes de gravação devem ser conferidos novamente.
 
-Versão 2.0.0-beta.3. Esta é a versão para testar com o tema, as telas e os campos de configuração do ZIP fornecido. O CSS, os ícones e o manifesto foram preservados byte a byte. O ZIP original não foi alterado.
+A chave local `tp_data_v1` foi mantida para aproveitar dados da versão anterior no mesmo endereço/navegador. Mudar de domínio, protocolo ou porta cria um armazenamento separado. Exporte antes de mudar o endereço ou limpar o navegador. A gravação fica na memória até ser baixada; não feche a página antes de salvar.
 
-## Atualizar o GitHub
+## Estrutura
 
-1. Exporte um backup de roteiros na versão atual. Preserve uma cópia/branch anterior.
-2. Extraia o ZIP e abra a pasta OXPROMPTER-MOBILE-ENQUADRAMENTO-COMANDOS.
-3. Copie o conteúdo da pasta para a raiz do seu repositório oxprompter-mobile, onde já existe index.html, substituindo os arquivos correspondentes. Inclua a pasta nova engine. Não envie o ZIP como se fosse o site e não coloque a pasta inteira dentro de outra pasta do repositório.
-4. Faça commit/push pelo GitHub Desktop e aguarde a publicação habitual do GitHub Pages. Esta entrega não publicou nem alterou o repositório remoto.
-5. Feche abas/PWA antigas e reabra o mesmo endereço HTTPS para atualizar o service worker. Não limpe dados do navegador sem backup.
+- `index.html`: entrada e ordem de carregamento.
+- `css/styles.css`: estilos consolidados e regras finais para mobile.
+- `js/core.js`: estado, armazenamento e acesso local.
+- `js/documents.js`: extração de texto de documentos.
+- `js/library.js`: biblioteca, importação, edição e senha.
+- `js/preparation.js`: opções e persistência da preparação.
+- `js/camera.js`: captura única, ciclo de vida e saída orientada compartilhada.
+- `js/media.js`: áudio, seleção de dispositivos, gravação e revisão.
+- `js/reader.js`: contagem, sessão, rolagem e cronômetro.
+- `js/speech.js`: comando inicial de voz.
+- `js/app.js`: abertura, controles e eventos do aplicativo.
+- `vendor/`: JSZip local e licença; nenhuma CDN é necessária.
+- `sw.js` e `manifest.json`: cache offline e instalação opcional.
+- `tests/`: testes unitários com `npm test` e roteiro automatizado de navegador.
 
-## Configurações e dados
+Os arquivos JavaScript usam escopo compartilhado e carregamento `defer` na ordem do HTML. A separação é incremental: não há framework, compilação nem carregamento de módulos pela rede.
 
-A chave tp_data_v1, os nomes dos campos e os controles originais foram mantidos. Ajustes pessoais ficam no navegador e não estão dentro do ZIP. Eles são reaproveitados no mesmo domínio, protocolo, porta e perfil. Se mudar de endereço ou de navegador, use Exportar roteiros / Importar arquivo (JSON); a restauração agora conserva também as configurações exportadas por roteiro. Nenhum backup desta entrega inclui senha.
+## Atualização da versão anterior
 
-Cores, efeitos visuais, biblioteca, preparação e controles de leitura usam o tema original. A revisão ganhou confirmação de exclusão, botão CONCLUIR e compartilhamento quando o navegador suporta, usando as mesmas cores. Os botões de revisão receberam contraste legível.
+Substitua todos os arquivos, mantendo a mesma origem HTTPS. Feche as abas antigas e reabra para ativar o novo service worker. Se o navegador continuar mostrando a versão antiga, confira a atualização do service worker nas ferramentas de desenvolvimento. Limpar os dados do site também apaga a biblioteca: faça backup antes. Em atualizações futuras, altere a versão de `CACHE` em `sw.js` e mantenha a lista `ASSETS` sincronizada.
 
-## Correções integradas
+## Limites de compatibilidade
 
-- Uma fila central controla os pedidos de câmera e microfone; pedidos repetidos reutilizam as faixas existentes.
-- O mesmo elemento de vídeo permanece anexado ao documento durante a troca entre preparação e leitura, com ID temporário separado para não ser confundido com o novo destino.
-- A gravação reutiliza as faixas da prévia, sem abrir outra câmera. O gravador é preparado antes da contagem e começa ao final dela.
-- Reprodução bloqueada pelo navegador oferece Ativar imagem da câmera.
-- Trocar câmera, resolução e FPS atualiza a câmera sem encerrar desnecessariamente o microfone. Dimensões e FPS efetivos são informados; 4K/60 e proporção exata não são garantidos.
-- Comando inicial usa frases completas sem misturar alternativas incompatíveis. Iniciar por toque continua disponível. Rolagem por voz continua baseada no volume, sem acompanhamento palavra por palavra.
-- Recomeçar/voltar durante uma gravação conduz primeiro à revisão. Salvar não fecha nem descarta a cópia temporária. Só conclua após confirmar o arquivo fora do navegador.
-- Cancelamentos ignoram gravações e permissões atrasadas; dados ilegíveis são preservados para recuperação.
-- O cache foi versionado para não misturar os scripts antigos com os atualizados.
-
-## Testar no computador
-
-Node.js 20+ apenas para servidor/testes. Não precisa instalar pacotes para executar.
-
-    npm start
-    npm test
-    npm run check
-
-No celular, abra a publicação HTTPS pelo Safari do iPhone ou Chrome do Android. Não abra o HTML como arquivo nem use HTTP de rede local para câmera/microfone. Instalar a PWA é opcional.
-
-## Limites e privacidade
-
-Câmera e microfone reais são solicitados somente nos testes/início que os utilizem. O aplicativo final não contém a câmera simulada utilizada na verificação isolada. Roteiros e gravações não são enviados a servidor pelo app. O comando de voz do navegador pode usar internet e serviço externo.
-
-A senha bloqueia a interface, sem criptografar os roteiros. A produção fica na memória até você baixá-la; fechamento, recarga ou encerramento pelo sistema podem perdê-la. Há finalização automática acima de aproximadamente 300 MB de dados; um aparelho pode atingir seu limite antes disso. Resolução, formato, orientação e duração máxima dependem do dispositivo.
-
-Consulte RELATORIO-TEMA-ORIGINAL.md. Testes simulados no computador não comprovam funcionamento em iPhone e Android físicos. Os arquivos de tests/evidence e RELATORIO-AUDITORIA.md vindos do ZIP anterior são históricos, não resultados desta entrega.
+Veja `REVISAO-V1.1.1.md` para os testes atuais. `RELATORIO-AUDITORIA.md` registra a revisão anterior. Chromium e WebKit em computador não equivalem a testes em aparelhos reais. Permissões, troca de lentes, gravações longas, instalação PWA e salvamento no iOS ainda exigem homologação física. Resolução, orientação, taxa de quadros e formato são negociados com o navegador; não há promessa de 4K/60 fps nem conversão universal para MP4.

@@ -1,5 +1,14 @@
-const CACHE='oxprompter-mobile-tema-original-3';
-const ASSETS=["./","./index.html","./manifest.json","./icons/icon-192.png","./icons/icon-512.png","./vendor/jszip.min.js","./engine/media-session.js","./engine/framing.js","./engine/voice.js","./css/styles.css?tema-original=3","./js/core.js?tema-original=3","./js/documents.js?tema-original=3","./js/library.js?tema-original=3","./js/preparation.js?tema-original=3","./js/media.js?tema-original=3","./js/reader.js?tema-original=3","./js/speech.js?tema-original=3","./js/app.js?tema-original=3","./js/theme-bridge.js?tema-original=3"];
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('oxprompter-mobile-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',e=>{const url=new URL(e.request.url);if(e.request.method!=='GET'||url.origin!==location.origin)return;e.respondWith(caches.open(CACHE).then(async c=>{if(e.request.mode==='navigate'){try{return await fetch(e.request)}catch(_){return await c.match('./index.html')||Response.error();}}return await c.match(e.request)||fetch(e.request);}));});
+const CACHE='oxprompter-mobile-1.1.1';
+const ASSETS=['./','./index.html','./css/styles.css','./css/camera-ui.css','./js/core.js','./js/library.js','./js/preparation.js','./js/camera.js','./js/media.js','./js/reader.js','./js/speech.js','./js/app.js','./js/documents.js','./vendor/jszip.min.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png'];
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('oxprompter-mobile-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',event=>{
+  const request=event.request,url=new URL(request.url);
+  if(request.method!=='GET'||url.origin!==self.location.origin)return;
+  event.respondWith(caches.open(CACHE).then(async cache=>{
+    if(request.mode==='navigate'){
+      try{return await fetch(request)}catch(error){return (await cache.match('./index.html'))||Response.error()}
+    }
+    return (await cache.match(request,{ignoreSearch:true}))||fetch(request);
+  }));
+});

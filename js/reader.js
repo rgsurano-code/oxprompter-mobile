@@ -24,7 +24,7 @@ async function beginCountdownNow(){document.body.classList.remove('adjusting');d
       if(current.settings?.recordOn)ensureRecordingPreview(recordStream);
       const vtrack=recordStream?.getVideoTracks?.()[0];const vst=vtrack?.getSettings?.()||{};const actual=vst.width&&vst.height?` (${vst.width}×${vst.height}${vst.frameRate?' · '+Math.round(vst.frameRate)+' fps':''})`:'';setStatus('green','🔴 Gravando'+actual);
     }catch(e){
-      started=false;clearInterval(elapsedTimer);elapsedTimer=null;offerStartRetry();
+      haltReading();discardCurrentRecording();offerStartRetry();
       setStatus('red','Não foi possível iniciar a gravação');
       alert('O navegador não conseguiu iniciar a gravação: '+(e?.message||'erro desconhecido'));
       return;
@@ -35,13 +35,25 @@ async function beginCountdownNow(){document.body.classList.remove('adjusting');d
   await startManual();
 }else{const cv=$('#countValue');if(cv)cv.textContent=i}},1000)
 }
+let preparationLaunching=false;
 async function startCountdown(){
-  if(themeStarting)return;themeStarting=true;try{if(savePrep()===false)return;if(current.settings.mode!=='noaudio')themeMeter.unlock();stopAll({keepMedia:true});showPrompter(true);await prepareReadingSession();}finally{themeStarting=false;}
+  if(preparationLaunching)return;preparationLaunching=true;
+  const button=$('#start'),script=current;
+  try{
+    savePrep();
+    if(current.settings.recordOn){
+      if(button)button.disabled=true;
+      const ready=await previewCamera();
+      if($('#start')!==button||current!==script)return;
+      if(!ready||cameraController.info?.orientationAligned===false){syncCameraPreviewFrame();return}
+    }
+    stopAll();showPrompter(true);await prepareReadingSession();
+  }finally{preparationLaunching=false;if(button?.isConnected)syncCameraPreviewFrame()}
 }
 function offerStartRetry(){
   if($('#manualStart'))return;
   const button=document.createElement('button');button.id='manualStart';button.textContent='Iniciar por toque';button.className='manual-start';
-  button.onclick=async()=>{button.disabled=true;themeCommand.stop();try{if(current.settings.mode!=='noaudio')themeMeter.unlock();sessionId++;await prepareReadingSession(true);}finally{button.disabled=false;}};document.body.appendChild(button);
+  button.onclick=async()=>{button.disabled=true;sessionId++;await prepareReadingSession(true);button.disabled=false};document.body.appendChild(button);
 }
 async function prepareReadingSession(skipCommand=false){
   const token=sessionId;
@@ -50,7 +62,7 @@ async function prepareReadingSession(skipCommand=false){
   const launch=async()=>{
     if(token!==sessionId||launching)return;launching=true;$('#manualStart')?.remove();
     const ok=await startCameraAndRecording();
-    if(token!==sessionId)return
+    if(token!==sessionId){stopCameraStreams();stopPrepMedia();return}
     if(!ok){offerStartRetry();return}
     if(current.settings.mode!=='noaudio'&&!await ensureReadingMic()){offerStartRetry();return}
     if(token!==sessionId)return;
@@ -58,7 +70,7 @@ async function prepareReadingSession(skipCommand=false){
   };
   const cmds=(current.settings.startCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);
   if(!skipCommand&&current.settings.mode==='audio'&&cmds.length){
-    stopLiveMicMeter();themeCapture.releaseAudio();themeSyncStreams();offerStartRetry();
+    stopPrepMic();offerStartRetry();
     setStatus('yellow','Aguardando comando de voz ou toque em Iniciar');
     startStartCommandListener(launch,()=>{offerStartRetry()});
   }else{
@@ -123,10 +135,11 @@ function enablePromptTouchDrag(){
   el.addEventListener('pointerup',stop); el.addEventListener('pointercancel',stop);
 }
 
-function showPrompter(preparing=false){if(!preparing)stopAll();current.settings=current.settings||{};if(!Number.isFinite(Number(current.settings.startPercent)))current.settings.startPercent=50;if(!Number.isFinite(Number(current.settings.textWidth)))current.settings.textWidth=600;if(!Number.isFinite(Number(current.settings.textWidthPct)))current.settings.textWidthPct=.84;let s=current.settings||{};s.theme=(s.theme==='light'||s.theme==='white')?'white':'dark';current.settings.theme=s.theme;started=!preparing;sessionId++;currentWord=0;lastMatch=0;words=buildWords(current.text);startTime=preparing?0:Date.now();targetSeconds=parseTime(s.target);preparingPrompter=!!preparing;document.body.className='prompter '+((s.theme==='light'||s.theme==='white')?'light':'')+(s.mode==='noaudio'?' no-audio':'')+(s.mobileCameraBg?' mobile-camera':'')+(preparing?' adjusting':'');document.body.innerHTML=`<div class="promptHud"><div class="hudBox"><div id="timer" class="promptTimer">00:00</div><div class="hudAlert"><span id="runner" class="runner" aria-label="Aviso de tempo">🏃</span><span id="statusDot" class="dot ${s.mode==='noaudio'?'green':''}"></span></div><div id="statusText" class="hudStatusText">${s.mode==='noaudio'?'Rolagem automática':(s.mode==='semi'?'Semi-automático · aguardando voz':'Aguardando fala')}</div>${s.mode==='noaudio'?'':`<div class="hudMic">🎙️ <span class="hudMicTrack"><span id="liveMicLevel" class="hudMicLevel"></span></span></div><div id="liveMicDb" class="hudDb">-60 dB</div>`}</div></div>${preparing&&s.mode!=='noaudio'&&((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).length)?`<div class="start-command-banner"><span class="label">COMANDO PARA INICIAR</span><span class="phrase">“${esc((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).join('”  ou  “'))}”</span></div>`:''}<div class="promptStage">${s.mobileCameraBg?'<video id="mobileCameraBgVideo" class="mobileCameraBg" autoplay muted playsinline></video><div class="mobileCameraShade"></div><div class="mobile-camera-badge">CÂMERA + TELEPROMPTER</div>':''}<div id="startReference" class="startReference"><span class="startReferenceLabel">INÍCIO · 50%</span></div><div id="promptText" class="promptText"></div><div id="guide" class="guide"></div></div><div class="controls"><button id="pause" class="iconBtn" title="Pausar/continuar">⏸</button><button id="restartTele" class="iconBtn" title="Recomeçar">↻</button><button id="finishTele" class="iconBtn stop-rec" title="Finalizar gravação">⏹</button><button id="backTele" class="iconBtn" title="Voltar à preparação">←</button><button id="hideControls" class="iconBtn" title="Ocultar controles">●</button></div><button id="showControls" class="controlsReveal hidden" title="Mostrar controles">●</button>`;if(s.timerOn===false)$('#timer').style.visibility='hidden';if(s.mirror)$('#promptText').style.transform='scaleX(-1)';$('#promptText').style.fontSize=s.font+'px';$('#promptText').style.maxWidth=Math.round((window.innerWidth||720)*(Number(s.textWidthPct)||.84))+'px';$('#promptText').style.opacity=Math.max(.35,Math.min(1,Number(s.mobileTextOpacity||90)/100));renderPrompt();positionPromptAtReadingLine();markReferenceWord(preparing);syncStartReference();if(preparing)enableStartPositionDrag();$('#pause').onclick=()=>{resumeLiveMicContext();togglePause()};$('#finishTele').onclick=()=>{if(mediaRecorder&&mediaRecorder.state!=='inactive'){reviewAfterStop=true;setStatus('yellow','Preparando prévia da gravação...');stopRecordingForReview()}else{if(confirm('Finalizar a leitura e voltar à preparação?')){discardCurrentRecording();prepare()}}};document.onkeydown=e=>{if(e.code==='Space'&&document.body.classList.contains('prompter')){const tag=(e.target&&e.target.tagName)||'';if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){e.preventDefault();togglePause()}}};$('#restartTele').onclick=async()=>{
+function showPrompter(preparing=false){if(!preparing)stopAll();current.settings=current.settings||{};if(!Number.isFinite(Number(current.settings.startPercent)))current.settings.startPercent=50;if(!Number.isFinite(Number(current.settings.textWidth)))current.settings.textWidth=600;if(!Number.isFinite(Number(current.settings.textWidthPct)))current.settings.textWidthPct=.84;let s=current.settings||{};s.theme=(s.theme==='light'||s.theme==='white')?'white':'dark';current.settings.theme=s.theme;started=!preparing;sessionId++;currentWord=0;lastMatch=0;words=buildWords(current.text);startTime=preparing?0:Date.now();targetSeconds=parseTime(s.target);preparingPrompter=!!preparing;document.body.className='prompter '+((s.theme==='light'||s.theme==='white')?'light':'')+(s.mode==='noaudio'?' no-audio':'')+(s.mobileCameraBg?' mobile-camera':'')+(preparing?' adjusting':'');document.body.innerHTML=`<div class="promptHud"><div class="hudBox"><div id="timer" class="promptTimer">00:00</div><div class="hudAlert"><span id="runner" class="runner" aria-label="Aviso de tempo">🏃</span><span id="statusDot" class="dot ${s.mode==='noaudio'?'green':''}"></span></div><div id="statusText" class="hudStatusText">${s.mode==='noaudio'?'Rolagem automática':(s.mode==='semi'?'Semi-automático · aguardando voz':'Aguardando fala')}</div>${s.mode==='noaudio'?'':`<div class="hudMic">🎙️ <span class="hudMicTrack"><span id="liveMicLevel" class="hudMicLevel"></span></span></div><div id="liveMicDb" class="hudDb">-60 dB</div>`}</div></div>${preparing&&s.mode!=='noaudio'&&((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).length)?`<div class="start-command-banner"><span class="label">COMANDO PARA INICIAR</span><span class="phrase">“${esc((s.startCmds||[]).map(c=>c.phrase).filter(Boolean).join('”  ou  “'))}”</span></div>`:''}<div class="promptStage">${s.mobileCameraBg?'<video id="mobileCameraBgVideo" class="mobileCameraBg" autoplay muted playsinline></video><div class="mobileCameraShade"></div><div class="mobile-camera-badge">CÂMERA + TELEPROMPTER</div>':''}<div id="startReference" class="startReference"><span class="startReferenceLabel">INÍCIO · 50%</span></div><div id="promptText" class="promptText"></div><div id="guide" class="guide"></div></div><div class="controls"><button id="pause" class="iconBtn" title="Pausar/continuar">⏸</button><button id="restartTele" class="iconBtn" title="Recomeçar">↻</button><button id="finishTele" class="iconBtn stop-rec" title="Finalizar gravação">⏹</button><button id="backTele" class="iconBtn" title="Voltar à preparação">←</button><button id="hideControls" class="iconBtn" title="Ocultar controles">●</button></div><button id="showControls" class="controlsReveal hidden" title="Mostrar controles">●</button>`;if(s.timerOn===false)$('#timer').style.visibility='hidden';if(s.mirror)$('#promptText').style.transform='scaleX(-1)';$('#promptText').style.fontSize=s.font+'px';$('#promptText').style.maxWidth=Math.round((window.innerWidth||720)*(Number(s.textWidthPct)||.84))+'px';$('#promptText').style.opacity=Math.max(.35,Math.min(1,Number(s.mobileTextOpacity||90)/100));renderPrompt();positionPromptAtReadingLine();markReferenceWord(preparing);syncStartReference();if(preparing)enableStartPositionDrag();$('#pause').onclick=()=>{resumeLiveMicContext();togglePause()};$('#finishTele').onclick=()=>{if(mediaRecorder&&mediaRecorder.state!=='inactive'){reviewAfterStop=true;setStatus('yellow','Preparando prévia da gravação...');stopRecordingForReview()}else if(recordedBlob?.size){showRecordingPreview()}else{if(confirm('Finalizar a leitura e voltar à preparação?')){discardCurrentRecording();prepare()}}};document.onkeydown=e=>{if($('#recordExit')||$('#recordReview'))return;if(e.code==='Space'&&document.body.classList.contains('prompter')){const tag=(e.target&&e.target.tagName)||'';if(tag!=='INPUT'&&tag!=='TEXTAREA'&&tag!=='SELECT'){e.preventDefault();togglePause()}}};$('#restartTele').onclick=async()=>{
+  if(!await confirmRecordingDiscard())return;
   discardCurrentRecording();stopAll();showPrompter(true);await prepareReadingSession();
 };
-$('#backTele').onclick=()=>{discardCurrentRecording();document.body.classList.remove('fullscreen-active','controls-hidden');prepare()};const hideBtn=$('#hideControls'),showBtn=$('#showControls'),controls=$('.controls');hideBtn.onclick=()=>{controls.classList.add('controls-hidden');showBtn.classList.remove('hidden')};showBtn.onclick=()=>{controls.classList.remove('controls-hidden');showBtn.classList.add('hidden')};document.onfullscreenchange=null;window.onresize=resizePrompter;enablePromptTouchDrag();setupReadingControls();updateSpeedUI();if(!preparing){elapsedTimer=setInterval(updateTimer,250);startManual();}}
+$('#backTele').onclick=async()=>{if(!await confirmRecordingDiscard())return;discardCurrentRecording();document.body.classList.remove('fullscreen-active','controls-hidden');prepare()};const hideBtn=$('#hideControls'),showBtn=$('#showControls'),controls=$('.controls');hideBtn.onclick=()=>{controls.classList.add('controls-hidden');showBtn.classList.remove('hidden')};showBtn.onclick=()=>{controls.classList.remove('controls-hidden');showBtn.classList.add('hidden')};document.onfullscreenchange=null;window.onresize=resizePrompter;enablePromptTouchDrag();setupReadingControls();updateSpeedUI();if(!preparing){elapsedTimer=setInterval(updateTimer,250);startManual();}}
 
 let scrollSpeed=1,paused=false,manualTimer=null,manualRaf=null,manualY=0,lastManualTs=0,scrollStartY=0,scrollEndY=0,voiceActive=false,currentMicRms=0;
 function markReferenceWord(show){
@@ -173,7 +186,8 @@ function enableStartPositionDrag(){
 }
 function renderPrompt(){
   let el=$('#promptText');if(!el)return;
-  let around=words.map((w,i)=>`<span class="w" data-i="${i}">${esc(w)}</span>`).join(' ');
+  let index=0;
+  const around=current.text.replace(/\[[^\]]*\]/g,' ').split(/(\s+)/).map(part=>!part||/^\s+$/.test(part)?esc(part):'<span class="w" data-i="'+(index++)+'">'+esc(part)+'</span>').join('');
   el.innerHTML=around;
   $('#guide').style.display='none';
 }
@@ -182,7 +196,6 @@ async function startManual(){
   paused=false;
   currentMicRms=0;
   voiceNoiseFloor=0.004;
-  voiceHoldUntil=0;
   voiceHoldUntil=0;
   voiceActive=false;
   renderPrompt();
@@ -194,7 +207,7 @@ async function startManual(){
   applyTransform();
   if(mode!=='noaudio'){
     const ready=await ensureReadingMic();
-    if(!ready){started=false;clearInterval(elapsedTimer);offerStartRetry();setStatus('red','Microfone não disponível para controlar a rolagem');return;}
+    if(!ready){setStatus('red','Microfone não disponível para controlar a rolagem');return;}
     setStatus('yellow',mode==='semi'?'🎙️ Semi-automático: fale para avançar o texto':'🎙️ Fale para rolar o texto');
   }else{
     voiceActive=true;
@@ -237,9 +250,8 @@ function togglePause(){
   if($('#pause'))$('#pause').textContent=paused?'▶':'⏸';
 }
 function parseTime(v){
-  const p=String(v||'').split(':').map(Number);
-  if(p.length<2||p.length>3||p.some(n=>!Number.isFinite(n)||n<0))return 0;
-  return p[0]*3600+p[1]*60+(p[2]||0);
+  const match=/^(\d{1,3}):([0-5]\d)(?::([0-5]\d))?$/.exec(String(v||''));
+  return match?Number(match[1])*3600+Number(match[2])*60+Number(match[3]||0):0;
 }
 function updateTimer(){
   if(!$('#timer')||!startTime)return;let sec=Math.max(0,Math.floor(((pausedAt||Date.now())-startTime-pausedTotal)/1000));
@@ -253,8 +265,8 @@ function updateTimer(){
   }else if($('#runner'))$('#runner').classList.remove('show');
 }
 function setStatus(c,t){const dot=$('#statusDot'),text=$('#statusText');if(dot&&dot.className!=='dot '+c)dot.className='dot '+c;if(text&&text.textContent!==t)text.textContent=t}
-function stopAll({keepMedia=false}={}){
-  themeCommand.stop();
+function stopAll(){
+  recordSetupVersion++;
   document.onkeydown=null;
   sessionId++;
   started=false;
@@ -267,14 +279,14 @@ function stopAll({keepMedia=false}={}){
   if(manualTimer){clearInterval(manualTimer);manualTimer=null}
   if(manualRaf){cancelAnimationFrame(manualRaf);manualRaf=null}
   if(elapsedTimer){clearInterval(elapsedTimer);elapsedTimer=null}
-  if(!keepMedia){readingMicStream=null;}
+  readingMicStream?.getTracks().forEach(t=>t.stop());readingMicStream=null;
   document.querySelector('.countdown-overlay')?.remove();$('#manualStart')?.remove();closeMicTest();
-  if(!keepMedia){stopLiveMicMeter();
+  stopLiveMicMeter();
   if(mediaRecorder&&mediaRecorder.state!=='inactive'){
     try{reviewAfterStop=false;mediaRecorder.onstop=null;mediaRecorder.ondataavailable=null;mediaRecorder.onerror=null;mediaRecorder.stop()}catch(e){}
   }
   mediaRecorder=null;
-  recordingActive=false;stopCameraStreams();themeCapture.close();themeSyncStreams();}pausedAt=0;pausedTotal=0;
+  recordingActive=false;stopCameraStreams();pausedAt=0;pausedTotal=0;
 } 
 function stopRecognition(){stopAll()}
 document.addEventListener('touchstart',()=>{if(document.body.classList.contains('prompter'))resumeLiveMicContext()},{passive:true});
