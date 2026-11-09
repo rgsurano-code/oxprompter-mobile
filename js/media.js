@@ -73,6 +73,25 @@ function applyCoverCrop(srcW,srcH,dstW,dstH){
   else{sh=sw/dstRatio;sy=(srcH-sh)/2}
   return {sx,sy,sw,sh};
 }
+function isIOSDevice(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)}
+// iOS Safari suspende <video> fora do DOM: sem quadros novos, o captureStream
+// repete o último frame desenhado (vídeo congelado). Anexar o vídeo-fonte à
+// página, invisível e minúsculo, mantém a entrega de quadros da câmera.
+function attachSourceVideoToDom(video){
+  if(!video||video.isConnected)return;
+  video.setAttribute('playsinline','');video.muted=true;video.autoplay=true;video.playsInline=true;
+  video.style.cssText='position:fixed;left:-2px;top:-2px;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1;';
+  video.setAttribute('aria-hidden','true');
+  document.body.appendChild(video);
+}
+function drawFrameCapture(){
+  if(!frameSourceVideo||!frameCanvas||!frameCtx){frameLoop=null;return}
+  const vw=frameSourceVideo.videoWidth, vh=frameSourceVideo.videoHeight;
+  if(vw&&vh){
+    const c=applyCoverCrop(vw,vh,frameTargetW,frameTargetH);
+    frameCtx.drawImage(frameSourceVideo,c.sx,c.sy,c.sw,c.sh,0,0,frameTargetW,frameTargetH);
+  }
+}
 function startFrameCapture(video){
   stopFrameCapture();
   const frame=chooseSocialFrame();
@@ -81,20 +100,30 @@ function startFrameCapture(video){
   frameCanvas.width=frameTargetW;frameCanvas.height=frameTargetH;
   frameCtx=frameCanvas.getContext('2d',{alpha:false});
   frameSourceVideo=video;
-  const draw=()=>{
-    if(!frameSourceVideo||!frameCanvas||!frameCtx){frameLoop=null;return}
-    const vw=frameSourceVideo.videoWidth, vh=frameSourceVideo.videoHeight;
-    if(vw&&vh){
-      const c=applyCoverCrop(vw,vh,frameTargetW,frameTargetH);
-      frameCtx.drawImage(frameSourceVideo,c.sx,c.sy,c.sw,c.sh,0,0,frameTargetW,frameTargetH);
-    }
-    frameLoop=requestAnimationFrame(draw);
-  };
-  frameLoop=requestAnimationFrame(draw);
+  if(isIOSDevice())attachSourceVideoToDom(video);
+  // requestVideoFrameCallback redesenha somente quando a câmera entrega um
+  // quadro novo: evita congelar o arquivo no iOS e gasta menos bateria.
+  if('requestVideoFrameCallback' in HTMLVideoElement.prototype){
+    frameLoop={type:'vfc',vfcId:0};
+    const onFrame=()=>{drawFrameCapture();if(frameSourceVideo)frameLoop.vfcId=frameSourceVideo.requestVideoFrameCallback(onFrame)};
+    frameLoop.vfcId=frameSourceVideo.requestVideoFrameCallback(onFrame);
+  }else{
+    const tick=()=>{drawFrameCapture();frameLoop=requestAnimationFrame(tick)};
+    frameLoop=requestAnimationFrame(tick);
+  }
   setStatus('green','Enquadramento: '+frameName);
 }
 function stopFrameCapture(){
-  if(frameLoop){cancelAnimationFrame(frameLoop);frameLoop=null}
+  if(frameLoop){
+    if(frameLoop?.type==='vfc'){try{frameSourceVideo?.cancelVideoFrameCallback?.(frameLoop.vfcId)}catch(e){}}
+    else cancelAnimationFrame(frameLoop);
+    frameLoop=null;
+  }
+  if(frameSourceVideo&&isIOSDevice()&&frameSourceVideo.getAttribute?.('aria-hidden')==='true'&&frameSourceVideo.parentElement===document.body){
+    try{frameSourceVideo.pause()}catch(e){}
+    try{frameSourceVideo.srcObject=null}catch(e){}
+    try{frameSourceVideo.remove()}catch(e){}
+  }
   frameSourceVideo=null;
   frameCanvas=null;frameCtx=null;
   frameTargetW=0;frameTargetH=0;frameName='';
@@ -448,7 +477,21 @@ function showRecordingPreview(){
   const v=$('#recordedReviewVideo')||$('#recordedReviewAudio');
   if(v){
     v.src=recordedUrl;
-    v.playsInline=true; v.preload='metadata';
+    v.playsInline=true; v.preload='auto';
+    v.muted=false;
+    if(isIOSDevice()&&v.tagName==='VIDEO'){
+      // iOS: “empurrão” silencioso para renderizar o primeiro quadro; sem isso
+      // o player pode abrir com a tela congelada. Depois volta ao início,
+      // desmutado, para o usuário assistir normalmente.
+      v.onloadedmetadata=()=>{
+        try{
+          const originalMuted=v.muted;
+          v.muted=true;
+          const p=v.play();if(p&&p.catch)p.catch(()=>{});
+          setTimeout(()=>{try{v.pause();v.currentTime=0;v.muted=originalMuted}catch(e){}},180);
+        }catch(e){}
+      };
+    }
     v.onerror=()=>{const sub=$('.record-review-sub');if(sub)sub.textContent='O Safari não conseguiu reproduzir a prévia. Tente SALVAR PRODUÇÃO e abrir o arquivo em Fotos/Arquivos.'};
     v.load();
   }
