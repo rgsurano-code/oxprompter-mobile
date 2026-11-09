@@ -21,25 +21,11 @@ let prepMicStream=null;
 let prepCombinedStream=null;
 let prepAccessPromise=null;
 function selectedMicConstraints(){const id=$('#mic')?.value||current.settings?.micDeviceId||'';return id?{deviceId:{exact:id}}:true}
-function recordingOrientationConstraints(base){
-  const o=current.settings?.mobileRecordOrientation||'portrait';
-  const res=String(current.settings?.recordResolution||'auto');
-  const fps=String(current.settings?.recordFps||'auto');
-  let w=res==='720'?1280:res==='1080'?1920:res==='2160'?3840:1920;
-  let h=res==='720'?720:res==='1080'?1080:res==='2160'?2160:1080;
-  if(o==='portrait'){const t=w;w=h;h=t}
-  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:o==='landscape'?16/9:9/16},resizeMode:{ideal:'none'}};
-  if(fps!=='auto')video.frameRate={ideal:Number(fps),max:Number(fps)};
-  return video;
-}
-async function applyRecordingOrientation(stream){
-  const track=stream?.getVideoTracks?.()[0];
-  try{await track?.applyConstraints(recordingOrientationConstraints({}));}catch(e){}
-  updateCameraCapabilityHint(stream);
-}
+// CORREÇÃO: a câmera usa a resolução nativa do aparelho e segue a posição física do celular.
+// Nenhuma restrição de largura/altura, proporção ou resizeMode é forçada.
 function selectedCameraConstraints(){
   const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
-  return recordingOrientationConstraints(id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}});
+  return id?{deviceId:{exact:id}}:{facingMode:{ideal:current.settings?.mobileCameraFacing||'user'}};
 }
 
 function updateCameraCapabilityHint(stream){
@@ -48,7 +34,16 @@ function updateCameraCapabilityHint(stream){
   const parts=[]; if(st.width&&st.height)parts.push(`Atual: ${st.width} × ${st.height}`); if(st.frameRate)parts.push(`${Math.round(st.frameRate)} fps`);
   const r=caps.width, f=caps.frameRate;
   if(r?.max)parts.push(`largura máx. informada: ${r.max}px`); if(f?.max)parts.push(`até ${Math.round(f.max)} fps informado`);
-  el.textContent=parts.length?parts.join(' · '):'O navegador não informou todos os recursos. A gravação usará a configuração mais próxima disponível.';
+  el.textContent=parts.length?parts.join(' · '):'A câmera grava na resolução nativa do aparelho. Gire o celular para alternar entre vertical e horizontal.';
+}
+
+// Faz a prévia mostrar o quadro real e completo (sem corte), na proporção real da câmera.
+function fitPreviewToTrack(video,stream){
+  if(!video)return;
+  const track=stream?.getVideoTracks?.()[0]; const st=track?.getSettings?.()||{};
+  if(st.width&&st.height)video.style.aspectRatio=(st.width/st.height).toFixed(4);
+  else video.style.aspectRatio='';
+  video.style.objectFit='contain';
 }
 
 async function loadMicrophones(){
@@ -82,6 +77,7 @@ async function previewCamera(){
     const sameFacing=!existingFacing||existingFacing===desiredFacing;
     if(existing&&sameFacing&&(!id||existingId===id)){
       v.srcObject=stream;
+      fitPreviewToTrack(v,stream);
       try{await v.play()}catch(e){}
       if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
       return true;
@@ -89,6 +85,7 @@ async function previewCamera(){
     if(prepCameraStream){try{prepCameraStream.getTracks().forEach(t=>t.stop())}catch(e){}}
     prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
     v.srcObject=prepCameraStream;
+    fitPreviewToTrack(v,prepCameraStream);
     try{await v.play()}catch(e){}
     if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
     return true;
@@ -256,8 +253,6 @@ async function startCameraAndRecording(){
       }
     }
 
-    if(videoStream) await applyRecordingOrientation(videoStream);
-
     // Clone tracks so stopping a recording NEVER stops the preparation streams.
     const tracks=[];
     if(wantVideo&&videoStream)videoStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>tracks.push(t.clone()));
@@ -421,4 +416,3 @@ async function testMic(){
 }
 
 function closeMicTest(){if(micRaf){cancelAnimationFrame(micRaf);micRaf=null}micStream=null;if(micAudioContext){micAudioContext.close().catch(()=>{});micAudioContext=null}micAnalyser=null;$('.mic-modal')?.remove()}
-

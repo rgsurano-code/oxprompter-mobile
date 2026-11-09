@@ -341,3 +341,7 @@ body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-le
     min-height: 100vh;
   }
 }
+
+/* ===== CORREÇÃO DE ENQUADRAMENTO — prévia mostra o quadro real e completo (sem corte) ===== */
+.camera-preview{object-fit:contain!important;background:#000!important}
+.camera-preview-note{color:#8dcfc0}
