@@ -90,6 +90,8 @@ function drawFrameCapture(){
   if(vw&&vh){
     const c=applyCoverCrop(vw,vh,frameTargetW,frameTargetH);
     frameCtx.drawImage(frameSourceVideo,c.sx,c.sy,c.sw,c.sh,0,0,frameTargetW,frameTargetH);
+  }else{
+    frameCtx.fillStyle='#000';frameCtx.fillRect(0,0,frameTargetW,frameTargetH);
   }
 }
 function startFrameCapture(video){
@@ -101,9 +103,11 @@ function startFrameCapture(video){
   frameCtx=frameCanvas.getContext('2d',{alpha:false});
   frameSourceVideo=video;
   if(isIOSDevice())attachSourceVideoToDom(video);
-  // requestVideoFrameCallback redesenha somente quando a câmera entrega um
-  // quadro novo: evita congelar o arquivo no iOS e gasta menos bateria.
-  if('requestVideoFrameCallback' in HTMLVideoElement.prototype){
+  // No iOS, requestVideoFrameCallback pode não disparar com o vídeo-fonte
+  // oculto/minúsculo, congelando o canvas e o arquivo final com 1 só frame.
+  // Por isso usamos rAF no iOS (redesenha sempre) e vfc nas outras plataformas.
+  const useVfc=!isIOSDevice()&&'requestVideoFrameCallback' in HTMLVideoElement.prototype;
+  if(useVfc){
     frameLoop={type:'vfc',vfcId:0};
     const onFrame=()=>{drawFrameCapture();if(frameSourceVideo)frameLoop.vfcId=frameSourceVideo.requestVideoFrameCallback(onFrame)};
     frameLoop.vfcId=frameSourceVideo.requestVideoFrameCallback(onFrame);
@@ -281,7 +285,7 @@ function ensureRecordingPreview(stream){
   return !!stream;
 }
 
-function chooseMime(withVideo=true){const types=withVideo?['video/mp4','video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=h264,aac','video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm']:['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg'];return types.find(t=>window.MediaRecorder?.isTypeSupported?.(t))||''}
+function chooseMime(withVideo=true){const types=withVideo?['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=h264,aac','video/mp4','video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm']:['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg'];return types.find(t=>window.MediaRecorder?.isTypeSupported?.(t))||''}
 function recordingExt(mime){if(mime.includes('mp4'))return 'mp4';if(mime.includes('ogg'))return 'ogg';return 'webm'}
 
 async function restoreLiveCameraPreview(){
@@ -350,8 +354,8 @@ async function startCameraAndRecording(){
       hidden.muted=true;hidden.playsInline=true;hidden.autoplay=true;
       hidden.setAttribute('playsinline','');
       hidden.srcObject=videoStream;
-      try{await hidden.play()}catch(e){}
       startFrameCapture(hidden);
+      try{await hidden.play()}catch(e){}
       const fps=clampFps(Number(current.settings?.recordFps)||30);
       try{canvasStream=frameCanvas.captureStream(fps)}catch(e){try{canvasStream=frameCanvas.captureStream()}catch(e2){canvasStream=null}}
       if(!canvasStream||!canvasStream.getVideoTracks().length){
@@ -446,8 +450,12 @@ function saveRecordingFile(){if(!recordedBlob)return false;const ext=recordingEx
 function showRecordingPreview(){
   if(!recordedBlob||!recordedUrl)return;
 
+  const mime=(recordedBlob.type||recordingMime||'').toLowerCase();
+  const isWebm=mime.includes('webm');
+  const isOgg=mime.includes('ogg');
+
   const mediaTag=recordingHasVideo
-    ? `<div class="review-preview-card"><div class="review-preview-title"><span>GRAVAÇÃO</span></div><video id="recordedReviewVideo" controls playsinline preload="metadata"></video></div>`
+    ? `<div class="review-preview-card"><div class="review-preview-title"><span>GRAVAÇÃO</span></div><video id="recordedReviewVideo" controls playsinline webkit-playsinline preload="metadata"></video></div>`
     : '<audio id="recordedReviewAudio" controls preload="metadata"></audio>';
 
   const modal=document.createElement('div');
@@ -475,25 +483,42 @@ function showRecordingPreview(){
   document.body.appendChild(modal);
 
   const v=$('#recordedReviewVideo')||$('#recordedReviewAudio');
+  const sub=$('.record-review-sub');
   if(v){
     v.src=recordedUrl;
-    v.playsInline=true; v.preload='auto';
-    v.muted=false;
+    v.setAttribute('playsinline','');
+    v.setAttribute('webkit-playsinline','');
+    v.preload='auto';
+
+    if(isIOSDevice()&&isWebm&&sub){
+      sub.textContent='O iOS não reproduz WebM na prévia. Clique em SALVAR PRODUÇÃO para baixar e abrir em outro app.';
+    }
+    if(isIOSDevice()&&isOgg&&sub){
+      sub.textContent='O iOS não reproduz OGG na prévia. Clique em SALVAR PRODUÇÃO para baixar e abrir em outro app.';
+    }
+
     if(isIOSDevice()&&v.tagName==='VIDEO'){
-      // iOS: “empurrão” silencioso para renderizar o primeiro quadro; sem isso
-      // o player pode abrir com a tela congelada. Depois volta ao início,
-      // desmutado, para o usuário assistir normalmente.
-      v.onloadedmetadata=()=>{
+      // iOS bloqueia autoplay com som. Faz um "empurrão" mudo para o primeiro
+      // quadro ser renderizado e depois devolve o controle ao usuário, já sem
+      // a tela congelada.
+      let nudged=false;
+      const nudge=()=>{
+        if(nudged||!v)return;nudged=true;
         try{
-          const originalMuted=v.muted;
           v.muted=true;
-          const p=v.play();if(p&&p.catch)p.catch(()=>{});
-          setTimeout(()=>{try{v.pause();v.currentTime=0;v.muted=originalMuted}catch(e){}},180);
+          const p=v.play();
+          if(p&&p.catch)p.catch(()=>{});
+          setTimeout(()=>{try{v.pause();v.currentTime=0;v.muted=false}catch(e){}},260);
         }catch(e){}
       };
+      v.addEventListener('loadeddata',nudge,{once:true});
+      v.addEventListener('canplay',nudge,{once:true});
+      setTimeout(nudge,900);
+      v.onerror=()=>{if(sub)sub.textContent='O Safari não conseguiu reproduzir a prévia. Use SALVAR PRODUÇÃO para baixar e abrir em Fotos/Arquivos.'};
+    }else{
+      v.onerror=()=>{if(sub)sub.textContent='Não foi possível reproduzir a prévia. Use SALVAR PRODUÇÃO para baixar o arquivo.'};
     }
-    v.onerror=()=>{const sub=$('.record-review-sub');if(sub)sub.textContent='O Safari não conseguiu reproduzir a prévia. Tente SALVAR PRODUÇÃO e abrir o arquivo em Fotos/Arquivos.'};
-    v.load();
+    try{v.load()}catch(e){}
   }
 
   $('#deleteRecording').onclick=()=>{
