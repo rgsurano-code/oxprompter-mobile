@@ -1,7 +1,3 @@
-=============================================================================
-ARQUIVO 1 — js/reader.js  (COMPLETO · substitua o arquivo inteiro)
-=============================================================================
-
 async function beginCountdownNow(){document.body.classList.remove('adjusting');document.querySelector('.start-command-banner')?.remove();document.querySelector('.tap-to-start-banner')?.remove();markReferenceWord(false);syncStartReference();
   document.querySelector('.countdown-overlay')?.remove();
   const n=Math.max(1,Number(current.settings.count)||5);const mySession=sessionId;
