@@ -25,10 +25,16 @@ function recordingOrientationConstraints(base){
   const o=current.settings?.mobileRecordOrientation||'portrait';
   const res=String(current.settings?.recordResolution||'auto');
   const fps=String(current.settings?.recordFps||'auto');
-  let w=res==='720'?1280:res==='1080'?1920:res==='2160'?3840:1920;
-  let h=res==='720'?720:res==='1080'?1080:res==='2160'?2160:1080;
-  if(o==='portrait'){const t=w;w=h;h=t}
-  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:o==='landscape'?16/9:9/16},resizeMode:{ideal:'none'}};
+  const video={...base,aspectRatio:{ideal:o==='landscape'?16/9:9/16}};
+  // Só aplica resolução fixa quando o usuário escolher uma de verdade.
+  // No modo "auto" deixamos o iOS/Android decidir a melhor combinação.
+  if(res!=='auto'){
+    let w=res==='720'?1280:res==='1080'?1920:3840;
+    let h=res==='720'?720:res==='1080'?1080:2160;
+    if(o==='portrait'){const t=w;w=h;h=t}
+    video.width={ideal:w};
+    video.height={ideal:h};
+  }
   if(fps!=='auto')video.frameRate={ideal:Number(fps),max:Number(fps)};
   return video;
 }
