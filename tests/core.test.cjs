@@ -3,9 +3,9 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 function context(raw,quota=false){
   const store=new Map(raw===undefined?[]:[['tp_data_v1',raw]]),alerts=[];
-  const sandbox={window:{},document:{addEventListener(){}},alert:message=>alerts.push(message),localStorage:{getItem:k=>store.get(k)||null,setItem(k,v){if(quota)throw new Error('quota');store.set(k,v)}},console,TextDecoder,DOMException};
+  const sandbox={window:{},document:{addEventListener(){}},alert:message=>alerts.push(message),localStorage:{getItem:k=>store.get(k)||null,setItem(k,v){if(quota)throw new Error('quota');store.set(k,v)}},console};
   vm.createContext(sandbox);
-  for(const file of ['core.js','documents.js','camera.js','media.js','reader.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file),'utf8'),sandbox,{filename:file});
+  for(const file of ['core.js','documents.js','media.js','reader.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../js',file),'utf8'),sandbox,{filename:file});
   return {run:code=>vm.runInContext(code,sandbox),store,alerts};
 }
 test('corrupted storage does not crash or overwrite the original',()=>{

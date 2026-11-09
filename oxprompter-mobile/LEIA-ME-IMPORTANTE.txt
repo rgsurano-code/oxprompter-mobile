@@ -1,4 +1,0 @@
-OXPROMPTER MOBILE — V1.1.1
-
-Consulte README.md, REVISAO-V1.1.1.md e TESTE-NO-CELULAR.md.
-Exporte os roteiros antes de substituir uma instalação. Não limpe os dados do navegador.
