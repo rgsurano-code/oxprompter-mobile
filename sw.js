@@ -1,8 +1,5 @@
-const CACHE='oxprompter-mobile-v2-2.0.0-beta1';
-const ASSETS=['./','./index.html','./styles.css','./manifest.json','./studio-v2/app.js','./studio-v2/store.js','./studio-v2/media-session.js','./studio-v2/reader.js','./studio-v2/speech.js','./studio-v2/documents.js','./vendor/jszip.min.js','./icons/icon-192.png','./icons/icon-512.png'];
-self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
-// Não força atualização durante uma gravação. A nova versão assume após fechar as abas antigas.
-self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('oxprompter-mobile-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',event=>{const url=new URL(event.request.url);if(event.request.method!=='GET'||url.origin!==location.origin)return;
- event.respondWith((async()=>{const cache=await caches.open(CACHE);if(event.request.mode==='navigate'){try{return await fetch(event.request)}catch(_){return await cache.match('./index.html')||Response.error();}}return await cache.match(event.request)||fetch(event.request);})());
-});
+const CACHE='oxprompter-mobile-tema-original-3';
+const ASSETS=["./","./index.html","./manifest.json","./icons/icon-192.png","./icons/icon-512.png","./vendor/jszip.min.js","./engine/media-session.js","./engine/framing.js","./engine/voice.js","./css/styles.css?tema-original=3","./js/core.js?tema-original=3","./js/documents.js?tema-original=3","./js/library.js?tema-original=3","./js/preparation.js?tema-original=3","./js/media.js?tema-original=3","./js/reader.js?tema-original=3","./js/speech.js?tema-original=3","./js/app.js?tema-original=3","./js/theme-bridge.js?tema-original=3"];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('oxprompter-mobile-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{const url=new URL(e.request.url);if(e.request.method!=='GET'||url.origin!==location.origin)return;e.respondWith(caches.open(CACHE).then(async c=>{if(e.request.mode==='navigate'){try{return await fetch(e.request)}catch(_){return await c.match('./index.html')||Response.error();}}return await c.match(e.request)||fetch(e.request);}));});

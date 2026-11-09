@@ -1,91 +1,69 @@
-# OXPROMPTER Mobile V2.0.0-beta.1
+# Atualização: enquadramento e comandos de uma palavra
 
-Reconstrução da versão mobile para validação no Safari do iPhone e Chrome do Android. A versão para computador e os ZIPs originais não foram alterados. Esta entrega é uma aplicação web/PWA, sem APK, IPA ou instalador nativo.
+Referência visual: OXPROMPTER-MOBILE-AJUSTE-IOS-TESTE.zip, indicado pelo usuário. O CSS, os ícones e o manifesto desse pacote foram preservados. O CSS também está embutido no index.html para evitar visual sem estilos se o arquivo externo não carregar. O usuário informou que o tema publicado está diferente; o endereço público ainda não foi fornecido para confirmar a causa. Não foi presumido que essa diferença já está resolvida no site.
 
-## O que foi reconstruído
+## Enquadramento antes de prosseguir
 
-- Biblioteca, edição, busca e exclusão de roteiros; observações e anotações entre colchetes.
-- Importação TXT, MD, SRT, HTML, XML, RTF simples, DOCX e ODT; backup JSON com restauração aditiva e ajustes por roteiro.
-- Acesso por senha local, alteração de senha e bloqueio da interface.
-- Preparação com tema, espelho do texto, fonte, velocidade, largura, opacidade, linha de leitura, contagem e tempo desejado.
-- Prévia frontal/traseira e seleção dos dispositivos; preferências de orientação, resolução e FPS com informação da configuração efetiva.
-- Vídeo persistente entre preparação e leitura: a mesma captura alimenta a prévia e o gravador. Pedidos de acesso são serializados e os resultados de operações canceladas são descartados com liberação das faixas.
-- Rolagem automática ou pelo volume da voz; comando inicial opcional e alternativa de início por toque. Não acompanha palavras individualmente; ruídos podem mover o texto.
-- Contagem regressiva, cronômetro, aviso de tempo, arraste do texto, ajustes durante a leitura e ocultação dos controles.
-- Gravação de vídeo/áudio independentes; pausa conjunta com a leitura; revisão, download, compartilhamento de arquivo quando oferecido pelo navegador e exclusão confirmada.
-- PWA com cache local. Nenhum arquivo de execução depende de CDN ou de fonte externa.
+A seleção Vertical/Horizontal foi removida. Agora há Imagem inteira, Preencher a tela, Plano médio (1,25×), Close (1,6×) e Ajuste manual (1× a 2,5×), com posição lateral, altura e centralização. Imagem inteira usa a câmera nativa sem recorte digital. Os outros modos usam a mesma imagem composta na prévia e na faixa de vídeo gravada, sem incluir o texto do teleprompter.
 
-## Executar no computador
+A orientação do celular define automaticamente o formato antes do início. O take mantém as dimensões estabelecidas ao iniciar para evitar mudanças de formato durante a gravação. Nos modos digitais, girar durante o take adapta o recorte dentro do formato já iniciado. Para mudar o formato do arquivo, finalize e inicie outro take com o aparelho na nova posição.
 
-Requer Node.js 20 ou superior apenas para o servidor de desenvolvimento e testes:
+A aproximação é digital e pode reduzir a nitidez e exigir mais processamento. Se o navegador não oferecer captura de canvas, os modos digitais ficam indisponíveis; use Imagem inteira. A presença da API não comprova compatibilidade física: em iPhone/Android, confira um take curto antes de usar.
+
+## Comandos iniciais de uma palavra
+
+Na preparação, toque em Gravar, Começar ou Ação para adicionar essa palavra. O mesmo atalho não é duplicado. Use + Comando para escrever outra palavra ou frase. Comandos existentes são preservados. Selecione o modo Por volume da voz + comando inicial para utilizá-los. Eles iniciam a contagem: não são comandos de pausa/finalização durante a gravação. O início por toque continua disponível.
+
+## Testes desta atualização
+
+Consulte RELATORIO-ENQUADRAMENTO-COMANDOS.md. Os relatórios anteriores da pasta descrevem versões anteriores.
+
+---
+
+# OXPROMPTER Mobile — atualização com tema original
+
+Versão 2.0.0-beta.3. Esta é a versão para testar com o tema, as telas e os campos de configuração do ZIP fornecido. O CSS, os ícones e o manifesto foram preservados byte a byte. O ZIP original não foi alterado.
+
+## Atualizar o GitHub
+
+1. Exporte um backup de roteiros na versão atual. Preserve uma cópia/branch anterior.
+2. Extraia o ZIP e abra a pasta OXPROMPTER-MOBILE-ENQUADRAMENTO-COMANDOS.
+3. Copie o conteúdo da pasta para a raiz do seu repositório oxprompter-mobile, onde já existe index.html, substituindo os arquivos correspondentes. Inclua a pasta nova engine. Não envie o ZIP como se fosse o site e não coloque a pasta inteira dentro de outra pasta do repositório.
+4. Faça commit/push pelo GitHub Desktop e aguarde a publicação habitual do GitHub Pages. Esta entrega não publicou nem alterou o repositório remoto.
+5. Feche abas/PWA antigas e reabra o mesmo endereço HTTPS para atualizar o service worker. Não limpe dados do navegador sem backup.
+
+## Configurações e dados
+
+A chave tp_data_v1, os nomes dos campos e os controles originais foram mantidos. Ajustes pessoais ficam no navegador e não estão dentro do ZIP. Eles são reaproveitados no mesmo domínio, protocolo, porta e perfil. Se mudar de endereço ou de navegador, use Exportar roteiros / Importar arquivo (JSON); a restauração agora conserva também as configurações exportadas por roteiro. Nenhum backup desta entrega inclui senha.
+
+Cores, efeitos visuais, biblioteca, preparação e controles de leitura usam o tema original. A revisão ganhou confirmação de exclusão, botão CONCLUIR e compartilhamento quando o navegador suporta, usando as mesmas cores. Os botões de revisão receberam contraste legível.
+
+## Correções integradas
+
+- Uma fila central controla os pedidos de câmera e microfone; pedidos repetidos reutilizam as faixas existentes.
+- O mesmo elemento de vídeo permanece anexado ao documento durante a troca entre preparação e leitura, com ID temporário separado para não ser confundido com o novo destino.
+- A gravação reutiliza as faixas da prévia, sem abrir outra câmera. O gravador é preparado antes da contagem e começa ao final dela.
+- Reprodução bloqueada pelo navegador oferece Ativar imagem da câmera.
+- Trocar câmera, resolução e FPS atualiza a câmera sem encerrar desnecessariamente o microfone. Dimensões e FPS efetivos são informados; 4K/60 e proporção exata não são garantidos.
+- Comando inicial usa frases completas sem misturar alternativas incompatíveis. Iniciar por toque continua disponível. Rolagem por voz continua baseada no volume, sem acompanhamento palavra por palavra.
+- Recomeçar/voltar durante uma gravação conduz primeiro à revisão. Salvar não fecha nem descarta a cópia temporária. Só conclua após confirmar o arquivo fora do navegador.
+- Cancelamentos ignoram gravações e permissões atrasadas; dados ilegíveis são preservados para recuperação.
+- O cache foi versionado para não misturar os scripts antigos com os atualizados.
+
+## Testar no computador
+
+Node.js 20+ apenas para servidor/testes. Não precisa instalar pacotes para executar.
 
     npm start
-
-Abra http://127.0.0.1:8080. O servidor escuta apenas neste computador. Não há instalação de dependências para executar ou testar. Como não há etapa de compilação, a pasta do projeto já contém os arquivos finais.
-
-## Usar no celular
-
-É necessário hospedar os arquivos por HTTPS. Não abra index.html como arquivo e não use o endereço HTTP de rede local para testar câmera/microfone no celular.
-
-No iPhone, abra no Safari; no Android, abra no Chrome. Instalar na tela de início é opcional. Os requisitos exatos de versão e hardware permanecem NÃO TESTADOS em aparelhos reais. A instalação PWA não dispensa a permissão de câmera/microfone.
-
-## GitHub existente
-
-Repositório informado: https://github.com/rgsurano-code/oxprompter-mobile
-
-Esta entrega não foi enviada ao GitHub. Não contém credenciais, identidade de um novo Site ou autorização para substituir a versão publicada.
-
-1. Exporte um backup pela versão mobile atual.
-2. Preserve a versão atual em uma tag ou branch recuperável.
-3. Prepare uma branch de teste, por exemplo mobile-v2-beta. Copie o conteúdo desta pasta para a raiz dessa branch, incluindo .nojekyll; não acrescente uma pasta intermediária.
-4. Mantenha a versão publicada atual até concluir a validação. Uma branch separada por si só não publica um segundo GitHub Pages; use um ambiente de prévia ou escolha a branch nas configurações do Pages somente quando quiser alterar a publicação.
-5. O projeto usa caminhos relativos, compatíveis com o subcaminho /oxprompter-mobile/. O endereço exato publicado deve ser confirmado nas configurações do Pages; não foi verificado nesta entrega.
-6. Após uma atualização, feche todas as abas antigas e a PWA antes de reabrir. Não limpe o armazenamento como tentativa de atualizar: isso apaga os roteiros.
-
-Os módulos novos ficam em studio-v2/, evitando que o service worker anterior devolva os scripts antigos com o mesmo nome. O novo worker não força ativação durante uma gravação. Em atualizações futuras, revise a versão do cache e sua lista de arquivos.
-
-## Como gravar
-
-1. Crie sua senha local ou entre com a senha já existente no mesmo endereço.
-2. Escreva/importe o roteiro e selecione Salvar e preparar.
-3. Escolha câmera e orientação; segure o celular nessa orientação. Teste a câmera e o microfone separadamente.
-4. Confira o enquadramento e as dimensões efetivas. Resolução e FPS são pedidos preferenciais: 4K, 60 fps e formato exato de quadro não são garantidos. Não existe recorte/conversão por canvas para forçar proporções.
-5. Escolha gravação de vídeo/áudio e câmera atrás do texto. Essas opções são independentes. Sem vídeo e sem áudio, ocorre apenas a leitura.
-6. Inicie e aguarde a contagem. Em modo por voz, falar movimenta o texto e o silêncio o interrompe. O comando inicial pode depender de internet e dos serviços de reconhecimento do navegador; Iniciar por toque permite continuar sem ele.
-7. Pausar interrompe tanto a rolagem quanto o gravador. Ao colocar o app em segundo plano, a sessão tenta pausar; verifique e continue manualmente ao voltar. O sistema pode interromper a captura, especialmente ao bloquear a tela ou atender chamadas.
-8. Finalize e reproduza o take. Use Salvar produção ou Compartilhar / salvar no celular, quando disponível. Confira o arquivo em Arquivos/Downloads/Fotos conforme as opções oferecidas pelo aparelho. O aplicativo não confirma a existência do arquivo salvo pelo sistema.
-9. Só então use Concluir e voltar. Essa opção libera a cópia temporária. Excluir produção pede confirmação. Recomeçar uma gravação em andamento conduz primeiro à revisão para não descartar o take.
-
-A prévia frontal é espelhada para facilitar o enquadramento; a gravação usa a imagem original. O espelho do texto é um ajuste independente. O texto, os botões e as anotações não são incluídos no vídeo gravado.
-
-## Dados e privacidade
-
-A chave tp_data_v1 foi preservada. Dados compatíveis podem ser reaproveitados apenas no mesmo domínio, protocolo, porta, perfil e contexto de navegador. Safari, PWA e Chrome podem manter armazenamentos distintos. Exportar/importar backup é o caminho para transferir roteiros.
-
-A senha é um bloqueio da interface e não cifra os roteiros. A compatibilidade com o hash antigo foi mantida; esta versão não é indicada para proteger documentos sensíveis contra alguém com acesso ao navegador. Backups não incluem a senha.
-
-Dados ilegíveis são preservados e bloqueiam novas gravações no armazenamento; a tela oferece exportação dos dados brutos para recuperação. Falhas de quota são informadas. Os arquivos de produção ficam na memória até serem baixados e confirmados pelo usuário, e não sobrevivem garantidamente a fechamento, recarga, falha ou encerramento do navegador pelo sistema. Há finalização automática acima de aproximadamente 300 MB de dados para reduzir o risco de esgotar a memória; aparelhos podem atingir limites antes disso. Faça takes curtos e salve com frequência.
-
-Roteiros e gravações não são enviados a servidor pelo aplicativo. O reconhecimento de fala é do navegador e pode usar um serviço externo. O navegador e o GitHub Pages mantêm suas próprias práticas de rede e privacidade.
-
-## Testes
-
     npm test
     npm run check
 
-Consulte RELATORIO-VALIDACAO-V2.md e ROTEIRO-TESTES-CELULAR.md. Os testes de câmera/gravador usam simulações; não comprovam reprodução, codecs ou permissões em aparelhos reais. A tela inicial foi inspecionada no navegador do computador em larguras de celular. Em ambiente isolado, com armazenamento virtual sem senha e sem acesso a dados reais, também foram conferidos criação de roteiro, preparação, contagem, leitura automática, pausa, ajustes, ocultação de controles, rotação e retorno à biblioteca. Login real, persistência real, mídia física e salvamento não foram testados de ponta a ponta. Para reproduzir esse ambiente opcional, execute node tests/qa-server.mjs e abra a porta 8082. Ele não é a versão para uso nem deve ser utilizado para armazenar dados.
+No celular, abra a publicação HTTPS pelo Safari do iPhone ou Chrome do Android. Não abra o HTML como arquivo nem use HTTP de rede local para câmera/microfone. Instalar a PWA é opcional.
 
-## Estrutura e manutenção
+## Limites e privacidade
 
-- index.html / styles.css: interface responsiva e elemento de vídeo persistente.
-- studio-v2/media-session.js: propriedade das faixas, fila de aquisições, cancelamento e gravador.
-- studio-v2/reader.js: rolagem, pausa, cronômetro e reposicionamento.
-- studio-v2/speech.js: comando inicial e medidor de voz.
-- studio-v2/store.js: compatibilidade de dados, limites e backups.
-- studio-v2/documents.js: extratores de documentos aproveitados da referência, com correção do delimitador RTF.
-- studio-v2/app.js: coordenação das telas e dos fluxos.
-- vendor/: JSZip original e sua licença.
-- icons/: ícones aproveitados do projeto fornecido.
-- tests/: testes reproduzíveis sem dependências adicionais.
+Câmera e microfone reais são solicitados somente nos testes/início que os utilizem. O aplicativo final não contém a câmera simulada utilizada na verificação isolada. Roteiros e gravações não são enviados a servidor pelo app. O comando de voz do navegador pode usar internet e serviço externo.
 
-Próximo passo: revisar esta entrega em branch separada e validar câmera, microfone, reprodução e salvamento em iPhone e Android físicos antes de promover a versão.
+A senha bloqueia a interface, sem criptografar os roteiros. A produção fica na memória até você baixá-la; fechamento, recarga ou encerramento pelo sistema podem perdê-la. Há finalização automática acima de aproximadamente 300 MB de dados; um aparelho pode atingir seu limite antes disso. Resolução, formato, orientação e duração máxima dependem do dispositivo.
+
+Consulte RELATORIO-TEMA-ORIGINAL.md. Testes simulados no computador não comprovam funcionamento em iPhone e Android físicos. Os arquivos de tests/evidence e RELATORIO-AUDITORIA.md vindos do ZIP anterior são históricos, não resultados desta entrega.

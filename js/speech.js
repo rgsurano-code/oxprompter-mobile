@@ -1,0 +1,2 @@
+const themeCommand=new StartCommand();
+function startStartCommandListener(onCommand,onFailure){const stamp=sessionId;const phrases=(current.settings.startCmds||[]).map(c=>c.phrase).filter(Boolean);const listening=themeCommand.listen(phrases,()=>{commandRecognition=null;if(stamp===sessionId)onCommand?.();},message=>{if(stamp!==sessionId)return;setStatus('yellow',message);if(!themeCommand.rec)onFailure?.();});commandRecognition=themeCommand.rec;return listening;}

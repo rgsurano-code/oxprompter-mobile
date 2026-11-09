@@ -1,0 +1,36 @@
+✔ corrupted storage does not crash or overwrite the original (17.2239ms)
+✔ partially malformed legacy data is preserved for recovery (7.0895ms)
+✔ quota failure is reported once and leaves previous data intact (6.9928ms)
+✔ time parsing treats HH:MM[:SS] as a duration and rejects invalid values (5.4119ms)
+✔ script annotations are excluded and displayed content is escaped (6.4495ms)
+✔ MIME negotiation separates audio-only from video (6.7332ms)
+✔ entity decoding does not interpret escaped markup as HTML (11.6092ms)
+✔ pedidos concorrentes da mesma câmera compartilham uma aquisição (5.9276ms)
+✔ iniciar com câmera e áudio usa uma única solicitação combinada (0.6742ms)
+✔ ativar o microfone mantém a mesma faixa da câmera (0.6018ms)
+✔ troca de câmera libera a anterior e mantém o áudio (0.7987ms)
+✔ fechar durante permissão pendente encerra as faixas atrasadas (9.8395ms)
+✔ cancelamento invalida também os pedidos que estavam na fila (1.0319ms)
+✔ falha de permissão não bloqueia uma nova tentativa (0.8045ms)
+✔ a prévia mantém srcObject e faixa entre preparação e leitura (1.1425ms)
+✔ prévia rejeitada não é anunciada como reproduzida (0.9202ms)
+✔ finalizar produz arquivo e preserva as faixas originais (5.9903ms)
+✔ vídeo silencioso usa apenas vídeo e preserva o microfone da rolagem (0.8872ms)
+✔ gravação de áudio não contém vídeo e não derruba a prévia (0.7156ms)
+✔ alteração de dispositivo e início duplicado são bloqueados durante gravação (0.9737ms)
+✔ não substitui gravador antes de receber o último bloco (1.1018ms)
+✔ constraints mantêm orientação solicitada sem prometer suporte exato (0.964ms)
+✔ gravador preparado permanece inativo até a contagem terminar (0.6029ms)
+✔ cancelar um gravador antigo não publica a gravação no próximo take (0.8456ms)
+✔ CSS, ícones e manifesto são idênticos aos do ZIP do usuário (13.9866ms)
+✔ todos os campos de configuração originais permanecem na preparação (2.7362ms)
+✔ savePrep conserva configurações e comandos anteriores sem renomear chaves (4.0569ms)
+✔ o vídeo estacionado não é confundido com o novo destino da prévia (4.6062ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14465.7544

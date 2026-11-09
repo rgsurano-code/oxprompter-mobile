@@ -1,0 +1,18 @@
+✔ reconhece comando de uma palavra: Gravar (2.2692ms)
+✔ reconhece comando de uma palavra: Começar (0.4131ms)
+✔ reconhece comando de uma palavra: Ação (0.2984ms)
+✔ não dispara gravar quando ouve gravador (0.3803ms)
+✔ atalhos não duplicam comandos e preservam os personalizados (19.5964ms)
+✔ CSS, ícones e manifesto são idênticos aos do ZIP do usuário (5.6712ms)
+✔ todos os campos de configuração originais permanecem na preparação (1.0827ms)
+✔ savePrep conserva configurações e comandos anteriores sem renomear chaves (3.2104ms)
+✔ o vídeo estacionado não é confundido com o novo destino da prévia (2.8358ms)
+✔ o tema mobile original também está embutido na entrada HTML (2.7753ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14547.2033

@@ -1,0 +1,17 @@
+OXPROMPTER MOBILE — ATUALIZAÇÃO COM TEMA ORIGINAL
+Versão 2.0.0-beta.3
+
+1. Faça backup pela versão atual: Exportar roteiros.
+2. Extraia este ZIP.
+3. Copie o CONTEÚDO da pasta OXPROMPTER-MOBILE-ENQUADRAMENTO-COMANDOS para a raiz do repositório, onde já está index.html. Não envie o ZIP nem crie uma pasta intermediária no site. Inclua a nova pasta engine e os arquivos js, css, icons, vendor, index.html, manifest.json e sw.js.
+4. Preserve uma branch/cópia anterior antes de atualizar.
+5. Publique pelo GitHub Pages como já faz e abra o mesmo endereço HTTPS.
+6. Feche abas/PWA antigas antes de reabrir para atualizar o cache. Não limpe dados do site sem backup.
+
+O tema CSS, os ícones e o manifesto foram mantidos. As telas e os campos de configuração são os originais. Ajustes pessoais ficam no navegador, não no ZIP; no mesmo endereço/perfil a chave tp_data_v1 é preservada. Se mudar de endereço ou navegador, importe seu backup.
+
+A versão de uso acessa câmera e microfone REAIS após sua autorização. A câmera artificial foi usada apenas em ambiente de teste separado; ela NÃO está embutida no aplicativo.
+
+Leia README.md e RELATORIO-TEMA-ORIGINAL.md para limites e testes. iPhone e Android físicos continuam NÃO TESTADOS.
+
+NOVO: não há seleção Vertical/Horizontal. Configure o enquadramento na prévia: imagem inteira, preencher, plano médio, close ou manual. Os botões Gravar/Começar/Ação adicionam comandos iniciais de uma palavra. Veja README.md.
