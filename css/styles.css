@@ -34,6 +34,8 @@ body:not(.prompter){background:#050807;color:#d9fff5}body:not(.prompter) .top{ba
 .cyber-hint{font-size:12px;color:#78a99f;line-height:1.5;margin-top:8px}
 .cyber-badge{display:inline-block;border:1px solid rgba(66,255,208,.35);padding:4px 8px;border-radius:999px;color:#42ffd0;font-size:11px;letter-spacing:.06em}
 
+/* V1.19 - preparação compacta */
+.prepShell{padding-top:12px;padding-bottom:12px}.prepGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.prepCard{padding:12px;margin-bottom:0}.prepCard .section-title{font-size:15px;margin:0 0 8px}.prepCard .grid{gap:8px}.prepCard .field{gap:4px}.prepCard .field input,.prepCard .field select{padding:8px}.prepHint{margin-bottom:6px}.voiceTimeCard{grid-column:1/-1}.cameraCardBody{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(260px,.85fr);gap:12px;align-items:start}.camera-preview-wrap{margin-top:0;min-width:0}.camera-preview{width:100%;aspect-ratio:16/9;object-fit:cover;background:#020504;border:1px solid rgba(66,255,208,.35);border-radius:10px;display:block}.camera-preview-note{font-size:11px;color:#78a99f;line-height:1.35;margin-top:5px}.cameraCardBody .record-help{grid-column:1/-1;margin-top:0}.voiceTimeGrid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}.timeFields{display:grid;grid-template-columns:1fr 1fr;gap:8px}.compactBtn{padding:7px 10px;font-size:12px}.cmd{grid-template-columns:minmax(0,1fr) auto;margin:5px 0}.cmd select{display:none}.cmd button{padding:6px 8px}.prepFooter{padding:10px;margin-top:10px}.prepFooter .row{justify-content:flex-end}
 /* V1.28 - autorização antecipada e largura do texto */
 /* V1.19 - HUD lateral */
 .promptHud{position:fixed;top:0;left:0;right:0;z-index:30;pointer-events:none}.hudBox{width:100%;padding:8px 22px;background:rgba(0,0,0,.34);backdrop-filter:blur(5px);color:#fff;font-variant-numeric:tabular-nums;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;gap:12px;border-bottom:1px solid rgba(66,255,208,.18)}.hudAlert{height:34px;display:flex;align-items:center;justify-content:center;gap:10px;grid-column:2;grid-row:1 / span 1;align-self:start}.hudAlert .dot{width:18px;height:18px}.hudAlert .runner{font-size:34px;order:0}.hudAlert .runner.show{display:inline-block}.promptTimer{font-size:46px;line-height:1;font-weight:900;letter-spacing:.02em;grid-column:1;grid-row:1 / span 2;text-align:left}.hudStatusText{font-size:12px;line-height:1.2;min-height:13px;color:#c7fff5;margin-top:2px;grid-column:2;grid-row:2;text-align:center}.hudMic{font-size:13px;color:#b8fff0;margin-top:0;grid-column:3;grid-row:1;text-align:right}.hudMicTrack{width:100px;height:7px}.hudDb{font-size:18px;color:#9ed9cc;margin-top:0;font-weight:800;grid-column:3;grid-row:2;text-align:right}.runner{display:none}.hudAlert .runner.show{display:inline-block;animation:bounce .55s infinite alternate}
@@ -67,17 +69,17 @@ body:not(.prompter){background:#050807;color:#d9fff5}body:not(.prompter) .top{ba
 .mic-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:50000;padding:20px}.mic-box{width:min(520px,95vw);background:#071512;border:1px solid #42ffd0;border-radius:16px;padding:22px;box-shadow:0 0 35px rgba(66,255,208,.22);color:#dffef7}.mic-box h3{margin:0 0 8px;color:#42ffd0}.mic-meter{height:18px;border:1px solid rgba(66,255,208,.45);border-radius:999px;overflow:hidden;background:#020504;margin:18px 0}.mic-level{height:100%;width:0;background:#42ffd0;box-shadow:0 0 14px rgba(66,255,208,.7);transition:width .08s}.mic-status{font-size:13px;color:#8dcfc0;min-height:20px}.mic-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}
 
 .record-card{border:1px solid rgba(66,255,208,.28);background:#06100e;border-radius:14px;padding:16px;margin-bottom:18px}
-
-
-
-
-
-
-
-
-
+.record-preview{position:fixed;right:18px;top:96px;width:min(300px,32vw);aspect-ratio:16/9;background:#020202;border:2px solid #42ffd0;border-radius:12px;overflow:hidden;z-index:25;box-shadow:0 0 20px rgba(66,255,208,.22)}
+.record-preview video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)}
+.record-badge{position:absolute;left:10px;top:10px;background:rgba(0,0,0,.72);color:#fff;padding:5px 8px;border-radius:999px;font-size:12px}
+.record-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#d22;margin-right:5px;box-shadow:0 0 8px currentColor}
+.recording .record-dot{background:#f33;animation:recblink 1s infinite}
+@keyframes recblink{50%{opacity:.35}}
+.record-controls{position:fixed;right:18px;bottom:18px;z-index:30;display:flex;gap:8px;background:transparent;padding:8px;border-radius:12px}
+.record-controls button{background:#071512;color:#42ffd0;border-color:#42ffd0}
+.record-controls .stop-rec{color:#fff;background:#8d1111;border-color:#f66}
 .record-help{font-size:12px;color:#78a99f;line-height:1.5;margin-top:8px}
-@media(max-width:700px){.promptText{padding-right:10px;max-width:86vw}.hudBox{padding:6px 10px}.promptTimer{font-size:34px}.hudDb{font-size:15px}}
+@media(max-width:700px){.cameraCardBody{grid-template-columns:1fr}.record-preview{width:180px;right:8px;top:86px}.record-controls{left:8px;right:8px;justify-content:center;bottom:8px}.record-controls button{padding:9px 10px}.promptText{padding-right:10px;max-width:86vw}.hudBox{padding:6px 10px}.promptTimer{font-size:34px}.hudDb{font-size:15px}}
 
 .record-review{position:fixed;inset:0;background:rgba(0,0,0,.86);display:flex;align-items:center;justify-content:center;z-index:60000;padding:20px}.record-review-box{width:min(900px,96vw);max-height:94vh;overflow:auto;background:#071512;border:1px solid #42ffd0;border-radius:16px;padding:20px;box-shadow:0 0 40px rgba(66,255,208,.22);color:#dffef7}.record-review-title{font-size:22px;font-weight:800;color:#42ffd0;margin-bottom:6px}.record-review-help{font-size:13px;color:#8dcfc0;margin-bottom:14px}.record-review video{width:100%;max-height:68vh;background:#000;border-radius:10px;display:block}.trim-panel{margin-top:12px;padding:10px 12px;border:1px solid rgba(66,255,208,.28);border-radius:10px;background:#050d0b}.trim-title{font-size:12px;color:#42ffd0;font-weight:800;margin-bottom:7px}.trim-track{position:relative;height:12px;margin:8px 4px 10px;background:#1a2824;border-radius:99px}.trim-fill{position:absolute;top:0;height:100%;background:#42ffd0;border-radius:99px;opacity:.55}.trim-range{width:100%;position:absolute;left:0;top:-6px;margin:0;pointer-events:none;appearance:none;background:transparent}.trim-range::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:#42ffd0;border:2px solid #06110e;box-shadow:0 0 8px rgba(66,255,208,.5);pointer-events:auto;cursor:pointer}.trim-range::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#42ffd0;border:2px solid #06110e;box-shadow:0 0 8px rgba(66,255,208,.5);pointer-events:auto;cursor:pointer}.trim-times{display:flex;justify-content:space-between;color:#9ed8cc;font-size:11px}.trim-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}.trim-status{font-size:11px;color:#78a99f}.record-review-actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
 .review-previews{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.review-preview-card{background:#050d0b;border:1px solid rgba(66,255,208,.22);border-radius:12px;padding:10px}.review-preview-title{font-size:12px;font-weight:800;color:#42ffd0;margin-bottom:7px;display:flex;justify-content:space-between;gap:8px}.review-preview-card video,.review-preview-card audio{width:100%;max-height:42vh;background:#000;border-radius:8px;display:block}.review-preview-placeholder{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:#020605;border-radius:8px;color:#6f9f95;font-size:13px;text-align:center;padding:20px}.trim-time-editor{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.trim-time-editor label{font-size:11px;color:#9ed8cc;display:flex;flex-direction:column;gap:4px}.trim-time-editor input{width:100%;padding:7px 8px;border-radius:7px;border:1px solid rgba(66,255,208,.25);background:#020504;color:#dffef7}.trim-before-after-note{font-size:11px;color:#78a99f;margin-top:7px}.theme-preview-white{background:#fff!important;color:#111!important;border-color:#42ffd0!important}.prompter.light,.prompter.light .promptStage{background:#fff!important;color:#111!important}.prompter.light .promptHud{color:#111!important}.prompter.light .hudBox{background:rgba(255,255,255,.92)!important;color:#111!important;border-bottom-color:rgba(0,0,0,.12)!important}.prompter.light .hudStatusText,.prompter.light .hudMic,.prompter.light .hudDb{color:#111!important}.prompter.light .controls{background:rgba(255,255,255,.92)!important;border:1px solid #ccc}.prompter.light .controls button,.prompter.light .controls select{background:#fff!important;color:#111!important;border-color:#bbb!important}.prompter.light .promptText{color:#111!important}.prompter.light .guide{background:#e60000!important}
@@ -92,12 +94,19 @@ body:not(.prompter){background:#050807;color:#d9fff5}body:not(.prompter) .top{ba
 .prompter .w.current{background:#20e0c0;color:#06110e;border-radius:4px;padding:0 3px}
 
 /* V1.25 - camera layout + initial voice command banner + shared media permission */
-
-.camera-controls{min-width:0}
+.cameraCardBody{display:grid;grid-template-columns:minmax(280px,.78fr) minmax(420px,1.22fr);gap:18px;align-items:start}
+.camera-controls{min-width:0}.camera-preview-wrap{margin:0;display:block;min-width:0}.camera-preview{width:100%;aspect-ratio:16/9;min-height:240px;object-fit:cover;background:#000;border:2px solid rgba(66,255,208,.55);border-radius:10px;display:block}.camera-preview-note{font-size:11px;color:#78a99f;line-height:1.35;margin-top:6px}.cameraCardBody .record-help{grid-column:1/-1}
 .start-command-banner{position:fixed;top:72px;left:50%;transform:translateX(-50%);z-index:45;width:min(900px,88vw);padding:10px 18px;border:1px solid rgba(66,255,208,.55);border-radius:10px;background:rgba(3,16,13,.92);box-shadow:0 0 20px rgba(66,255,208,.12);text-align:center;color:#dffef7;font-size:16px;font-weight:800;letter-spacing:.03em}.start-command-banner .label{display:block;color:#42ffd0;font-size:11px;letter-spacing:.16em;margin-bottom:4px}.start-command-banner .phrase{font-size:20px;color:#fff}
 .permission-hint{margin-top:6px;font-size:11px;color:#78a99f;line-height:1.35}.permission-ok{color:#42ffd0}
-@media(max-width:900px){}
-@media(max-width:700px){.start-command-banner{top:58px;width:92vw;padding:8px 12px}.start-command-banner .phrase{font-size:16px}}
+@media(max-width:900px){.cameraCardBody{grid-template-columns:1fr 1fr}.camera-preview{min-height:180px}}
+@media(max-width:700px){.cameraCardBody{grid-template-columns:1fr}.camera-preview{min-height:0}.start-command-banner{top:58px;width:92vw;padding:8px 12px}.start-command-banner .phrase{font-size:16px}}
+
+/* V1.25 - preparação minimalista */
+.prepShell{max-width:1120px!important;padding:10px 14px 12px!important}.prepGrid{grid-template-columns:1fr 1fr!important;gap:8px!important}.prepCard{border-radius:12px!important;padding:10px!important;background:#07100e!important}.prepCard .section-title{font-size:13px!important;letter-spacing:.04em;margin:0 0 7px!important}.prepCard .field label{font-size:11px!important}.prepCard .field input,.prepCard .field select{padding:7px 8px!important;font-size:13px!important}.prepCard .row button,.prepCard button{padding:6px 9px!important;font-size:12px!important}.prepHint,.permission-hint,.record-help,.camera-preview-note{font-size:10px!important;line-height:1.25!important}.voiceTimeGrid{grid-template-columns:1.1fr .9fr!important;gap:10px!important}.timeFields{gap:6px!important}.cmd{gap:6px!important;margin:4px 0!important}.cmd input{padding:7px!important;font-size:12px!important}.cmd button{padding:5px 7px!important}.cameraCardBody{grid-template-columns:minmax(235px,.62fr) minmax(430px,1.38fr)!important;gap:10px!important}.cameraCardBody .grid{grid-template-columns:1fr 1fr!important}.camera-preview{min-height:205px!important;border-width:1px!important}.camera-preview-wrap{display:block!important}.camera-preview-note{margin-top:4px!important}.camera-controls .permission-hint{margin-top:5px}.prepFooter{padding:7px 9px!important;margin-top:8px!important;background:#07100e!important;border-radius:12px!important}.prepFooter .row{justify-content:space-between!important}.prepFooter button{padding:7px 11px!important}.prepFooter #start{min-width:170px}.start-command-banner{transition:opacity .15s ease}
+@media(max-width:850px){.prepGrid{grid-template-columns:1fr!important}.cameraCardBody{grid-template-columns:1fr!important}.cameraCardBody .grid{grid-template-columns:1fr 1fr!important}}
+@media(max-width:560px){.cameraCardBody .grid,.timeFields{grid-template-columns:1fr!important}}
+
+
 
 /* MOBILE TESTE 9 — controles organizados também no modo horizontal */
 @media (orientation:landscape) and (max-height:700px){
@@ -146,19 +155,19 @@ body:not(.prompter){background:#050807;color:#d9fff5}body:not(.prompter) .top{ba
 .prompter .controls button{width:44px!important;min-width:44px!important;height:42px!important;min-height:42px!important;padding:4px!important;background:rgba(5,9,9,.18)!important;border-color:rgba(66,255,208,.35)!important;color:#42ffd0!important;font-size:20px!important;}
 .prompter .controls.controls-hidden{display:none!important}
 .prompter .controlsReveal{position:fixed!important;left:50%!important;right:auto!important;top:auto!important;bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;transform:translateX(-50%)!important;z-index:121!important;background:rgba(5,9,9,.18)!important;border:1px solid rgba(66,255,208,.35)!important;color:#42ffd0!important;}
-
+.prompter .record-controls{display:none!important}
 @media (orientation:landscape){.prompter .controls{left:50%!important;right:auto!important;top:auto!important;bottom:calc(4px + env(safe-area-inset-bottom,0px))!important;transform:translateX(-50%)!important;width:max-content!important;max-width:calc(100vw - 12px)!important;flex-wrap:nowrap!important;gap:5px!important;padding:4px 7px!important}.prompter .controls button{width:38px!important;min-width:38px!important;height:36px!important;min-height:36px!important;font-size:18px!important}.prompter .controlsReveal{bottom:calc(4px + env(safe-area-inset-bottom,0px))!important}}
 @media(max-width:480px){.prompter .controls{gap:4px!important;padding:5px!important}.prompter .controls button{width:39px!important;min-width:39px!important;height:38px!important;min-height:38px!important}}
 
 
-.prepGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.prepCard{padding:10px!important;margin:0!important}.prepCard .section-title{margin-bottom:6px}.prepCard .grid{gap:7px}.prepFooter{margin-top:8px!important}
+.prepShell{max-width:1180px!important}.prepGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.prepCard{padding:10px!important;margin:0!important}.prepCard .section-title{margin-bottom:6px}.prepCard .grid{gap:7px}.prepFooter{margin-top:8px!important}
 #pauseMarker{display:none;position:absolute;left:4%;right:4%;height:2px;background:#20e0c0;z-index:20}
 @media(max-width:850px){.prepGrid{grid-template-columns:1fr}}
 
 
 .promptTop{display:none!important}.promptStage{padding:0 5vw}.promptText{text-align:center;left:5vw;right:5vw;max-width:none}.controls{bottom:7px;width:auto;min-width:420px;max-width:90vw;padding:4px 6px;gap:4px;opacity:.92}.controls button{height:30px;min-width:31px;font-size:14px}.controls .speed-level{height:30px;min-width:88px;padding:7px 4px}.finalAdjust,.textWidthAdjust{height:30px}.startReference{left:5vw;right:5vw}.adjusting .startReference{display:block}.adjusting .promptHud{display:none}.adjusting .controls{opacity:1}.adjusting .promptText{cursor:default}
-.prepCard .section-title{font-size:15px;margin:2px 0 8px}.prepCard .grid{gap:8px}.prepCard .field{gap:4px}.prepCard .field input,.prepCard .field select{padding:8px}.prepCard .row{gap:6px}.prepFooter{padding:10px;margin-bottom:0}.prepFooter button{padding:8px 12px}
-@media(max-width:700px){.controls{min-width:0;width:auto}.promptHud{right:8px}.hudBox{min-width:108px}.promptTimer{font-size:30px}.promptText{left:3vw;right:3vw}.startReference{left:3vw;right:3vw}.prepGrid{grid-template-columns:1fr}.voiceTimeGrid{grid-template-columns:1fr}.timeFields{grid-template-columns:1fr 1fr}}
+.prepCard{margin-bottom:8px;padding:12px}.prepCard .section-title{font-size:15px;margin:2px 0 8px}.prepCard .grid{gap:8px}.prepCard .field{gap:4px}.prepCard .field input,.prepCard .field select{padding:8px}.prepCard .row{gap:6px}.prepFooter{padding:10px;margin-bottom:0}.prepFooter button{padding:8px 12px}.camera-preview-wrap{margin-top:8px;display:grid;grid-template-columns:minmax(180px,320px) 1fr;gap:10px;align-items:start}.camera-preview{width:100%;aspect-ratio:16/9;background:#000;border:1px solid rgba(66,255,208,.3);border-radius:10px;object-fit:cover}.camera-preview-note{font-size:12px;color:#8dcfc0}
+@media(max-width:700px){.controls{min-width:0;width:auto}.promptHud{right:8px}.hudBox{min-width:108px}.promptTimer{font-size:30px}.promptText{left:3vw;right:3vw}.startReference{left:3vw;right:3vw}.camera-preview-wrap{grid-template-columns:1fr}.prepGrid{grid-template-columns:1fr}.voiceTimeGrid{grid-template-columns:1fr}.timeFields{grid-template-columns:1fr 1fr}}
 
 
 /* Tema da tela de leitura — não altera preparação, biblioteca ou login. */
@@ -218,6 +227,8 @@ body.prompter.light .controls select{
 }
 
 /* OXPROMPTER MOBILE TESTE 1 — câmera como fundo durante gravação */
+.mobileCameraBg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#000;transform:none;opacity:.78;filter:saturate(.95) contrast(1.02);pointer-events:none}
+@supports (-webkit-touch-callout: none){body.prompter.mobile-camera .mobileCameraBg{object-fit:contain;background:#000}}
 
 .mobileCameraShade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,.16) 35%,rgba(0,0,0,.30) 100%);pointer-events:none}
 .prompter.light .mobileCameraShade{background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.08) 40%,rgba(255,255,255,.22))}
@@ -257,6 +268,7 @@ body.prompter.mobile-camera .promptHud,body.prompter.mobile-camera .controls{z-i
 .controlsReveal:not(.hidden){display:flex;align-items:center;justify-content:center;}
 .promptText{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;}
 .promptText.dragging{cursor:grabbing;}
+.mobileCameraBg{object-fit:cover;object-position:center center;transform:none!important;}
 @media(max-width:700px){
   .mobile-camera .controls{left:auto;right:6px;bottom:max(72px,calc(env(safe-area-inset-bottom) + 62px));width:auto;max-width:58px;min-width:0;transform:none;display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:4px!important;border-radius:12px;background:transparent!important;}
   .mobile-camera .controls .finalAdjust{display:flex;flex-direction:column;align-items:center;gap:3px;width:48px;height:auto;padding:4px;background:transparent!important;}
@@ -303,123 +315,29 @@ body.prompter .mobile-camera-badge{display:none}
 @media(orientation:landscape) and (max-height:560px){body.prompter .controls{flex-wrap:nowrap!important;justify-content:center!important;max-height:64px!important}}
 .field.check{flex-direction:row;justify-content:flex-start;align-items:center;gap:9px}
 .field.check input{flex:0 0 20px;width:20px;height:20px;min-height:20px}
-@media(max-width:700px){.prepShell .voiceTimeGrid{grid-template-columns:1fr!important}.prepShell .timeFields{grid-template-columns:1fr 1fr!important}.prepShell .field label{font-size:13px!important}.prepShell .field select,.prepShell .field input{font-size:16px!important}.prepShell .field.check input{padding:0!important}.prepHint,.permission-hint,.record-help{font-size:12px!important}}
+@media(max-width:700px){.prepShell .voiceTimeGrid{grid-template-columns:1fr!important}.prepShell .timeFields{grid-template-columns:1fr 1fr!important}.prepShell .field label{font-size:13px!important}.prepShell .field select,.prepShell .field input{font-size:16px!important}.prepShell .field.check input{padding:0!important}.prepHint,.permission-hint,.record-help,.camera-preview-note{font-size:12px!important}}
 
 body.prompter.light .controls .fontValue,body.prompter.light .controls .speed-level{color:#005342!important}
 
 
-
-
-/* OXPROMPTER V0.3 — revisão da gravação: tema escuro e botões legíveis */
-#recordReview.record-review{background:rgba(0,0,0,.88)!important;color:#dffef7!important;padding:clamp(10px,3vw,20px)!important;}
-#recordReview .record-review-card{width:min(900px,96vw);max-height:94dvh;overflow:auto;background:#071512!important;color:#dffef7!important;border:1px solid rgba(66,255,208,.65)!important;border-radius:16px;padding:clamp(14px,3vw,22px);box-shadow:0 0 34px rgba(66,255,208,.16);}
-#recordReview .record-review-head{margin-bottom:12px;}
-#recordReview .record-review-title{font-size:clamp(17px,4vw,22px);font-weight:800;color:#42ffd0!important;margin-bottom:6px;}
-#recordReview .record-review-sub{font-size:13px;line-height:1.45;color:#a8d9cf!important;}
-#recordReview .record-review-media{width:100%;}
-#recordReview .review-preview-card{background:#050d0b!important;border:1px solid rgba(66,255,208,.28);border-radius:12px;padding:10px;}
-#recordReview .review-preview-title{color:#42ffd0!important;font-weight:800;font-size:12px;margin-bottom:8px;}
-#recordReview video,#recordReview audio{display:block;width:100%;max-height:58dvh;background:#000;border-radius:9px;}
-#recordReview .record-review-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin-top:14px;}
-#recordReview .record-review-actions button{min-height:46px;padding:11px 18px;border-radius:10px;font-weight:800;letter-spacing:.02em;}
-#recordReview #deleteRecording{background:#351014!important;color:#ffb8bd!important;border:1px solid #ff626d!important;}
-#recordReview #saveRecording{background:#42ffd0!important;color:#03100d!important;border:1px solid #42ffd0!important;}
-#recordReview .record-review-actions button:focus-visible{outline:3px solid #fff!important;outline-offset:3px;}
-@media(max-width:480px){#recordReview .record-review-actions{display:grid;grid-template-columns:1fr 1fr;}#recordReview .record-review-actions button{padding:10px 8px;font-size:13px;}#recordReview video{max-height:48dvh;}}
-
-/* V0.4 — botão de início por toque integrado à área de leitura */
-.touch-start-button{position:absolute;z-index:80;left:50%;top:50%;transform:translate(-50%,-50%);width:min(84vw,360px);min-height:58px;padding:16px 22px;border:2px solid #42ffd0;border-radius:14px;background:rgba(3,18,14,.96);color:#42ffd0;font-size:clamp(15px,4vw,20px);font-weight:900;letter-spacing:.06em;text-align:center;box-shadow:0 0 24px rgba(66,255,208,.28);touch-action:manipulation}
-.touch-start-button:active{background:#42ffd0;color:#03100d;transform:translate(-50%,-50%) scale(.98)}
-.prompter.light .touch-start-button{background:rgba(255,255,255,.97);color:#087a62;border-color:#087a62}
-
-/* ============================================================
-   CÂMERA DE FUNDO + PRÉVIA — REGRA ÚNICA E LIMPA
-   Substitui: MOBILE TESTE 1, MOBILE TESTE 7 e ajustes iOS antigos.
-   ============================================================ */
-
-/* Fundo da leitura com câmera (modo teleprompter + câmera) */
-.mobileCameraBg{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  max-width:100%;
-  max-height:100%;
-  object-fit:cover;
-  object-position:center center;
-  transform:none !important;
-  z-index:0;
-  background:#000;
-  opacity:.78;
-  filter:saturate(.95) contrast(1.02);
-  pointer-events:none;
-}
-
-/* iPhone/iPad — garante que o vídeo de fundo preencha todo o palco */
-@supports (-webkit-touch-callout: none){
-  .mobileCameraBg{
-    position:absolute !important;
-    inset:0 !important;
-    width:100% !important;
-    height:100% !important;
-    max-width:none !important;
-    max-height:none !important;
-    object-fit:cover !important;
-    object-position:center center !important;
-    transform:none !important;
+/* OXPROMPTER MOBILE — ajuste iOS: quadro de câmera ocupa todo o palco.
+   Mantém as regras gerais do Android inalteradas. */
+@supports (-webkit-touch-callout: none) {
+  body.prompter.mobile-camera .mobileCameraBg {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+    transform: none !important;
   }
-}
-
-body.prompter.mobile-camera .promptStage{
-  position:relative;
-  overflow:hidden;
-  height:100dvh;
-  height:100vh;
-  min-height:0;
-}
-
-/* Prévia da câmera na preparação — layout único */
-.cameraCardBody{
-  display:grid !important;
-  grid-template-columns:minmax(260px,.85fr) minmax(300px,1.15fr) !important;
-  gap:14px !important;
-  align-items:start;
-}
-
-.camera-preview-wrap{
-  margin:0;
-  display:block;
-  min-width:0;
-}
-
-.camera-preview{
-  width:100%;
-  aspect-ratio:16/9;
-  min-height:200px;
-  object-fit:cover;
-  background:#020504;
-  border:1px solid rgba(66,255,208,.35);
-  border-radius:10px;
-  display:block;
-}
-
-/* Mantém a divisão interna da preparação em duas colunas */
-.cameraCardBody .grid{
-  display:grid !important;
-  grid-template-columns:1fr 1fr !important;
-}
-
-@media(max-width:850px){
-  .cameraCardBody{
-    grid-template-columns:1fr !important;
-  }
-  .camera-preview{
-    min-height:0;
-  }
-}
-
-@media(max-width:560px){
-  .cameraCardBody .grid{
-    grid-template-columns:1fr !important;
+  body.prompter.mobile-camera .promptStage {
+    position: relative;
+    overflow: hidden;
+    min-height: 100dvh;
+    min-height: 100vh;
   }
 }

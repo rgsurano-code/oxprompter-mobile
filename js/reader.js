@@ -1,4 +1,4 @@
-async function beginCountdownNow(){$('#touchStartButton')?.remove();document.body.classList.remove('adjusting');document.querySelector('.start-command-banner')?.remove();markReferenceWord(false);syncStartReference();
+async function beginCountdownNow(){document.body.classList.remove('adjusting');document.querySelector('.start-command-banner')?.remove();markReferenceWord(false);syncStartReference();
   document.querySelector('.countdown-overlay')?.remove();
   const n=Math.max(1,Number(current.settings.count)||5);const mySession=sessionId;
   const overlay=document.createElement('div');overlay.className='countdown-overlay';overlay.innerHTML='<div class="countdown-label">PREPARE-SE</div><div id="countValue">'+n+'</div>';document.body.appendChild(overlay);
@@ -21,6 +21,7 @@ async function beginCountdownNow(){$('#touchStartButton')?.remove();document.bod
       const liveTracks=recordStream?.getTracks?.().filter(t=>t.readyState==='live')||[];
       if(!liveTracks.length)throw new Error('As faixas de gravação não estão ativas');
       mediaRecorder.start(1000);
+      if(current.settings?.recordOn)ensureRecordingPreview(recordStream);
       const vtrack=recordStream?.getVideoTracks?.()[0];const vst=vtrack?.getSettings?.()||{};const actual=vst.width&&vst.height?` (${vst.width}×${vst.height}${vst.frameRate?' · '+Math.round(vst.frameRate)+' fps':''})`:'';setStatus('green','🔴 Gravando'+actual);
     }catch(e){
       started=false;clearInterval(elapsedTimer);elapsedTimer=null;offerStartRetry();
@@ -53,37 +54,17 @@ async function prepareReadingSession(skipCommand=false){
     if(!ok){offerStartRetry();return}
     if(current.settings.mode!=='noaudio'&&!await ensureReadingMic()){offerStartRetry();return}
     if(token!==sessionId)return;
-    $('#manualStart')?.remove();
-    if(current.settings.mode==='semi'){
-      showTouchStartButton();
-      setStatus('yellow','Pronto. Toque no botão para iniciar a contagem regressiva');
-      return;
-    }
-    beginCountdownNow();
+    $('#manualStart')?.remove();beginCountdownNow();
   };
   const cmds=(current.settings.startCmds||[]).map(c=>normalize(c.phrase)).filter(Boolean);
   if(!skipCommand&&current.settings.mode==='audio'&&cmds.length){
     stopPrepMedia();offerStartRetry();
-    setStatus('yellow','Aguardando comando de voz');
+    setStatus('yellow','Aguardando comando de voz ou toque em Iniciar');
     startStartCommandListener(launch,()=>{offerStartRetry()});
   }else{
     if(commandRecognition){commandRecognition.onend=null;commandRecognition.abort();commandRecognition=null}
     await launch();
   }
-}
-
-function showTouchStartButton(){
-  const stage=$('.promptStage');if(!stage)return;
-  $('#touchStartButton')?.remove();
-  const button=document.createElement('button');
-  button.id='touchStartButton';button.type='button';button.className='touch-start-button';
-  button.textContent='TOQUE PARA INICIAR';
-  button.setAttribute('aria-label','Toque para iniciar a contagem regressiva e a leitura');
-  button.addEventListener('click',()=>{
-    if(button.disabled||!preparingPrompter)return;
-    button.disabled=true;button.remove();beginCountdownNow();
-  },{once:true});
-  stage.appendChild(button);
 }
 
 function normalize(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9áàâãéêíóôõúçñ\s]/gi,' ').replace(/\s+/g,' ').trim()}
@@ -286,7 +267,7 @@ function stopAll(){
   if(manualRaf){cancelAnimationFrame(manualRaf);manualRaf=null}
   if(elapsedTimer){clearInterval(elapsedTimer);elapsedTimer=null}
   readingMicStream?.getTracks().forEach(t=>t.stop());readingMicStream=null;
-  document.querySelector('.countdown-overlay')?.remove();$('#manualStart')?.remove();$('#touchStartButton')?.remove();closeMicTest();
+  document.querySelector('.countdown-overlay')?.remove();$('#manualStart')?.remove();closeMicTest();
   stopLiveMicMeter();
   if(mediaRecorder&&mediaRecorder.state!=='inactive'){
     try{reviewAfterStop=false;mediaRecorder.onstop=null;mediaRecorder.ondataavailable=null;mediaRecorder.onerror=null;mediaRecorder.stop()}catch(e){}

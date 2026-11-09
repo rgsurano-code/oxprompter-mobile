@@ -25,16 +25,10 @@ function recordingOrientationConstraints(base){
   const o=current.settings?.mobileRecordOrientation||'portrait';
   const res=String(current.settings?.recordResolution||'auto');
   const fps=String(current.settings?.recordFps||'auto');
-  const video={...base,aspectRatio:{ideal:o==='landscape'?16/9:9/16}};
-  // Só aplica resolução fixa quando o usuário escolher uma de verdade.
-  // No modo "auto" deixamos o iOS/Android decidir a melhor combinação.
-  if(res!=='auto'){
-    let w=res==='720'?1280:res==='1080'?1920:3840;
-    let h=res==='720'?720:res==='1080'?1080:2160;
-    if(o==='portrait'){const t=w;w=h;h=t}
-    video.width={ideal:w};
-    video.height={ideal:h};
-  }
+  let w=res==='720'?1280:res==='1080'?1920:res==='2160'?3840:1920;
+  let h=res==='720'?720:res==='1080'?1080:res==='2160'?2160:1080;
+  if(o==='portrait'){const t=w;w=h;h=t}
+  const video={...base,width:{ideal:w},height:{ideal:h},aspectRatio:{ideal:o==='landscape'?16/9:9/16},resizeMode:{ideal:'none'}};
   if(fps!=='auto')video.frameRate={ideal:Number(fps),max:Number(fps)};
   return video;
 }
@@ -196,7 +190,12 @@ async function ensureReadingMic(){
   }
 }
 
+function ensureRecordingPreview(stream){
+  // No MOBILE: a câmera deve ocupar o fundo do teleprompter, sem uma janela de prévia sobre o texto.
+  return !!stream;
+}
 
+function chooseMime(withVideo=true){const types=withVideo?['video/mp4','video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=h264,aac','video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm']:['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/ogg'];return types.find(t=>window.MediaRecorder?.isTypeSupported?.(t))||''}
 function recordingExt(mime){if(mime.includes('mp4'))return 'mp4';if(mime.includes('ogg'))return 'ogg';return 'webm'}
 
 async function restoreLiveCameraPreview(){
@@ -272,7 +271,7 @@ async function startCameraAndRecording(){
 
     if(wantVideo){
       // Usa o mesmo stream que será gravado. Não abre a câmera novamente.
-      if(current.settings?.mobileCameraBg){const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;try{await bg.play()}catch(e){}}}
+      ensureRecordingPreview(recordStream||videoStream);if(current.settings?.mobileCameraBg){const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=videoStream;bg.muted=true;bg.autoplay=true;bg.playsInline=true;try{await bg.play()}catch(e){}}}
     }
 
     if(!wantVideo&&current.settings.mobileCameraBg){try{const st=await ensurePrepCameraAccess();const bg=$('#mobileCameraBgVideo');if(bg){bg.srcObject=st;await bg.play()}}catch(e){setStatus('yellow','Câmera de fundo indisponível')}}
@@ -308,7 +307,7 @@ async function startCameraAndRecording(){
       try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}
       recordStream=null;
       cameraStream=null;
-      
+      $('#recordPreview')?.remove();
       stopLiveMicMeter();stopPrepMedia();readingMicStream?.getTracks().forEach(t=>t.stop());readingMicStream=null;
 
       if(reviewAfterStop){
@@ -330,8 +329,8 @@ async function startCameraAndRecording(){
   }
 }
 
-function stopRecordingUiOnly(){stopLiveMicMeter();try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}recordStream=null;cameraStream=null;}
-function stopCameraStreams(clearRecording=false){stopLiveMicMeter();if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}cameraStream=null;if(clearRecording){recordedBlob=null;if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordChunks=[]}}
+function stopRecordingUiOnly(){stopLiveMicMeter();try{recordStream?.getTracks?.().forEach(t=>t.stop())}catch(e){}recordStream=null;cameraStream=null;$('#recordPreview')?.remove()}
+function stopCameraStreams(clearRecording=false){stopLiveMicMeter();if(recordStream){recordStream.getTracks().forEach(t=>t.stop());recordStream=null}cameraStream=null;$('#recordPreview')?.remove();if(clearRecording){recordedBlob=null;if(recordedUrl){URL.revokeObjectURL(recordedUrl);recordedUrl=null}recordChunks=[]}}
 function saveRecordingFile(){if(!recordedBlob)return false;const ext=recordingExt(recordedBlob.type||recordingMime);const a=document.createElement('a');a.href=recordedUrl;a.download=(current?.name||'teleprompter')+'-'+new Date().toISOString().replace(/[:.]/g,'-')+'.'+ext;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove()},500);return true}
 function showRecordingPreview(){
   if(!recordedBlob||!recordedUrl)return;
