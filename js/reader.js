@@ -21,7 +21,6 @@ async function beginCountdownNow(){$('#touchStartButton')?.remove();document.bod
       const liveTracks=recordStream?.getTracks?.().filter(t=>t.readyState==='live')||[];
       if(!liveTracks.length)throw new Error('As faixas de gravação não estão ativas');
       mediaRecorder.start(1000);
-      if(current.settings?.recordOn)ensureRecordingPreview(recordStream);
       const vtrack=recordStream?.getVideoTracks?.()[0];const vst=vtrack?.getSettings?.()||{};const actual=vst.width&&vst.height?` (${vst.width}×${vst.height}${vst.frameRate?' · '+Math.round(vst.frameRate)+' fps':''})`:'';setStatus('green','🔴 Gravando'+actual);
     }catch(e){
       started=false;clearInterval(elapsedTimer);elapsedTimer=null;offerStartRetry();
