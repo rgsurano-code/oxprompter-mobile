@@ -1,0 +1,46 @@
+{
+  "browser": "Chromium/Edge desktop",
+  "physicalDevices": false,
+  "results": [
+    {
+      "name": "configurações e prévia proporcionais em telas de 320 a 1280 pixels",
+      "status": "APROVADO"
+    },
+    {
+      "name": "quadro vertical não inicia como horizontal e rotação corrige a prévia",
+      "status": "APROVADO"
+    },
+    {
+      "name": "portrait: prévia → leitura sem reabrir câmera nem perder bordas",
+      "status": "APROVADO"
+    },
+    {
+      "name": "portrait: formato fixo ao redimensionar e arquivo real com quatro bordas",
+      "status": "APROVADO"
+    },
+    {
+      "name": "landscape: prévia → leitura sem reabrir câmera nem perder bordas",
+      "status": "APROVADO"
+    },
+    {
+      "name": "landscape: formato fixo ao redimensionar e arquivo real com quatro bordas",
+      "status": "APROVADO"
+    },
+    {
+      "name": "voltar durante a tomada oferece preservar e Cancelar mantém o gravador",
+      "status": "APROVADO"
+    },
+    {
+      "name": "recomeçar reinicia texto, cronômetro e gravador em uma nova tomada",
+      "status": "APROVADO"
+    },
+    {
+      "name": "câmera negada mantém tentativa de recuperação e nenhuma fonte ativa",
+      "status": "APROVADO"
+    },
+    {
+      "name": "nenhum erro JavaScript não tratado",
+      "status": "APROVADO"
+    }
+  ]
+}

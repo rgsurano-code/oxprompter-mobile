@@ -1,0 +1,43 @@
+✔ corrupted storage does not crash or overwrite the original (11.7607ms)
+✔ valid legacy data and password are retained; malformed scripts filtered (4.3559ms)
+✔ quota failure is reported once and leaves previous data intact (4.4632ms)
+✔ time parsing treats HH:MM[:SS] as a duration and rejects invalid values (4.0745ms)
+✔ script annotations are excluded and displayed content is escaped (4.7718ms)
+✔ MIME negotiation separates audio-only from video (3.2432ms)
+✔ entity decoding does not interpret escaped markup as HTML (3.4748ms)
+✔ importar após abrir um roteiro cria outro roteiro e preserva o original (22.6566ms)
+✔ troca de senha não confirma sucesso quando o armazenamento falha (6.9192ms)
+✔ falha ao salvar um roteiro conserva o texto em memória sem avançar (4.9822ms)
+✔ configurações são persistidas ao mudar, antes de iniciar a leitura (8.8109ms)
+✔ RTF remove comandos, fontes e interpreta Unicode e acentos (5.8928ms)
+✔ entidades XML são decodificadas uma vez e preservam Unicode completo (5.4586ms)
+✔ durações inválidas são rejeitadas (4.7407ms)
+✔ texto do teleprompter preserva parágrafos e não interpreta HTML (9.7816ms)
+✔ configuração explícita de câmera tem prioridade sobre frontal/traseira (8.4233ms)
+✔ vertical e horizontal produzem as dimensões pedidas sem deformação (5.2952ms)
+✔ pedido de 4K não amplia artificialmente uma fonte Full HD (4.5087ms)
+✔ fonte quase quadrada do vídeo recebido não é gravada dentro de um quadro vertical (7.5647ms)
+✔ orientação primária alternativa é tentada somente após restrição não suportada (5.4742ms)
+✔ formato horizontal recebido para uma tomada vertical impede o início (5.8837ms)
+✔ girar a câmera durante uma tomada não desenha quadros na orientação errada (5.121ms)
+✔ duas solicitações simultâneas usam uma única câmera (4.4162ms)
+✔ câmera e formato não podem ser trocados durante a tomada (5.9867ms)
+✔ permissão de câmera concedida depois de sair é encerrada (4.4958ms)
+✔ troca de câmera cancela a abertura anterior e fecha sua fonte (5.5517ms)
+✔ erro ao criar saída de câmera libera a câmera física (6.1089ms)
+✔ saída é reutilizada da prévia para a leitura sem abrir outra câmera (7.3927ms)
+✔ aguardar comando de voz preserva a câmera conferida na preparação (11.3792ms)
+✔ permissão tardia de microfone também é encerrada (4.898ms)
+✔ falha do gravador libera câmera e microfone (5.8145ms)
+✔ finalização antiga não encerra a gravação de uma nova sessão (4.4143ms)
+✔ desconexão da câmera durante a contagem cancela a tomada preparada (14.3929ms)
+✔ falha ao iniciar o gravador também libera câmera e faixas preparadas (6.9588ms)
+✔ erro do gravador mantém os blocos e oferece revisão do arquivo parcial (58.8427ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14553.5898
