@@ -1,0 +1,1 @@
+APROVADO: sintaxe, IDs únicos, grafo de módulos, ativos do cache e caminhos relativos.

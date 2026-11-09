@@ -1,0 +1,64 @@
+{
+  "version": "2.0.0-beta.1",
+  "date": "2026-11-09",
+  "node": "v24.21.0",
+  "automated": {
+    "total": 37,
+    "passed": 37,
+    "failed": 0,
+    "skipped": 0,
+    "media": "simulated",
+    "speech": "simulated"
+  },
+  "checks": {
+    "syntax": true,
+    "moduleGraph": true,
+    "cacheAssets": true,
+    "uniqueIds": true
+  },
+  "browser": {
+    "screen": "initial-authentication",
+    "sizes": [
+      {
+        "width": 390,
+        "height": 844
+      },
+      {
+        "width": 320,
+        "height": 568
+      },
+      {
+        "width": 844,
+        "height": 390
+      }
+    ],
+    "consoleErrors": 0,
+    "authenticatedFlow": "NOT_TESTED",
+    "isolatedMemoryFixture": {
+      "passed": true,
+      "origin": "http://127.0.0.1:8082",
+      "realUserData": false,
+      "realCredentials": false,
+      "flow": [
+        "library-script",
+        "preparation",
+        "countdown",
+        "automatic-reading",
+        "pause-freezes-clock",
+        "font-adjustment",
+        "speed-adjustment",
+        "hide-and-show-controls",
+        "landscape",
+        "return-library"
+      ],
+      "mediaCaptured": false,
+      "consoleErrors": 0
+    }
+  },
+  "physicalDevices": "NOT_TESTED",
+  "githubChanged": false,
+  "httpAssets": {
+    "count": 13,
+    "allStatus": 200
+  }
+}
