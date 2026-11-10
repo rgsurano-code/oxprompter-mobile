@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "scripts": [
+    {
+      "id": "audit",
+      "name": "Roteiro de teste",
+      "text": "Texto sintético para conferir preservação.",
+      "updated": 1794330347723,
+      "settings": {
+        "theme": "white",
+        "font": 66,
+        "target": "00:05:00",
+        "startCmds": [
+          {
+            "phrase": "começar agora"
+          }
+        ]
+      }
+    }
+  ]
+}

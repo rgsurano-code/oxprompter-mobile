@@ -1,17 +1,22 @@
+let prepMediaEpoch=0;
+function requireCurrentPrepStream(stream,epoch){
+  if(epoch===prepMediaEpoch)return stream;
+  stream.getTracks().forEach(t=>t.stop());const error=new Error('Solicitação de mídia cancelada');error.name='AbortError';throw error;
+}
 async function ensurePrepMicAccess(){
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
   const id=$('#mic')?.value||current.settings?.micDeviceId||'';
   const track=prepMicStream?.getAudioTracks()[0];
   if(hasLiveTrack(prepMicStream,'audio')&&(!id||track?.getSettings().deviceId===id))return prepMicStream;
   prepMicStream?.getTracks().forEach(t=>t.stop());
-  prepMicStream=await navigator.mediaDevices.getUserMedia({audio:id?{deviceId:{exact:id}}:true});
-  return prepMicStream;
+  const epoch=prepMediaEpoch;const stream=await navigator.mediaDevices.getUserMedia({audio:id?{deviceId:{exact:id}}:true});
+  prepMicStream=requireCurrentPrepStream(stream,epoch);return prepMicStream;
 }
 async function ensurePrepCameraAccess(){
   if(!navigator.mediaDevices?.getUserMedia)throw new Error('media-unavailable');
   if(hasLiveTrack(prepCameraStream,'video'))return prepCameraStream;
-  prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
-    updateCameraCapabilityHint(prepCameraStream);
+  const epoch=prepMediaEpoch;const stream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
+  prepCameraStream=requireCurrentPrepStream(stream,epoch);updateCameraCapabilityHint(prepCameraStream);
   return prepCameraStream;
 }
 
@@ -133,15 +138,15 @@ function stopFrameCapture(){
   frameTargetW=0;frameTargetH=0;frameName='';
 }
 async function waitForCameraFrame(video,timeout=8000){
-  // A faixa pode estar live antes de o Safari entregar a primeira imagem.
-  await video.play();
-  if(video.readyState>=2&&video.videoWidth>0&&video.videoHeight>0)return;
-  await new Promise((resolve,reject)=>{
-    const cleanup=()=>{clearTimeout(timer);video.removeEventListener('loadeddata',check);video.removeEventListener('canplay',check);video.removeEventListener('error',fail)};
-    const check=()=>{if(video.readyState>=2&&video.videoWidth>0&&video.videoHeight>0){cleanup();resolve()}};
-    const fail=()=>{cleanup();reject(new Error('A câmera não entregou uma imagem válida. Tente iniciar novamente.'))};
+  return new Promise((resolve,reject)=>{
+    let settled=false,playing=false;
+    const cleanup=()=>{clearTimeout(timer);for(const event of ['loadeddata','canplay'])video.removeEventListener?.(event,check);video.removeEventListener?.('error',fail)};
+    const finish=error=>{if(settled)return;settled=true;cleanup();error?reject(error):resolve()};
+    const fail=error=>finish(error instanceof Error?error:new Error('A câmera não entregou uma imagem válida. Tente iniciar novamente.'));
+    const check=()=>{if(playing&&video.readyState>=2&&video.videoWidth>0&&video.videoHeight>0)finish()};
     const timer=setTimeout(fail,timeout);
-    video.addEventListener('loadeddata',check);video.addEventListener('canplay',check);video.addEventListener('error',fail);check();
+    for(const event of ['loadeddata','canplay'])video.addEventListener?.(event,check);video.addEventListener?.('error',fail);
+    try{Promise.resolve(video.play()).then(()=>{playing=true;check()},fail)}catch(error){fail(error)}
   });
 }
 async function switchPreviewToFrame(stream){
@@ -172,10 +177,10 @@ async function loadMicrophones(){
   }
 }
 async function previewCamera(){
-  const v=$('#cameraPreview'); if(!v||!navigator.mediaDevices?.getUserMedia)return false;
+  const epoch=prepMediaEpoch;const v=$('#cameraPreview'); if(!v||!navigator.mediaDevices?.getUserMedia)return false;
   const hint=$('#cameraHint');
   try{
-    const stream=await ensurePrepCameraAccess();
+    const stream=await ensurePrepCameraAccess();if(epoch!==prepMediaEpoch||v.isConnected===false)return false;
     const id=$('#camera')?.value||current.settings?.cameraDeviceId||'';
     const desiredFacing=current.settings?.mobileCameraFacing||'user';
     const existing=stream?.getVideoTracks?.()[0];
@@ -186,15 +191,16 @@ async function previewCamera(){
     if(existing&&sameFacing&&(!id||existingId===id)){
       v.srcObject=stream;
       fitPreviewToTrack(v,stream);
-      try{await v.play()}catch(e){}
+      await v.play();
       if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
       return true;
     }
     if(prepCameraStream){try{prepCameraStream.getTracks().forEach(t=>t.stop())}catch(e){}}
-    prepCameraStream=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
+    const replacement=await navigator.mediaDevices.getUserMedia({video:selectedCameraConstraints()});
+    prepCameraStream=requireCurrentPrepStream(replacement,epoch);if(v.isConnected===false){prepCameraStream.getTracks().forEach(t=>t.stop());prepCameraStream=null;return false}
     v.srcObject=prepCameraStream;
     fitPreviewToTrack(v,prepCameraStream);
-    try{await v.play()}catch(e){}
+    await v.play();
     if(hint)hint.innerHTML='<span class="permission-ok">✓ Câmera autorizada e funcionando.</span>';
     return true;
   }catch(e){
@@ -576,15 +582,18 @@ function discardCurrentRecording(){
   $('#recordReview')?.remove();
 }
 async function testMic(){
+  const epoch=prepMediaEpoch,trigger=$('#testMic');
   try{
     if(!navigator.mediaDevices?.getUserMedia) throw new Error('media-unavailable');
     const deviceId=$('#mic')?.value||current.settings?.micDeviceId||'';
     const existing=prepMicStream?.getAudioTracks?.()[0];
     const existingId=existing?.getSettings?.().deviceId||'';
-    if(!existing || (deviceId&&existingId!==deviceId)){
+    if(!existing || existing.readyState!=='live' || (deviceId&&existingId!==deviceId)){
       if(prepMicStream)prepMicStream.getTracks().forEach(t=>t.stop());
-      prepMicStream=await navigator.mediaDevices.getUserMedia({audio:deviceId?{deviceId:{exact:deviceId}}:true});
+      const stream=await navigator.mediaDevices.getUserMedia({audio:deviceId?{deviceId:{exact:deviceId}}:true});
+      prepMicStream=requireCurrentPrepStream(stream,epoch);
     }
+    if(epoch!==prepMediaEpoch||trigger?.isConnected===false)return;
     micStream=prepMicStream;
     const modal=document.createElement('div');modal.className='mic-modal';modal.innerHTML='<div class="mic-box"><h3>Teste do microfone</h3><div class="mic-meter"><div id="micLevel" class="mic-level"></div></div><div id="micTestStatus" class="mic-status">Fale normalmente. A barra deve se movimentar.</div><div class="mic-actions"><button id="micClose">Fechar teste</button></div></div>';document.body.appendChild(modal);
     $('#micClose').onclick=closeMicTest;
@@ -592,7 +601,7 @@ async function testMic(){
     const source=micAudioContext.createMediaStreamSource(micStream);micAnalyser=micAudioContext.createAnalyser();micAnalyser.fftSize=512;source.connect(micAnalyser);
     const data=new Uint8Array(micAnalyser.fftSize);
     const meter=()=>{if(!micAnalyser)return;micAnalyser.getByteTimeDomainData(data);let sum=0;for(const v of data){const n=(v-128)/128;sum+=n*n}const rms=Math.sqrt(sum/data.length);const pct=Math.min(100,Math.max(2,rms*260));const bar=$('#micLevel');if(bar)bar.style.width=pct+'%';micRaf=requestAnimationFrame(meter)};meter();
-  }catch(e){stopCameraStreams();alert(e.name==='NotAllowedError'?'O navegador bloqueou o acesso ao microfone. Verifique a permissão do site.':'Não foi possível abrir o microfone para teste.');}
+  }catch(e){if(e.name==='AbortError')return;stopCameraStreams();alert(e.name==='NotAllowedError'?'O navegador bloqueou o acesso ao microfone. Verifique a permissão do site.':'Não foi possível abrir o microfone para teste.');}
 }
 
 function closeMicTest(){if(micRaf){cancelAnimationFrame(micRaf);micRaf=null}micStream=null;if(micAudioContext){micAudioContext.close().catch(()=>{});micAudioContext=null}micAnalyser=null;$('.mic-modal')?.remove()}

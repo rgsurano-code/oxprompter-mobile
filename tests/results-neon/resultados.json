@@ -673,10 +673,14 @@
   },
   {
     "status": "APROVADO",
+    "case": "backup null rejected without changing scripts"
+  },
+  {
+    "status": "APROVADO",
     "actions": "fonte, velocidade, largura, pausa/continuação, ocultar/mostrar, recomeçar e voltar",
     "meter": {
       "silent": 0,
-      "speaking": 34.234375
+      "speaking": 34.3125
     },
     "pageErrors": [],
     "engine": "Edge 157.0.4341.42",

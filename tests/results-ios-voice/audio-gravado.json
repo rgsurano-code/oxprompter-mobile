@@ -1,8 +1,8 @@
 {
   "status": "APROVADO",
   "file": "voz.mp4",
-  "sha256": "32f87dc08cbb981eb23d1d12e6f3fd897ef92660d6aeb6a657e205ddcfef34b3",
-  "decodedAudioMaxRms": 0.06119746781621888,
+  "sha256": "c9a01173ddc716308d096726a975be03a60738d5880ec69e5a346f27800f17f0",
+  "decodedAudioMaxRms": 0.023668491149370415,
   "engine": "Edge 157.0.4341.42",
   "physicalAudio": "NÃO TESTADO"
 }

@@ -1,0 +1,51 @@
+[
+  {
+    "case": "backup preserves settings and command",
+    "status": "APROVADO"
+  },
+  {
+    "case": "command deletion persists after reload",
+    "status": "APROVADO"
+  },
+  {
+    "case": "failed import rolls back and does not claim success",
+    "status": "APROVADO"
+  },
+  {
+    "case": "save retry preserves draft without duplicate script",
+    "status": "APROVADO"
+  },
+  {
+    "case": "command deletion rolls back on write failure and can retry",
+    "status": "APROVADO"
+  },
+  {
+    "case": "password failure retains old password; retry succeeds",
+    "status": "APROVADO"
+  },
+  {
+    "case": "late camera is stopped after leaving preparation",
+    "status": "APROVADO"
+  },
+  {
+    "case": "late microphone is stopped without reopening its modal",
+    "status": "APROVADO"
+  },
+  {
+    "case": "stale tab write is rejected and the first tab data remain",
+    "status": "APROVADO"
+  },
+  {
+    "case": "RTF import preserves accented text",
+    "status": "APROVADO"
+  },
+  {
+    "case": "unsupported backup version preserves existing data",
+    "status": "APROVADO"
+  },
+  {
+    "engine": "Edge 157.0.4341.42",
+    "pageErrors": [],
+    "phone": "NÃO TESTADO"
+  }
+]

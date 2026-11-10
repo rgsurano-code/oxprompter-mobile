@@ -36,7 +36,7 @@ async function beginCountdownNow(){document.body.classList.remove('adjusting');d
 }else{const cv=$('#countValue');if(cv)cv.textContent=i}},1000)
 }
 async function startCountdown(){
-  savePrep();stopAll();showPrompter(true);await prepareReadingSession();
+  if(!savePrep())return;stopAll();showPrompter(true);await prepareReadingSession();
 }
 function offerStartRetry(){
   if($('#manualStart'))return;

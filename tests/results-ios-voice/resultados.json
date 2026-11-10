@@ -6,12 +6,12 @@
     "silenceStopsScroll": true,
     "voiceMovesScroll": true,
     "voiced": {
-      "y": 380.49499999999983,
-      "rms": 0.1429509553101499,
-      "bar": 42.8853
+      "y": 379.9939999999995,
+      "rms": 0.14116015860107886,
+      "bar": 42.348
     },
     "pauseResumeRecording": true,
-    "recordedBytes": 341968,
+    "recordedBytes": 368835,
     "pageErrors": [],
     "engine": "Edge 157.0.4341.42",
     "iPhoneReal": "NÃO TESTADO"
