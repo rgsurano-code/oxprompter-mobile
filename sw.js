@@ -1,5 +1,5 @@
-const CACHE='oxprompter-mobile-neon-1.0.2';
-const ASSETS=['./assets/neon-controls.png','./','./index.html','./css/styles.css','./js/core.js','./js/library.js','./js/preparation.js','./js/media.js','./js/reader.js','./js/speech.js','./js/app.js','./js/documents.js','./vendor/jszip.min.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png'];
+const CACHE='oxprompter-mobile-ios-video-final-20261110';
+const ASSETS=['./','./index.html','./css/styles.css','./js/core.js','./js/library.js','./js/preparation.js','./js/media.js','./js/reader.js','./js/speech.js','./js/app.js','./js/documents.js','./vendor/jszip.min.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('oxprompter-mobile-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{

@@ -1,0 +1,33 @@
+const {chromium}=require('playwright');
+const http=require('node:http'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..'),out=path.join(__dirname,'results-neon');fs.mkdirSync(out,{recursive:true});
+const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png'};
+const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname.replace(/\/$/,'/index.html'));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end()}fs.readFile(file,(e,b)=>{res.writeHead(e?404:200,{'Content-Type':types[path.extname(file)]||'text/plain'});res.end(e?'Not found':b)})});
+(async()=>{let browser;const results=[];try{
+  await new Promise(r=>server.listen(0,'127.0.0.1',r));browser=await chromium.launch({channel:'msedge',headless:true,args:['--autoplay-policy=no-user-gesture-required']});
+  const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
+  await page.goto('http://127.0.0.1:'+server.address().port);assert.equal(await page.locator('.splash-dev').textContent(),'Oxprompter - Android & IOS');
+  await page.evaluate(()=>{current={id:'neon-test',name:'Teste Neon',text:'Teste do painel. '.repeat(150),settings:{font:54,mode:'audio',theme:'dark',mobileCameraBg:true,speed:1,textWidthPct:.84,startPercent:50}};showPrompter(true);started=true;preparingPrompter=false;document.body.classList.remove('adjusting');
+    window.testAudio=new AudioContext();const osc=testAudio.createOscillator();window.testGain=testAudio.createGain();testGain.gain.value=0;const dest=testAudio.createMediaStreamDestination();osc.connect(testGain);testGain.connect(dest);osc.start();startLiveMicMeter(dest.stream);
+  });
+  await page.waitForTimeout(300);const silent=await page.locator('#liveMicLevel').evaluate(e=>e.getBoundingClientRect().width);
+  await page.evaluate(()=>testGain.gain.value=.15);await page.waitForTimeout(400);const speaking=await page.locator('#liveMicLevel').evaluate(e=>e.getBoundingClientRect().width);assert(speaking>silent+10,'barra reage ao áudio');assert.equal(await page.locator('#liveMicDb').count(),0);
+  const ids=['fontLess','fontMore','pause','finishTele','restartTele','backTele','hideControls','slower','faster','widthToggle'];
+  for(const theme of ['dark','white'])for(const size of [{width:320,height:568},{width:390,height:844},{width:844,height:390},{width:1280,height:800}]){
+    await page.setViewportSize(size);await page.evaluate(theme=>document.body.classList.toggle('light',theme==='white'),theme);await page.waitForTimeout(100);
+    const layout=await page.evaluate(ids=>{const panel=document.querySelector('.neon-controls').getBoundingClientRect();const meter=document.querySelector('.hudMicTrack').getBoundingClientRect();return {panel:{x:panel.x,y:panel.y,width:panel.width,height:panel.height,right:panel.right,bottom:panel.bottom},meter:{width:meter.width,height:meter.height},hits:ids.map(id=>{const r=document.getElementById(id).getBoundingClientRect();return {id,width:r.width,height:r.height,target:document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('button')?.id}})}} ,ids);
+    assert(layout.panel.x>=-1&&layout.panel.right<=size.width+1&&layout.panel.bottom<=size.height&&layout.panel.height<=size.height*.35+1);assert(layout.meter.width>25&&layout.meter.height>=10);for(const hit of layout.hits){assert.equal(hit.target,hit.id,'mapeamento '+hit.id);assert(hit.width>20&&hit.height>20)}
+    results.push({theme,size,status:'APROVADO',layout});
+    if(theme==='dark'&&(size.width===390||size.width===844||size.width===1280))await page.screenshot({path:path.join(out,'painel-'+size.width+'.png')});
+  }
+  await page.setViewportSize({width:390,height:844});await page.evaluate(()=>document.body.classList.remove('light'));
+  await page.locator('#fontMore').click();assert.equal(await page.evaluate(()=>current.settings.font),56);assert.equal(await page.locator('#fontValue').textContent(),'56');await page.locator('#fontLess').click();assert.equal(await page.evaluate(()=>current.settings.font),54);
+  await page.locator('#faster').click();assert.equal(await page.evaluate(()=>scrollSpeed),1.1);assert((await page.locator('#speedLevel').textContent()).includes('1.1x'));await page.locator('#slower').click();assert.equal(await page.evaluate(()=>scrollSpeed),1);
+  const width=await page.evaluate(()=>current.settings.textWidthPct);await page.locator('#widthToggle').click();assert.notEqual(await page.evaluate(()=>current.settings.textWidthPct),width);
+  await page.locator('#pause').click();assert.equal(await page.evaluate(()=>paused),true);assert(await page.locator('#pause').evaluate(e=>e.classList.contains('playing')));assert.equal(await page.locator('#pause').getAttribute('aria-label'),'Continuar leitura e gravação');await page.screenshot({path:path.join(out,'pausado-verde.png')});
+  await page.locator('#pause').click();assert.equal(await page.evaluate(()=>paused),false);assert.equal(await page.locator('#pause').getAttribute('aria-label'),'Pausar leitura e gravação');
+  await page.locator('#hideControls').click();assert(await page.locator('.neon-controls').isHidden());await page.locator('#showControls').click();assert(await page.locator('.neon-controls').isVisible());
+  await page.locator('#restartTele').click();assert.equal(await page.evaluate(()=>currentWord),0);assert(await page.locator('.neon-controls').isVisible());
+  await page.locator('#backTele').click();assert(await page.locator('#start').isVisible());assert.deepEqual(errors,[]);
+  results.push({status:'APROVADO',actions:'fonte, velocidade, largura, pausa/continuação, ocultar/mostrar, recomeçar e voltar',meter:{silent,speaking},pageErrors:errors,engine:'Edge '+browser.version(),iPhoneReal:'NÃO TESTADO'});
+}catch(e){results.push({status:'FALHOU',error:e.stack});process.exitCode=1}finally{fs.writeFileSync(path.join(out,'resultados.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results.map(r=>({theme:r.theme,size:r.size,status:r.status,error:r.error,actions:r.actions,meter:r.meter})),null,2));await browser?.close();server.close()}})();

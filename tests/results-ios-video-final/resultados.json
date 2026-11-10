@@ -4,13 +4,13 @@
     "status": "APROVADO",
     "width": 1080,
     "height": 1920,
-    "bytes": 1194251,
+    "bytes": 1232161,
     "mime": "video/mp4;codecs=avc1.420029,mp4a.40.2",
     "playback": {
-      "time": 1.616566,
+      "time": 1.561529,
       "paused": false
     },
-    "pixelDifference": 421285,
+    "pixelDifference": 426393,
     "pauseResumeRestart": "APROVADO"
   },
   {
@@ -18,13 +18,13 @@
     "status": "APROVADO",
     "width": 1920,
     "height": 1080,
-    "bytes": 1254848,
+    "bytes": 1231118,
     "mime": "video/mp4;codecs=avc1.420029,mp4a.40.2",
     "playback": {
-      "time": 1.606337,
+      "time": 1.556654,
       "paused": false
     },
-    "pixelDifference": 53359,
+    "pixelDifference": 50767,
     "pauseResumeRestart": "não repetido"
   },
   {

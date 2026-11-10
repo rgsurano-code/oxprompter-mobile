@@ -255,7 +255,7 @@ function startLiveMicMeter(stream){
       liveMicAnalyser.getByteTimeDomainData(data);
       let sum=0;for(const v of data){const n=(v-128)/128;sum+=n*n}
       const rms=Math.sqrt(sum/data.length); currentMicRms=rms; const pct=Math.min(100,Math.max(2,rms*300));
-      const bar=$('#liveMicLevel');if(bar){bar.style.width=pct+'%';bar.parentElement?.setAttribute('aria-valuenow',String(Math.round(pct)))}
+      const bar=$('#liveMicLevel');if(bar)bar.style.width=pct+'%';
       const db=20*Math.log10(Math.max(rms,.0001));const txt=$('#liveMicDb');if(txt)txt.textContent=Math.max(-60,Math.round(db))+' dB';
       if(started && !paused && (current.settings?.mode||'audio')!=='noaudio'){
         voiceNoiseFloor=voiceNoiseFloor*0.92+Math.min(rms,0.01)*0.08;
