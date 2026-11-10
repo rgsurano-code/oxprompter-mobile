@@ -9,6 +9,7 @@ function startStartCommandListener(onCommand,onFailure){
   if(!cmds.length){onCommand?.();return}
 
   const mySession=sessionId;
+  let handingOff=false;
   const rec=new SR();
   commandRecognition=rec;
   rec.lang='pt-BR';
@@ -19,7 +20,7 @@ function startStartCommandListener(onCommand,onFailure){
   rec.onstart=()=>{if(mySession===sessionId&&commandRecognition===rec)setStatus('green','🎙️ Ouvindo comando: '+(current.settings.startCmds||[]).map(c=>c.phrase).filter(Boolean).join(' / '))};
   rec.onspeechstart=()=>{if(mySession===sessionId&&commandRecognition===rec)setStatus('green','🎙️ Voz detectada — reconhecendo…')};
   rec.onresult=e=>{
-    if(mySession!==sessionId||commandRecognition!==rec)return;
+    if(mySession!==sessionId||commandRecognition!==rec||handingOff)return;
     let txt='';
     // Safari/iOS pode entregar a frase em resultados parciais separados.
     // Examina todas as alternativas disponíveis, sem depender apenas da primeira.
@@ -35,10 +36,14 @@ function startStartCommandListener(onCommand,onFailure){
     if(!n)return;
     const hit=cmds.find(c=>(' '+n+' ').includes(' '+c+' '));
     if(hit){
-      try{rec.onend=null;rec.stop()}catch(e){}
-      commandRecognition=null;
-      setStatus('green','✓ Comando reconhecido: '+hit);
-      onCommand?.();
+      handingOff=true;
+      setStatus('yellow','✓ Comando reconhecido — ativando microfone da leitura');
+      let finished=false;
+      const fail=()=>{if(finished)return;finished=true;clearTimeout(timeout);rec.onend=null;try{rec.abort()}catch(e){}if(mySession===sessionId&&commandRecognition===rec){commandRecognition=null;setStatus('red','O reconhecimento não liberou o microfone. Toque para tentar novamente.');onFailure?.()}};
+      const timeout=setTimeout(fail,4000);
+      rec.onerror=fail;
+      rec.onend=()=>{if(finished)return;finished=true;clearTimeout(timeout);if(mySession!==sessionId||commandRecognition!==rec)return;commandRecognition=null;resumeLiveMicContext();onCommand?.()};
+      try{rec.stop()}catch(e){fail()}
     }else{
       setStatus('yellow','Ouvi: “'+txt.trim()+'” — aguardando comando');
     }

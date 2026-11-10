@@ -675,8 +675,8 @@
     "status": "APROVADO",
     "actions": "fonte, velocidade, largura, pausa/continuação, ocultar/mostrar, recomeçar e voltar",
     "meter": {
-      "silent": 2.15625,
-      "speaking": 34.0625
+      "silent": 0,
+      "speaking": 34.234375
     },
     "pageErrors": [],
     "engine": "Edge 157.0.4341.42",

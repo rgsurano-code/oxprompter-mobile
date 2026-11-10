@@ -1,0 +1,6 @@
+[
+  {
+    "status": "FALHOU",
+    "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:52924/\", waiting until \"load\"\u001b[22m\n\n    at C:\\Users\\Roger Surano\\.codex\\.chatgpt-projects\\g-p-6af1cea73bd4819195f4ff38d8e88e5b\\correcoes\\ios-voz-1.0.3\\oxprompter-mobile\\tests\\ios-voice.cjs:23:14"
+  }
+]

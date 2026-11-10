@@ -1,8 +1,0 @@
-OXPROMPTER MOBILE — PROJETO REVISADO
-
-Consulte README.md para abrir e publicar o aplicativo.
-Consulte RELATORIO-AUDITORIA.md para alterações, testes e limitações.
-
-Computador: Node.js 20 ou superior; execute npm start e abra http://localhost:8080.
-Android/iPhone: publique em hospedagem HTTPS. Abrir o HTML como arquivo não é suportado.
-Não limpe os dados do navegador sem exportar seus roteiros.

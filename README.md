@@ -1,3 +1,11 @@
+# V1.0.3 — áudio após comando de voz
+
+Consulte CORRECAO-VOZ-IOS.md. V1.0.2 preservada. Correção implementada e testada por simulação no computador; validação no iPhone real pendente. Documentos abaixo registram as versões anteriores.
+
+# V1.0.2 — Painel Neon e barra do microfone
+
+Consulte ATUALIZACAO-NEON.md. A versão V1.0.1 foi preservada. Falha de rolagem por voz no iOS: pendente. Documentos abaixo descrevem o histórico anterior.
+
 # Correção V1.0.1 — vídeo final no iOS
 
 Consulte CORRECAO-IOS.md para alterações, testes e roteiro no iPhone. A aparência da preparação e da leitura foi preservada. Gravação e reprodução real no Safari/iPhone: NÃO TESTADO. Os documentos anteriores abaixo e os relatórios recebidos no ZIP são históricos.

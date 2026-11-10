@@ -51,7 +51,7 @@ const server=http.createServer((req,res)=>{
       const info=await page.evaluate(()=>{const v=document.getElementById('recordedReviewVideo');return {width:v.videoWidth,height:v.videoHeight,bytes:recordedBlob.size,mime:recordedBlob.type}});
       assert(info.bytes>0);assert.equal(info.width/info.height,name==='vertical'?1080/1920:1920/1080);
       await page.evaluate(()=>{const b=document.createElement('button');b.id='testPlay';b.textContent='Reproduzir teste';b.onclick=()=>document.getElementById('recordedReviewVideo').play();document.getElementById('recordReview').appendChild(b)});
-      await page.locator('#testPlay').click();await page.locator('#testPlay').evaluate(b=>b.remove());await page.waitForTimeout(1600);
+      await page.locator('#testPlay').click();await page.locator('#testPlay').evaluate(b=>b.remove());await page.waitForFunction(()=>{const v=document.getElementById('recordedReviewVideo');return v.currentTime>1&&!v.paused},null,{timeout:15000});
       const playback=await page.locator('#recordedReviewVideo').evaluate(v=>({time:v.currentTime,paused:v.paused}));assert(playback.time>1);assert.equal(playback.paused,false,'nenhuma pausa forçada');
       const samples=await page.locator('#recordedReviewVideo').evaluate(async v=>{
         v.pause();const c=document.createElement('canvas');c.width=32;c.height=32;const x=c.getContext('2d');const pixels=[];

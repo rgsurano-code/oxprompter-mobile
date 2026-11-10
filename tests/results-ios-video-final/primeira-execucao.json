@@ -1,0 +1,6 @@
+[
+  {
+    "status": "FALHOU",
+    "error": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert(playback.time>1)\n\n    at C:\\Users\\Roger Surano\\.codex\\.chatgpt-projects\\g-p-6af1cea73bd4819195f4ff38d8e88e5b\\correcoes\\ios-voz-1.0.3\\oxprompter-mobile\\tests\\ios-video-final.cjs:55:117"
+  }
+]

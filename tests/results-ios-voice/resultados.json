@@ -1,0 +1,19 @@
+[
+  {
+    "status": "APROVADO",
+    "commandWaitsForEnd": true,
+    "contextReused": true,
+    "silenceStopsScroll": true,
+    "voiceMovesScroll": true,
+    "voiced": {
+      "y": 380.49499999999983,
+      "rms": 0.1429509553101499,
+      "bar": 42.8853
+    },
+    "pauseResumeRecording": true,
+    "recordedBytes": 341968,
+    "pageErrors": [],
+    "engine": "Edge 157.0.4341.42",
+    "iPhoneReal": "NÃO TESTADO"
+  }
+]

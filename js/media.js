@@ -232,42 +232,62 @@ async function loadCameras(){
 }
 let cameraStream=null,recordStream=null,mediaRecorder=null,recordChunks=[],recordingActive=false,recordingMime='',recordedBlob=null,recordedUrl=null,recordingHasVideo=false;
 let liveMicContext=null,liveMicAnalyser=null,liveMicRaf=null,readingMicStream=null,voiceHoldUntil=0,voiceNoiseFloor=0.004;
-function stopLiveMicMeter(){if(liveMicRaf){cancelAnimationFrame(liveMicRaf);liveMicRaf=null}if(liveMicContext){liveMicContext.close().catch(()=>{});liveMicContext=null}liveMicAnalyser=null;voiceHoldUntil=0}
+let liveMicSource=null,liveMicSink=null,liveMicStream=null;
+function stopLiveMicMeter(closeContext=true){
+  if(liveMicRaf){cancelAnimationFrame(liveMicRaf);liveMicRaf=null}
+  for(const node of [liveMicSource,liveMicAnalyser,liveMicSink]){try{node?.disconnect()}catch(e){}}
+  liveMicSource=null;liveMicAnalyser=null;liveMicSink=null;liveMicStream=null;currentMicRms=0;voiceHoldUntil=0;
+  if(closeContext&&liveMicContext){const ctx=liveMicContext;liveMicContext=null;ctx.onstatechange=null;try{ctx.close().catch(()=>{})}catch(e){}}
+}
 function resumeLiveMicContext(){
-  // Safari no iPhone pode suspender o AudioContext quando a tela muda ou a gravação começa.
-  if(liveMicContext && liveMicContext.state==='suspended'){
-    try{const p=liveMicContext.resume();if(p&&typeof p.catch==='function')p.catch(()=>{})}catch(e){}
+  const ctx=liveMicContext;
+  if(ctx&&(ctx.state==='suspended'||ctx.state==='interrupted')){
+    try{const pending=ctx.resume();pending?.catch(()=>{if(liveMicContext===ctx)setStatus('yellow','Toque na tela para ativar o microfone')});return pending}catch(e){setStatus('yellow','Toque na tela para ativar o microfone')}
   }
 }
+function primeLiveMicContext(){
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return null;
+  if(!liveMicContext||liveMicContext.state==='closed'){
+    const ctx=new AudioCtx();liveMicContext=ctx;
+    ctx.onstatechange=()=>{if(liveMicContext===ctx&&ctx.state!=='running'){currentMicRms=0;voiceHoldUntil=0}};
+    // Esta função é chamada pelo toque de iniciar, antes de aguardar o comando.
+    const unlock=ctx.createBufferSource();unlock.buffer=ctx.createBuffer(1,1,ctx.sampleRate);unlock.connect(ctx.destination);unlock.onended=()=>unlock.disconnect();unlock.start();
+  }
+  resumeLiveMicContext();return liveMicContext;
+}
+function readingMicIssue(){
+  if(!liveMicAnalyser)return 'Não foi possível analisar o microfone';
+  if(liveMicContext?.state!=='running')return 'Toque na tela para ativar o microfone';
+  const track=liveMicStream?.getAudioTracks?.()[0];
+  if(!track||track.readyState!=='live')return 'O microfone foi desconectado';
+  if(track.muted)return 'O navegador interrompeu a entrada do microfone';
+  return '';
+}
 function startLiveMicMeter(stream){
-  stopLiveMicMeter(); if(!stream?.getAudioTracks?.().length)return;
+  if(!hasLiveTrack(stream,'audio')){setStatus('red','Microfone sem faixa de áudio ativa');return false}
+  if(liveMicStream===stream&&liveMicAnalyser&&liveMicContext?.state!=='closed'){resumeLiveMicContext();return true}
+  stopLiveMicMeter(false);
   try{
-    const AudioCtx=window.AudioContext||window.webkitAudioContext;
-    if(!AudioCtx){setStatus('yellow','Medição de áudio indisponível neste navegador');return;}
-    liveMicContext=new AudioCtx();
-    resumeLiveMicContext();
-    liveMicContext.onstatechange=()=>{if(liveMicContext?.state==='suspended')resumeLiveMicContext()};
-    const source=liveMicContext.createMediaStreamSource(stream);
-    liveMicAnalyser=liveMicContext.createAnalyser(); liveMicAnalyser.fftSize=512; source.connect(liveMicAnalyser);
-    const data=new Uint8Array(liveMicAnalyser.fftSize);
+    const ctx=primeLiveMicContext();if(!ctx){setStatus('red','Análise de áudio indisponível neste navegador');return false}
+    liveMicStream=stream;liveMicSource=ctx.createMediaStreamSource(stream);
+    const analyser=ctx.createAnalyser();liveMicAnalyser=analyser;analyser.fftSize=512;
+    liveMicSource.connect(analyser);
+    // Mantém o grafo sendo processado, sem enviar a voz aos alto-falantes.
+    liveMicSink=ctx.createGain();liveMicSink.gain.value=0;analyser.connect(liveMicSink);liveMicSink.connect(ctx.destination);
+    const data=new Uint8Array(analyser.fftSize);
     const tick=()=>{
-      if(!liveMicAnalyser)return;
-      liveMicAnalyser.getByteTimeDomainData(data);
-      let sum=0;for(const v of data){const n=(v-128)/128;sum+=n*n}
-      const rms=Math.sqrt(sum/data.length); currentMicRms=rms; const pct=Math.min(100,Math.max(2,rms*300));
-      const bar=$('#liveMicLevel');if(bar)bar.style.width=pct+'%';
-      const db=20*Math.log10(Math.max(rms,.0001));const txt=$('#liveMicDb');if(txt)txt.textContent=Math.max(-60,Math.round(db))+' dB';
-      if(started && !paused && (current.settings?.mode||'audio')!=='noaudio'){
-        voiceNoiseFloor=voiceNoiseFloor*0.92+Math.min(rms,0.01)*0.08;
-        const threshold=Math.max(0.0055,voiceNoiseFloor*2.2);
-        const speaking=rms>threshold;
-        if(speaking)voiceHoldUntil=performance.now()+850;
-        voiceActive=performance.now()<voiceHoldUntil;
-        if($('#statusText'))setStatus(voiceActive?'green':'yellow',voiceActive?'🎙️ Lendo — texto rolando':'Pausa — aguardando sua fala');
+      if(liveMicAnalyser!==analyser||liveMicContext!==ctx)return;
+      const issue=readingMicIssue();let rms=0;
+      if(!issue){analyser.getByteTimeDomainData(data);let sum=0;for(const v of data){const n=(v-128)/128;sum+=n*n}rms=Math.sqrt(sum/data.length)}
+      currentMicRms=rms;const pct=Math.min(100,Math.max(0,rms*300));
+      const bar=$('#liveMicLevel');if(bar){bar.style.width=pct+'%';bar.parentElement?.setAttribute('aria-valuenow',String(Math.round(pct)))}
+      if(started&&!paused&&(current.settings?.mode||'audio')!=='noaudio'){
+        if(issue){voiceHoldUntil=0;voiceActive=false;setStatus('yellow',issue)}
+        else{voiceNoiseFloor=voiceNoiseFloor*0.92+Math.min(rms,0.01)*0.08;const threshold=Math.max(0.0055,voiceNoiseFloor*2.2);if(rms>threshold)voiceHoldUntil=performance.now()+850;voiceActive=performance.now()<voiceHoldUntil;setStatus(voiceActive?'green':'yellow',voiceActive?'🎙️ Lendo — texto rolando':'Pausa — aguardando sua fala')}
       }
       liveMicRaf=requestAnimationFrame(tick);
-    }; tick();
-  }catch(e){}
+    };tick();return true;
+  }catch(e){stopLiveMicMeter(false);setStatus('red','Não foi possível ativar a análise do microfone');return false}
 }
 function hasLiveTrack(stream,type){
   return !!stream?.getTracks?.().some(t=>t.kind===type && t.readyState==='live');
@@ -278,14 +298,13 @@ async function ensureReadingMic(){
   // A silent video recording still owns live video tracks; retain its stream.
   if(!hasLiveTrack(readingMicStream,'audio'))readingMicStream=null;
   if(!hasLiveTrack(prepMicStream,'audio'))prepMicStream=null;
-  if(recordStream&&hasLiveTrack(recordStream,'audio')){startLiveMicMeter(recordStream);return recordStream}
-  if(readingMicStream&&hasLiveTrack(readingMicStream,'audio')){startLiveMicMeter(readingMicStream);return readingMicStream}
-  if(prepMicStream&&hasLiveTrack(prepMicStream,'audio')){startLiveMicMeter(prepMicStream);return prepMicStream}
+  if(recordStream&&hasLiveTrack(recordStream,'audio')){return startLiveMicMeter(recordStream)?recordStream:null}
+  if(readingMicStream&&hasLiveTrack(readingMicStream,'audio')){return startLiveMicMeter(readingMicStream)?readingMicStream:null}
+  if(prepMicStream&&hasLiveTrack(prepMicStream,'audio')){return startLiveMicMeter(prepMicStream)?prepMicStream:null}
   try{
     const deviceId=current.settings?.micDeviceId||current.settings?.mic||'';
     readingMicStream=await navigator.mediaDevices.getUserMedia({audio:deviceId?{deviceId:{exact:deviceId}}:true});
-    startLiveMicMeter(readingMicStream);
-    return readingMicStream;
+    return startLiveMicMeter(readingMicStream)?readingMicStream:null;
   }catch(e){
     setStatus('red','Não foi possível acessar o microfone para controlar a rolagem');
     return null;
