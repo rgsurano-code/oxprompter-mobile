@@ -1,0 +1,35 @@
+[
+  {
+    "orientation": "vertical",
+    "status": "APROVADO",
+    "width": 1080,
+    "height": 1920,
+    "bytes": 1194251,
+    "mime": "video/mp4;codecs=avc1.420029,mp4a.40.2",
+    "playback": {
+      "time": 1.616566,
+      "paused": false
+    },
+    "pixelDifference": 421285,
+    "pauseResumeRestart": "APROVADO"
+  },
+  {
+    "orientation": "horizontal",
+    "status": "APROVADO",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 1254848,
+    "mime": "video/mp4;codecs=avc1.420029,mp4a.40.2",
+    "playback": {
+      "time": 1.606337,
+      "paused": false
+    },
+    "pixelDifference": 53359,
+    "pauseResumeRestart": "não repetido"
+  },
+  {
+    "pageErrors": [],
+    "engine": "Edge 157.0.4341.42",
+    "iPhoneReal": "NÃO TESTADO"
+  }
+]

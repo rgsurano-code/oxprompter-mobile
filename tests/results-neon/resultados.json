@@ -1,0 +1,685 @@
+[
+  {
+    "theme": "dark",
+    "size": {
+      "width": 320,
+      "height": 568
+    },
+    "status": "APROVADO",
+    "layout": {
+      "panel": {
+        "x": 6,
+        "y": 452.625,
+        "width": 308,
+        "height": 109.375,
+        "right": 314,
+        "bottom": 562
+      },
+      "meter": {
+        "width": 83.484375,
+        "height": 11
+      },
+      "hits": [
+        {
+          "id": "fontLess",
+          "width": 32.328125,
+          "height": 31.71875,
+          "target": "fontLess"
+        },
+        {
+          "id": "fontMore",
+          "width": 30.796875,
+          "height": 31.71875,
+          "target": "fontMore"
+        },
+        {
+          "id": "pause",
+          "width": 29.25,
+          "height": 31.71875,
+          "target": "pause"
+        },
+        {
+          "id": "finishTele",
+          "width": 64.0625,
+          "height": 57.96875,
+          "target": "finishTele"
+        },
+        {
+          "id": "restartTele",
+          "width": 32.953125,
+          "height": 31.71875,
+          "target": "restartTele"
+        },
+        {
+          "id": "backTele",
+          "width": 32.328125,
+          "height": 31.71875,
+          "target": "backTele"
+        },
+        {
+          "id": "hideControls",
+          "width": 32.640625,
+          "height": 31.71875,
+          "target": "hideControls"
+        },
+        {
+          "id": "slower",
+          "width": 40.03125,
+          "height": 26.25,
+          "target": "slower"
+        },
+        {
+          "id": "faster",
+          "width": 36.953125,
+          "height": 26.25,
+          "target": "faster"
+        },
+        {
+          "id": "widthToggle",
+          "width": 37.5625,
+          "height": 26.25,
+          "target": "widthToggle"
+        }
+      ]
+    }
+  },
+  {
+    "theme": "dark",
+    "size": {
+      "width": 390,
+      "height": 844
+    },
+    "status": "APROVADO",
+    "layout": {
+      "panel": {
+        "x": 6,
+        "y": 703.765625,
+        "width": 378,
+        "height": 134.234375,
+        "right": 384,
+        "bottom": 838
+      },
+      "meter": {
+        "width": 110,
+        "height": 11
+      },
+      "hits": [
+        {
+          "id": "fontLess",
+          "width": 39.6875,
+          "height": 38.921875,
+          "target": "fontLess"
+        },
+        {
+          "id": "fontMore",
+          "width": 37.796875,
+          "height": 38.921875,
+          "target": "fontMore"
+        },
+        {
+          "id": "pause",
+          "width": 35.90625,
+          "height": 38.921875,
+          "target": "pause"
+        },
+        {
+          "id": "finishTele",
+          "width": 78.609375,
+          "height": 71.140625,
+          "target": "finishTele"
+        },
+        {
+          "id": "restartTele",
+          "width": 40.4375,
+          "height": 38.921875,
+          "target": "restartTele"
+        },
+        {
+          "id": "backTele",
+          "width": 39.6875,
+          "height": 38.921875,
+          "target": "backTele"
+        },
+        {
+          "id": "hideControls",
+          "width": 40.0625,
+          "height": 38.921875,
+          "target": "hideControls"
+        },
+        {
+          "id": "slower",
+          "width": 49.125,
+          "height": 32.203125,
+          "target": "slower"
+        },
+        {
+          "id": "faster",
+          "width": 45.359375,
+          "height": 32.203125,
+          "target": "faster"
+        },
+        {
+          "id": "widthToggle",
+          "width": 46.109375,
+          "height": 32.203125,
+          "target": "widthToggle"
+        }
+      ]
+    }
+  },
+  {
+    "theme": "dark",
+    "size": {
+      "width": 844,
+      "height": 390
+    },
+    "status": "APROVADO",
+    "layout": {
+      "panel": {
+        "x": 235.3046875,
+        "y": 251.40625,
+        "width": 373.390625,
+        "height": 132.59375,
+        "right": 608.6953125,
+        "bottom": 384
+      },
+      "meter": {
+        "width": 140,
+        "height": 12
+      },
+      "hits": [
+        {
+          "id": "fontLess",
+          "width": 39.203125,
+          "height": 38.4375,
+          "target": "fontLess"
+        },
+        {
+          "id": "fontMore",
+          "width": 37.328125,
+          "height": 38.4375,
+          "target": "fontMore"
+        },
+        {
+          "id": "pause",
+          "width": 35.46875,
+          "height": 38.4375,
+          "target": "pause"
+        },
+        {
+          "id": "finishTele",
+          "width": 77.65625,
+          "height": 70.265625,
+          "target": "finishTele"
+        },
+        {
+          "id": "restartTele",
+          "width": 39.9375,
+          "height": 38.4375,
+          "target": "restartTele"
+        },
+        {
+          "id": "backTele",
+          "width": 39.203125,
+          "height": 38.4375,
+          "target": "backTele"
+        },
+        {
+          "id": "hideControls",
+          "width": 39.578125,
+          "height": 38.4375,
+          "target": "hideControls"
+        },
+        {
+          "id": "slower",
+          "width": 48.53125,
+          "height": 31.8125,
+          "target": "slower"
+        },
+        {
+          "id": "faster",
+          "width": 44.796875,
+          "height": 31.8125,
+          "target": "faster"
+        },
+        {
+          "id": "widthToggle",
+          "width": 45.546875,
+          "height": 31.8125,
+          "target": "widthToggle"
+        }
+      ]
+    }
+  },
+  {
+    "theme": "dark",
+    "size": {
+      "width": 1280,
+      "height": 800
+    },
+    "status": "APROVADO",
+    "layout": {
+      "panel": {
+        "x": 280,
+        "y": 538.3125,
+        "width": 720,
+        "height": 255.6875,
+        "right": 1000,
+        "bottom": 794
+      },
+      "meter": {
+        "width": 140,
+        "height": 12
+      },
+      "hits": [
+        {
+          "id": "fontLess",
+          "width": 75.59375,
+          "height": 74.140625,
+          "target": "fontLess"
+        },
+        {
+          "id": "fontMore",
+          "width": 72,
+          "height": 74.140625,
+          "target": "fontMore"
+        },
+        {
+          "id": "pause",
+          "width": 68.390625,
+          "height": 74.140625,
+          "target": "pause"
+        },
+        {
+          "id": "finishTele",
+          "width": 149.75,
+          "height": 135.5,
+          "target": "finishTele"
+        },
+        {
+          "id": "restartTele",
+          "width": 77.03125,
+          "height": 74.140625,
+          "target": "restartTele"
+        },
+        {
+          "id": "backTele",
+          "width": 75.59375,
+          "height": 74.140625,
+          "target": "backTele"
+        },
+        {
+          "id": "hideControls",
+          "width": 76.3125,
+          "height": 74.140625,
+          "target": "hideControls"
+        },
+        {
+          "id": "slower",
+          "width": 93.59375,
+          "height": 61.359375,
+          "target": "slower"
+        },
+        {
+          "id": "faster",
+          "width": 86.390625,
+          "height": 61.359375,
+          "target": "faster"
+        },
+        {
+          "id": "widthToggle",
+          "width": 87.828125,
+          "height": 61.359375,
+          "target": "widthToggle"
+        }
+      ]
+    }
+  },
+  {
+    "theme": "white",
+    "size": {
+      "width": 320,
+      "height": 568
+    },
+    "status": "APROVADO",
+    "layout": {
+      "panel": {
+        "x": 6,
+        "y": 452.625,
+        "width": 308,
+        "height": 109.375,
+        "right": 314,
+        "bottom": 562
+      },
+      "meter": {
+        "width": 83.484375,
+        "height": 11
+      },
+      "hits": [
+        {
+          "id": "fontLess",
+          "width": 32.328125,
+          "height": 31.71875,
+          "target": "fontLess"
+        },
+        {
+          "id": "fontMore",
+          "width": 30.796875,
+          "height": 31.71875,
+          "target": "fontMore"
+        },
+        {
+          "id": "pause",
+          "width": 29.25,
+          "height": 31.71875,
+          "target": "pause"
+        },
+        {
+          "id": "finishTele",
+          "width": 64.0625,
+          "height": 57.96875,
+          "target": "finishTele"
+        },
+        {
+          "id": "restartTele",
+          "width": 32.953125,
+          "height": 31.71875,
+          "target": "restartTele"
+        },
+        {
+          "id": "backTele",
+          "width": 32.328125,
+          "height": 31.71875,
+          "target": "backTele"
+        },
+        {
+          "id": "hideControls",
+          "width": 32.640625,
+          "height": 31.71875,
+          "target": "hideControls"
+        },
+        {
+          "id": "slower",
+          "width": 40.03125,
+          "height": 26.25,
+          "target": "slower"
+        },
+        {
+          "id": "faster",
+          "width": 36.953125,
+          "height": 26.25,
+          "target": "faster"
+        },
+        {
+          "id": "widthToggle",
+          "width": 37.5625,
+          "height": 26.25,
+          "target": "widthToggle"
+        }
+      ]
+    }
+  },
+  {
+    "theme": "white",
+    "size": {
+      "width": 390,
+      "height": 844
+    },
+    "status": "APROVADO",
+    "layout": {
+      "panel": {
+        "x": 6,
+        "y": 703.765625,
+        "width": 378,
+        "height": 134.234375,
+        "right": 384,
+        "bottom": 838
+      },
+      "meter": {
+        "width": 110,
+        "height": 11
+      },
+      "hits": [
+        {
+          "id": "fontLess",
+          "width": 39.6875,
+          "height": 38.921875,
+          "target": "fontLess"
+        },
+        {
+          "id": "fontMore",
+          "width": 37.796875,
+          "height": 38.921875,
+          "target": "fontMore"
+        },
+        {
+          "id": "pause",
+          "width": 35.90625,
+          "height": 38.921875,
+          "target": "pause"
+        },
+        {
+          "id": "finishTele",
+          "width": 78.609375,
+          "height": 71.140625,
+          "target": "finishTele"
+        },
+        {
+          "id": "restartTele",
+          "width": 40.4375,
+          "height": 38.921875,
+          "target": "restartTele"
+        },
+        {
+          "id": "backTele",
+          "width": 39.6875,
+          "height": 38.921875,
+          "target": "backTele"
+        },
+        {
+          "id": "hideControls",
+          "width": 40.0625,
+          "height": 38.921875,
+          "target": "hideControls"
+        },
+        {
+          "id": "slower",
+          "width": 49.125,
+          "height": 32.203125,
+          "target": "slower"
+        },
+        {
+          "id": "faster",
+          "width": 45.359375,
+          "height": 32.203125,
+          "target": "faster"
+        },
+        {
+          "id": "widthToggle",
+          "width": 46.109375,
+          "height": 32.203125,
+          "target": "widthToggle"
+        }
+      ]
+    }
+  },
+  {
+    "theme": "white",
+    "size": {
+      "width": 844,
+      "height": 390
+    },
+    "status": "APROVADO",
+    "layout": {
+      "panel": {
+        "x": 235.3046875,
+        "y": 251.40625,
+        "width": 373.390625,
+        "height": 132.59375,
+        "right": 608.6953125,
+        "bottom": 384
+      },
+      "meter": {
+        "width": 140,
+        "height": 12
+      },
+      "hits": [
+        {
+          "id": "fontLess",
+          "width": 39.203125,
+          "height": 38.4375,
+          "target": "fontLess"
+        },
+        {
+          "id": "fontMore",
+          "width": 37.328125,
+          "height": 38.4375,
+          "target": "fontMore"
+        },
+        {
+          "id": "pause",
+          "width": 35.46875,
+          "height": 38.4375,
+          "target": "pause"
+        },
+        {
+          "id": "finishTele",
+          "width": 77.65625,
+          "height": 70.265625,
+          "target": "finishTele"
+        },
+        {
+          "id": "restartTele",
+          "width": 39.9375,
+          "height": 38.4375,
+          "target": "restartTele"
+        },
+        {
+          "id": "backTele",
+          "width": 39.203125,
+          "height": 38.4375,
+          "target": "backTele"
+        },
+        {
+          "id": "hideControls",
+          "width": 39.578125,
+          "height": 38.4375,
+          "target": "hideControls"
+        },
+        {
+          "id": "slower",
+          "width": 48.53125,
+          "height": 31.8125,
+          "target": "slower"
+        },
+        {
+          "id": "faster",
+          "width": 44.796875,
+          "height": 31.8125,
+          "target": "faster"
+        },
+        {
+          "id": "widthToggle",
+          "width": 45.546875,
+          "height": 31.8125,
+          "target": "widthToggle"
+        }
+      ]
+    }
+  },
+  {
+    "theme": "white",
+    "size": {
+      "width": 1280,
+      "height": 800
+    },
+    "status": "APROVADO",
+    "layout": {
+      "panel": {
+        "x": 280,
+        "y": 538.3125,
+        "width": 720,
+        "height": 255.6875,
+        "right": 1000,
+        "bottom": 794
+      },
+      "meter": {
+        "width": 140,
+        "height": 12
+      },
+      "hits": [
+        {
+          "id": "fontLess",
+          "width": 75.59375,
+          "height": 74.140625,
+          "target": "fontLess"
+        },
+        {
+          "id": "fontMore",
+          "width": 72,
+          "height": 74.140625,
+          "target": "fontMore"
+        },
+        {
+          "id": "pause",
+          "width": 68.390625,
+          "height": 74.140625,
+          "target": "pause"
+        },
+        {
+          "id": "finishTele",
+          "width": 149.75,
+          "height": 135.5,
+          "target": "finishTele"
+        },
+        {
+          "id": "restartTele",
+          "width": 77.03125,
+          "height": 74.140625,
+          "target": "restartTele"
+        },
+        {
+          "id": "backTele",
+          "width": 75.59375,
+          "height": 74.140625,
+          "target": "backTele"
+        },
+        {
+          "id": "hideControls",
+          "width": 76.3125,
+          "height": 74.140625,
+          "target": "hideControls"
+        },
+        {
+          "id": "slower",
+          "width": 93.59375,
+          "height": 61.359375,
+          "target": "slower"
+        },
+        {
+          "id": "faster",
+          "width": 86.390625,
+          "height": 61.359375,
+          "target": "faster"
+        },
+        {
+          "id": "widthToggle",
+          "width": 87.828125,
+          "height": 61.359375,
+          "target": "widthToggle"
+        }
+      ]
+    }
+  },
+  {
+    "status": "APROVADO",
+    "actions": "fonte, velocidade, largura, pausa/continuação, ocultar/mostrar, recomeçar e voltar",
+    "meter": {
+      "silent": 2.15625,
+      "speaking": 34.0625
+    },
+    "pageErrors": [],
+    "engine": "Edge 157.0.4341.42",
+    "iPhoneReal": "NÃO TESTADO"
+  }
+]

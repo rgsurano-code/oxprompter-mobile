@@ -1,3 +1,11 @@
+# V1.0.2 — Painel Neon e barra do microfone
+
+Consulte ATUALIZACAO-NEON.md. A versão V1.0.1 foi preservada. Falha de rolagem por voz no iOS: pendente. Documentos abaixo descrevem o histórico anterior.
+
+# Correção V1.0.1 — vídeo final no iOS
+
+Consulte CORRECAO-IOS.md para alterações, testes e roteiro no iPhone. A aparência da preparação e da leitura foi preservada. Gravação e reprodução real no Safari/iPhone: NÃO TESTADO. Os documentos anteriores abaixo e os relatórios recebidos no ZIP são históricos.
+
 # OXPROMPTER Mobile — versão revisada
 
 ## Como abrir
@@ -50,3 +58,4 @@ Substitua todos os arquivos, mantendo a mesma origem HTTPS. Feche as abas antiga
 ## Limites de compatibilidade
 
 Veja `RELATORIO-AUDITORIA.md` para os testes efetivamente realizados. Chromium e WebKit em computador não equivalem a testes em aparelhos reais. Permissões, troca de lentes, gravações longas, instalação PWA e salvamento no iOS ainda exigem homologação física. Resolução, orientação, taxa de quadros e formato são negociados com o navegador; não há promessa de 4K/60 fps nem conversão universal para MP4.
+

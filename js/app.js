@@ -6,7 +6,7 @@ function showSplash(){
     const chars=Array.from({length:18+Math.floor(Math.random()*18)},()=>Math.random()>.5?'0':'1').join('\n');
     cols.push(`<div class="splash-col" style="left:${i*3.25}%;animation-duration:${3+Math.random()*5}s;animation-delay:${-Math.random()*6}s">${chars}</div>`);
   }
-  document.body.innerHTML=`<div id="splash" class="splash-screen"><div class="splash-matrix">${cols.join('')}</div><div class="splash-center"><h1 class="splash-title">OXPROMPTER</h1><button id="splashStart" class="splash-start">INICIAR</button></div><div class="splash-dev">OXPROMPTER MOBILE • VERSÃO REVISADA</div></div>`;
+  document.body.innerHTML=`<div id="splash" class="splash-screen"><div class="splash-matrix">${cols.join('')}</div><div class="splash-center"><h1 class="splash-title">OXPROMPTER</h1><button id="splashStart" class="splash-start">INICIAR</button></div><div class="splash-dev">Oxprompter - Android &amp; IOS</div></div>`;
   $('#splashStart').onclick=()=>{const el=$('#splash');el.classList.add('leaving');setTimeout(()=>render(),500)};
 }
 

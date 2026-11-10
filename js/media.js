@@ -132,6 +132,18 @@ function stopFrameCapture(){
   frameCanvas=null;frameCtx=null;
   frameTargetW=0;frameTargetH=0;frameName='';
 }
+async function waitForCameraFrame(video,timeout=8000){
+  // A faixa pode estar live antes de o Safari entregar a primeira imagem.
+  await video.play();
+  if(video.readyState>=2&&video.videoWidth>0&&video.videoHeight>0)return;
+  await new Promise((resolve,reject)=>{
+    const cleanup=()=>{clearTimeout(timer);video.removeEventListener('loadeddata',check);video.removeEventListener('canplay',check);video.removeEventListener('error',fail)};
+    const check=()=>{if(video.readyState>=2&&video.videoWidth>0&&video.videoHeight>0){cleanup();resolve()}};
+    const fail=()=>{cleanup();reject(new Error('A câmera não entregou uma imagem válida. Tente iniciar novamente.'))};
+    const timer=setTimeout(fail,timeout);
+    video.addEventListener('loadeddata',check);video.addEventListener('canplay',check);video.addEventListener('error',fail);check();
+  });
+}
 async function switchPreviewToFrame(stream){
   const pv=$('#cameraPreview');
   if(!pv)return;
@@ -243,7 +255,7 @@ function startLiveMicMeter(stream){
       liveMicAnalyser.getByteTimeDomainData(data);
       let sum=0;for(const v of data){const n=(v-128)/128;sum+=n*n}
       const rms=Math.sqrt(sum/data.length); currentMicRms=rms; const pct=Math.min(100,Math.max(2,rms*300));
-      const bar=$('#liveMicLevel');if(bar)bar.style.width=pct+'%';
+      const bar=$('#liveMicLevel');if(bar){bar.style.width=pct+'%';bar.parentElement?.setAttribute('aria-valuenow',String(Math.round(pct)))}
       const db=20*Math.log10(Math.max(rms,.0001));const txt=$('#liveMicDb');if(txt)txt.textContent=Math.max(-60,Math.round(db))+' dB';
       if(started && !paused && (current.settings?.mode||'audio')!=='noaudio'){
         voiceNoiseFloor=voiceNoiseFloor*0.92+Math.min(rms,0.01)*0.08;
@@ -350,12 +362,15 @@ async function startCameraAndRecording(){
     // da rede social (9:16 em pé / 16:9 deitado), com recorte automático "cover".
     let canvasStream=null;
     if(wantVideo&&videoStream){
-      const hidden=document.createElement('video');
+      // Reutiliza a câmera visível sem mudar seu estilo ou enquadramento.
+      // Evita uma segunda reprodução oculta como fonte principal no iPhone.
+      const hidden=(current.settings?.mobileCameraBg&&$('#mobileCameraBgVideo'))||document.createElement('video');
       hidden.muted=true;hidden.playsInline=true;hidden.autoplay=true;
       hidden.setAttribute('playsinline','');
       hidden.srcObject=videoStream;
       startFrameCapture(hidden);
-      try{await hidden.play()}catch(e){}
+      await waitForCameraFrame(hidden);
+      drawFrameCapture();
       const fps=clampFps(Number(current.settings?.recordFps)||30);
       try{canvasStream=frameCanvas.captureStream(fps)}catch(e){try{canvasStream=frameCanvas.captureStream()}catch(e2){canvasStream=null}}
       if(!canvasStream||!canvasStream.getVideoTracks().length){
@@ -398,6 +413,8 @@ async function startCameraAndRecording(){
     rec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data)};
     rec.onstart=()=>{if(mediaRecorder!==rec)return;recordingActive=true;document.body.classList.add('recording');if($('#recLabel'))$('#recLabel').textContent='GRAVANDO'};
     rec.onstop=()=>{
+      // Uma sessão encerrada não pode apagar os recursos de outra gravação.
+      if(mediaRecorder!==rec)return;
       // Usa sempre o recorder desta sessão, mesmo que outra ação já tenha
       // alterado a variável global mediaRecorder.
       if(chunks.length){
@@ -435,7 +452,7 @@ async function startCameraAndRecording(){
         }
       }
     };
-    rec.onerror=()=>{recordingActive=false;document.body.classList.remove('recording')};
+    rec.onerror=()=>{if(mediaRecorder!==rec)return;recordingActive=false;document.body.classList.remove('recording');setStatus('red','A gravação foi interrompida pelo navegador. Confira o arquivo antes de salvar.')};
     return true;
   }catch(e){
     stopFrameCapture();
@@ -471,7 +488,7 @@ function showRecordingPreview(){
     <div class="record-review-card">
       <div class="record-review-head">
         <div class="record-review-title">🎬 GRAVAÇÃO FINALIZADA</div>
-        <div class="record-review-sub">Confira o áudio e o vídeo antes de salvar.</div>
+        <div class="record-review-sub">Toque em reproduzir para conferir o áudio e o vídeo antes de salvar.</div>
       </div>
       <div class="record-review-media">${mediaTag}</div>
       <div class="record-review-actions">
@@ -497,27 +514,10 @@ function showRecordingPreview(){
       sub.textContent='O iOS não reproduz OGG na prévia. Clique em SALVAR PRODUÇÃO para baixar e abrir em outro app.';
     }
 
-    if(isIOSDevice()&&v.tagName==='VIDEO'){
-      // iOS bloqueia autoplay com som. Faz um "empurrão" mudo para o primeiro
-      // quadro ser renderizado e depois devolve o controle ao usuário, já sem
-      // a tela congelada.
-      let nudged=false;
-      const nudge=()=>{
-        if(nudged||!v)return;nudged=true;
-        try{
-          v.muted=true;
-          const p=v.play();
-          if(p&&p.catch)p.catch(()=>{});
-          setTimeout(()=>{try{v.pause();v.currentTime=0;v.muted=false}catch(e){}},260);
-        }catch(e){}
-      };
-      v.addEventListener('loadeddata',nudge,{once:true});
-      v.addEventListener('canplay',nudge,{once:true});
-      setTimeout(nudge,900);
-      v.onerror=()=>{if(sub)sub.textContent='O Safari não conseguiu reproduzir a prévia. Use SALVAR PRODUÇÃO para baixar e abrir em Fotos/Arquivos.'};
-    }else{
-      v.onerror=()=>{if(sub)sub.textContent='Não foi possível reproduzir a prévia. Use SALVAR PRODUÇÃO para baixar o arquivo.'};
-    }
+    // Reprodução com som iniciada pelo controle nativo: sem temporizadores
+    // que pausam o vídeo ou o devolvem ao primeiro quadro após o toque.
+    v.controls=true;v.autoplay=false;v.muted=false;
+    v.onerror=()=>{if(sub)sub.textContent='Não foi possível reproduzir a prévia. Use SALVAR PRODUÇÃO para baixar o arquivo.'};
     try{v.load()}catch(e){}
   }
 

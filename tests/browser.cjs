@@ -47,7 +47,7 @@ const server=http.createServer((req,res)=>{const file=path.join(root,decodeURICo
    // Speech backend is deliberately mocked here: test exact command matching only.
    const commandResult=await page.evaluate(()=>{const Old=window.SpeechRecognition;let hits=0;class Fake{constructor(){window.fakeSpeech=this}start(){}stop(){}abort(){}}window.SpeechRecognition=Fake;current.settings.startCmds=[{phrase:'começar agora'}];startStartCommandListener(()=>hits++);fakeSpeech.onresult({resultIndex:0,results:[[{transcript:'começar'}]]});const partial=hits;fakeSpeech.onresult({resultIndex:0,results:[[{transcript:'começar agora'}]]});window.SpeechRecognition=Old;return {partial,hits}});assert.deepEqual(commandResult,{partial:0,hits:1});
    await page.evaluate(()=>{stopAll();showBiblioteca()});
-   await page.evaluate(()=>navigator.serviceWorker.ready);await page.waitForTimeout(300);assert(await page.evaluate(async()=>{const c=await caches.open('oxprompter-mobile-revisado-1');return !!(await c.match('./js/reader.js'))}));
+   await page.evaluate(()=>navigator.serviceWorker.ready);await page.waitForTimeout(300);assert(await page.evaluate(async()=>{const c=await caches.open('oxprompter-mobile-neon-1.0.2');return !!(await c.match('./js/reader.js'))}));
    if(engine==='chromium'){await context.setOffline(true);await page.reload();await page.locator('#splashStart').waitFor();assert(await page.evaluate(()=>typeof showBiblioteca==='function'));await context.setOffline(false)}
    const recovery=await context.newPage();await recovery.addInitScript(()=>localStorage.setItem('tp_data_v1','{invalid'));await recovery.goto('http://127.0.0.1:8765');await recovery.locator('#splashStart').click();await recovery.locator('#p1').waitFor();assert.equal(await recovery.evaluate(()=>localStorage.getItem('tp_data_v1')),'{invalid');await recovery.close();
    assert.deepEqual(errors,[]);results.push({engine,version:browser.version(),passed:true,errors});
@@ -56,3 +56,4 @@ const server=http.createServer((req,res)=>{const file=path.join(root,decodeURICo
  }
  fs.writeFileSync(path.join(__dirname,'results/browser-results.json'),JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));if(results.some(r=>!r.passed))process.exitCode=1;server.close();
 })().catch(e=>{console.error(e);server.close();process.exitCode=1});
+
